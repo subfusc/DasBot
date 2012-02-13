@@ -78,7 +78,7 @@ class IRCbot:
     def notify(self, name, message):
         self.s.send("NOTICE " + name + " :" + message + "\n")
 
-    def listen(self):
+    def start(self):
         while 1: # Main Loop
             line = self.s.recv(1024) #recieve server messages
             line = line.rstrip()
@@ -95,6 +95,10 @@ class IRCbot:
 
             if line[1] == 'QUIT':
                 self.quit(line)
+            
+            self.listen(line)
+
+    def listen(self, line): pass
 
     def parsemsg(self, line):
         nick, domain = line[0].split("!")
@@ -128,4 +132,4 @@ if __name__ == "__main__":
     bot.connect()
     bot.join("#nybrummbot")
     bot.notify("#nybrummbot", "HAI PEEPS!")
-    bot.listen()
+    bot.start()
