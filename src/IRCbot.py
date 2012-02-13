@@ -1,18 +1,25 @@
+# -*- coding: utf-8 -*-
+
 import sys 
 import socket 
 import string 
+import re
 VERBOSE = True
+DEBUG = True
+
+IDENT_RE = r'^:(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>.+)\s*$'
 
 class IRCbot(object):
 
     def __init__(self, host, port, nick, ident, realname):
-        self.host = host
-        self.port = port
-        self.nick = nick
-        self.ident = ident
-        self.realname = realname
-        self.s = socket.socket() #Create the socket 
-        self.channel = {}
+        self.host = host #: The IP/URL for the server
+        self.port = port #: The port number for the server 
+        self.nick = nick #: The nick the bot is going to use
+        self.ident = ident #: Identity of the bot
+        self.realname = realname #: The "realname" of the bot
+        self.s = socket.socket() #: Create a socket for the I/O to the server
+        self.channel = {} #: Channels we are in
+        self.ident_re = re.compile(IDENT_RE) #: Extract information from the identity string
 
     def connect(self):
         self.s.connect((self.host, self.port)) #Connect to server 
@@ -25,7 +32,7 @@ class IRCbot(object):
             line = line.rstrip() #remove trailing 'rn' 
             line = line.split() 
             
-            if line[3].find(':\x01VERSION\x01') != -1: #This is Crap 
+            if line[3].find(':\x01VERSION\x01') != -1 or line[3].find(':VERSION')  != -1: #This is Crap 
                 print "Presumably connected"
                 self.msg(line[0][1:], '\x01VERSION 0.0.0.0.0.0.1\x01\n')
                 break;
@@ -79,52 +86,78 @@ class IRCbot(object):
     def notify(self, name, message):
         self.s.send("NOTICE " + name + " :" + message + "\n")
 
+    def _parse_raw_input(self, line):
+        line = line.rstrip()
+        line = line.split()
+
+        if DEBUG: print(line)
+        if len(line) == 2:
+            self.listen(line[0], line[1][1:])
+
+        match = self.ident_re.match(line[0])
+        if match:
+            line[3] = line[3][1:]
+            self.listen(line[1], " ".join(line[3:]), channel=line[2],
+                        from_nick=match.group('nick'),
+                        from_ident=match.group('ident'),
+                        from_host_mask=match.group('hostmask'))
+        else:
+            print "NICK DOESNT MATCH"
+        
     def start(self):
         while 1: # Main Loop
             line = self.s.recv(1024) #recieve server messages
-            line = line.rstrip()
-            if VERBOSE: print line #server message is output             
-            line = line.split()
-            self.listen(line)
 
-    def listen(self, line):
+            if VERBOSE: print line #server message is output
+            line = self._parse_raw_input(line)
+
+
+    def listen(self, command, msg, channel=None, **kwargs):
         """
         This Function is supposed to be extended in subclasses to provide functionality needed in 
         diffrent layers and bots.
 
-        Remember __super__.listen(line)
+        Remember __super__.listen(args)
         """
+        if VERBOSE: 
+            print("==LISTEN: Command: %s, Message: %s, Channel: %s, From: %s!%s@%s" % (command, msg, 
+                                                                                       channel,
+                                                                                       kwargs["from_nick"], 
+                                                                                       kwargs["from_ident"],
+                                                                                       kwargs["from_host_mask"]))
         
-        if line[0] == 'PING': #If server pings then pong 
-            print "replying to pong \'%s\'" % ('PONG ' + line[1])
-            self.s.send('PONG ' + line[1] + '\n')
+        if command == 'PING': #If server pings then pong 
+            print "replying to pong \'%s\'" % ('PONG ' + msg)
+            self.s.send('PONG ' + ":" + msg + '\n')
             
-        if line[1] == 'PRIVMSG': #Call a parsing function 
-            self.parsemsg(line)
+
+            # NOT REALLY USEFULL, REWRITE!
+            #     if command == 'PRIVMSG': #Call a parsing function 
+    #         self.parsemsg(msg)
             
-        if line[1] == 'QUIT':
-            self.quit(line)
+    #     if command == 'QUIT':
+    #         self.quit(msg)
         
 
-    def parsemsg(self, line):
-        nick, domain = line[0].split("!")
-        nick = nick[1:]
-        message = " ".join(line[3:])
-        message = message[1:]
+    # def parsemsg(self, line):
+    #     nick, domain = line[0].split("!")
+    #     nick = nick[1:]
+    #     message = " ".join(line[3:])
+    #     message = message[1:]
 
-        if line[2] == self.nick:
-            self.private_message(nick, domain, message)
-        else:
-            self.channel_message(line[2], nick, domain, message)
+    #     if line[2] == self.nick:
+    #         self.private_message(nick, domain, message)
+    #     else:
+    #         self.channel_message(line[2], nick, domain, message)
 
-    def channel_message(self, channel, nick, domain,  message):
-        print "Channel Message from %s@%s" % (nick, domain)
+    # def channel_message(self, channel, nick, domain,  message):
+    #     print "Channel Message from %s@%s" % (nick, domain)
 
-    def private_message(self, nick, domain, message):
-        print "Private Message from %s@%s" % (nick, domain)
+    # def private_message(self, nick, domain, message):
+    #     print "Private Message from %s@%s" % (nick, domain)
 
-    def quit(self,line):
-        print "somone quit"
+    # def quit(self,line):
+    #     print "somone quit"
 
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 

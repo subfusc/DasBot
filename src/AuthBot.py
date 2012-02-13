@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import IRCbot
 
 class AuthBot(IRCbot.IRCbot):
@@ -9,8 +11,8 @@ class AuthBot(IRCbot.IRCbot):
     def __init__(self, host, port, nick, ident, realname):
         super(AuthBot, self).__init__(host, port, nick, ident, realname)
 
-    def listen(self, line):
-        super(AuthBot, self).listen(line)
+    def listen(self, command, msg, channel=None, **kwargs):
+        super(AuthBot, self).listen(command, msg, channel=channel, **kwargs)
         print "RUNNING AUTH BOT"
 
 if __name__ == "__main__":
