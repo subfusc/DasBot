@@ -123,10 +123,10 @@ class IRCbot:
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
     PORT=6667 #The connection port which is usually 6667 
-    NICK='Botty' #The bot's nickname 
-    IDENT='botty' 
+    NICK='Automott' #The bot's nickname 
+    IDENT='automott' 
     REALNAME='Aweseome Bot' 
-    OWNER='Subfusc' #The bot owner's nick 
+    OWNER='Trondth' #The bot owner's nick 
     
     bot = IRCbot(HOST, PORT, NICK, IDENT, REALNAME)
     bot.connect()
