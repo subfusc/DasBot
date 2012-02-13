@@ -21,13 +21,15 @@ class IRCbot:
         while 1: # Join loop 
             line = self.s.recv(1024) #recieve server messages 
             print line #server message is output 
-            
-            if line.find('END OF MESSAGE(S) OF THE DAY')!=-1: #This is Crap(I wasn't sure about it but it works) 
-                break;
-            
             line = line.rstrip() #remove trailing 'rn' 
             line = line.split() 
-            if(line[0]=='PING'): #If server pings then pong 
+            
+            if line[3].find(':\x01VERSION\x01') != -1: #This is Crap 
+                print "Presumably connected"
+                self.msg(line[0][1:], '\x01VERSION 0.0.0.0.0.0.1\x01\n')
+                break;
+            
+            if (line[0]=='PING'): #If server pings then pong 
                 print "replying to pong \'%s\'" % ('PONG ' + line[1])
                 self.s.send('PONG ' + line[1] + '\n')  
         
@@ -105,24 +107,25 @@ class IRCbot:
         else:
             self.channel_message(line[2], nick, domain, message)
 
-    def channel_message(self, channel, nick, message):
-        print "Channel Message from %s" % (channel)
+    def channel_message(self, channel, nick, domain,  message):
+        print "Channel Message from %s@%s" % (nick, domain)
 
-    def private_message(self, nick, message):
-        print "Private Message from %s" % (nick)
+    def private_message(self, nick, domain, message):
+        print "Private Message from %s@%s" % (nick, domain)
 
     def quit(self,line):
         print "somone quit"
 
 if __name__ == "__main__":
-    HOST='ogn1.onlinegamesnet.net' #The server we want to connect to 
-    PORT=6660 #The connection port which is usually 6667 
-    NICK='IRCBOT' #The bot's nickname 
-    IDENT='pybot' 
+    HOST='irc.ifi.uio.no' #The server we want to connect to 
+    PORT=6667 #The connection port which is usually 6667 
+    NICK='Botty' #The bot's nickname 
+    IDENT='botty' 
     REALNAME='Aweseome Bot' 
     OWNER='Subfusc' #The bot owner's nick 
     
     bot = IRCbot(HOST, PORT, NICK, IDENT, REALNAME)
     bot.connect()
-    bot.join("#eternalfaith")
+    bot.join("#nybrummbot")
+    bot.notify("#nybrummbot", "HAI PEEPS!")
     bot.listen()
