@@ -1,8 +1,9 @@
 import sys 
 import socket 
 import string 
+VERBOSE = True
 
-class IRCbot:
+class IRCbot(object):
 
     def __init__(self, host, port, nick, ident, realname):
         self.host = host
@@ -82,23 +83,28 @@ class IRCbot:
         while 1: # Main Loop
             line = self.s.recv(1024) #recieve server messages
             line = line.rstrip()
-
-            print line #server message is output             
+            if VERBOSE: print line #server message is output             
             line = line.split()
-            
-            if line[0] == 'PING': #If server pings then pong 
-                print "replying to pong \'%s\'" % ('PONG ' + line[1])
-                self.s.send('PONG ' + line[1] + '\n')
-                
-            if line[1] == 'PRIVMSG': #Call a parsing function 
-                self.parsemsg(line)
-
-            if line[1] == 'QUIT':
-                self.quit(line)
-            
             self.listen(line)
 
-    def listen(self, line): pass
+    def listen(self, line):
+        """
+        This Function is supposed to be extended in subclasses to provide functionality needed in 
+        diffrent layers and bots.
+
+        Remember __super__.listen(line)
+        """
+        
+        if line[0] == 'PING': #If server pings then pong 
+            print "replying to pong \'%s\'" % ('PONG ' + line[1])
+            self.s.send('PONG ' + line[1] + '\n')
+            
+        if line[1] == 'PRIVMSG': #Call a parsing function 
+            self.parsemsg(line)
+            
+        if line[1] == 'QUIT':
+            self.quit(line)
+        
 
     def parsemsg(self, line):
         nick, domain = line[0].split("!")
@@ -132,4 +138,5 @@ if __name__ == "__main__":
     bot.connect()
     bot.join("#nybrummbot")
     bot.notify("#nybrummbot", "HAI PEEPS!")
+    bot.msg("#nybrummbot", "emanuel: Example for you bro!")
     bot.start()
