@@ -23,7 +23,10 @@ class botmod(AuthBot.AuthBot):
           if args:
             self.msg(channel, log_stats.msg_rank(args.split()[0]))
           else:
-            self.msg(channel, 'not yet implemented. try !count <nick>')
+            self.msg(channel, 'Globals:')
+            globs = log_stats.globals()
+            for a, b in reversed(globs):
+              self.msg(channel, a + ' - ' + str(b))
     
       def listen(self, command, msg, channel, **kwargs):
         super(botmod, self).listen(command, msg, channel, **kwargs)
