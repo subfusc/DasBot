@@ -30,7 +30,7 @@ class IRCbot(object):
             line = self.s.recv(1024) #recieve server messages 
             print line #server message is output 
             line = line.rstrip() #remove trailing 'rn' 
-            line = line.split() 
+            line = line.split()
 
             if '376' in line:
                 print "End MOTD found!"
