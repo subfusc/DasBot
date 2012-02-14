@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 import IRCbot
+from GlobalConfig import *
 
 class AuthBot(IRCbot.IRCbot):
     """
@@ -9,9 +12,13 @@ class AuthBot(IRCbot.IRCbot):
     def __init__(self, host, port, nick, ident, realname):
         super(AuthBot, self).__init__(host, port, nick, ident, realname)
 
-    def listen(self, line):
-        super(AuthBot, self).listen(line)
-        print "RUNNING AUTH BOT"
+    def cmd(self, command, args, channel, **kwargs):
+        super(AuthBot, self).cmd(command, args, channel, **kwargs)
+        if VERBOSE: print "COMMAND AUTHBOT!"
+        
+    def listen(self, command, msg, channel, **kwargs):
+        super(AuthBot, self).listen(command, msg, channel, **kwargs)
+        if VERBOSE: print "LISTEN AUTHBOT!"
 
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
@@ -25,5 +32,5 @@ if __name__ == "__main__":
     bot.connect()
     bot.join("#nybrummbot")
     bot.notify("#nybrummbot", "HAI PEEPS!")
-    bot.msg("#nybrummbot", "emanuel: Example for you bro!")
+    bot.msg("#nybrummbot", "Example for you bro!", to="emanuel")
     bot.start()
