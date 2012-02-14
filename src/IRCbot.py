@@ -85,9 +85,12 @@ class IRCbot(object):
         if name[0] == '#':
             if to: self.s.send("PRIVMSG " + name + " :" + to + ", " + message + "\n")
             else: self.s.send("PRIVMSG " + name + " :" + message + "\n")
-        else:
+        elif to != None:
             self.s.send("PRIVMSG " + to + " :" + message + "\n")
-                
+
+    def private_msg(self, to, message):
+        self.s.send("PRIVMSG %s :%s\n" % (to, message))
+            
     def notify(self, name, message):
         self.s.send("NOTICE " + name + " :" + message + "\n")
 
