@@ -16,6 +16,15 @@ class Fiskern(AuthBot.AuthBot):
             self.msg(channel, "e du fette sprø i haue? æ ork da faen ikkje å ta mæ ti tel å lag sånnhærre tullekommandoa!", to=kwargs["from_nick"])
         elif command == "tell":
             self.private_msg(kwargs["from_nick"], "emanuel is lazy")
+        elif command == "whos":
+            self.msg(channel, str(self.channel[channel][args]) if args in self.channel[channel] else "Not legal key", to=kwargs['from_nick'])
+        elif command == "notifyall":
+            output = ""
+            for key in self.channel[channel]:
+                for user in self.channel[channel][key]:
+                    output += user + " "
+            self.msg(channel, output)
+            self.msg(channel, "se tell hælvette å føll me hær!")
             
     def listen(self, command, msg, channel, **kwargs):
         super(Fiskern, self).listen(command, msg, channel, **kwargs)

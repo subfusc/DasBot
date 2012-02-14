@@ -8,6 +8,7 @@ import traceback
 from GlobalConfig import *
 
 IDENT_RE = r'^:(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>.+)\s*$'
+CHANNEL_JOIN_RE = r':\S+\s353[^:]+:(?P<nicks>[^\n]+)'
 
 class IRCbot(object):
 
@@ -20,7 +21,8 @@ class IRCbot(object):
         self.s = socket.socket() #: Create a socket for the I/O to the server
         self.channel = {} #: Channels we are in
         self.ident_re = re.compile(IDENT_RE) #: Extract information from the identity string
-
+        self.channel_join_re = re.compile(CHANNEL_JOIN_RE)
+        
     def connect(self):
         self.s.connect((self.host, self.port)) #Connect to server 
         self.s.send('NICK ' + self.nick + '\n') #Send the nick to server 
@@ -36,11 +38,6 @@ class IRCbot(object):
                 print "End MOTD found!"
                 break
             
-            # if line[3].find(':\x01VERSION\x01') != -1 or line[3].find(':VERSION')  != -1: #This is Crap 
-            #     print "Presumably connected"
-            #     self.msg(line[0][1:], '\x01VERSION 0.0.0.0.0.0.1\x01\n')
-            #     break
-            
             if len(line) > 1 and line[0] == 'PING': #If server pings then pong 
                 if VERBOSE: print "replying to pong \'%s\'" % ('PONG ' + line[1])
                 self.s.send('PONG ' + line[1] + '\n')  
@@ -49,37 +46,37 @@ class IRCbot(object):
     
     def join(self, name):
         if not name in self.channel:
-            self.channel[name] = []
+            self.channel[name] = {'op':[], 'voice':[], 'user':[]}
             self.s.send('JOIN ' + name + '\n');
-            line = self.s.recv(1024)
-            line = line.rstrip()
-            line = line.split("353")
-            if len(line) >= 2:
-                line = line[1].split(":")
-                nicks = line[1]
-                
-                nicks = nicks.split()
-                for nick in nicks:
-                    if nick[0] == "+" or nick[0] == "@":
-                        self.channel[name].append(nick[1:])
-                    else:
-                        self.channel[name].append(nick)
-                        
-                return "I Joined " + name + ", and ready to spy on: " + ", ".join(self.channel[name])
-            else:
-                del self.channel[name]
-                return "DID NOT JOIN! LULZ!"
 
+            while True:
+                line = self.s.recv(1024)
+                if DEBUG: print line
+
+                match = self.channel_join_re.search(line)
+                if match:
+                    nicks = match.group('nicks')
+                    nicks = nicks.split()
+                    for nick in nicks:
+                        if nick[0] == "+":
+                            self.channel[name]['voice'].append(nick[1:])
+                        elif nick[0] == "@":
+                            self.channel[name]['op'].append(nick[1:])
+                        else:
+                            self.channel[name]['user'].append(nick)
+                    print self.channel[name]
+                
+                if line.find("366"): break
+            
+            return True
         else:
-            return "Allready in channel"
+            return True
 
     def part(self, name):
         if name in self.channel:
             self.s.send('PART ' + name + '\n')
             del self.channel[name]
-            return "PULLING OUUUUTTT!"
-        else:
-            return "Not in that channel"
+        return True
 
     def msg(self, name, message, to = None):
         if name[0] == '#':
@@ -94,6 +91,15 @@ class IRCbot(object):
     def notify(self, name, message):
         self.s.send("NOTICE " + name + " :" + message + "\n")
 
+    def _parse_args(self, args):
+        length = len(args)
+        if length > 5:
+            return " ".join(args[4:])
+        elif length == 5:
+            return args[4]
+        else:
+            return None 
+        
     def _parse_raw_input(self, line):
         line = line.rstrip()
         line = line.split()
@@ -105,18 +111,17 @@ class IRCbot(object):
 
         match = self.ident_re.match(line[0])
         try:
-            line[3] = line[3][1:]
-            if line[3][0] == '!':
-                line[3] = line[3][1:]
+            if line[3][1] == '!':
+                line[3] = line[3][2:]
                 self.cmd(line[3], 
-                         " ".join(line[4:]) if len(line) > 4 else None, 
+                         self._parse_args(line),
                          line[2],
-                         from_nick = match.group('nick'),
-                         from_ident = match.group('ident'),
-                         from_host_mask = match.group('hostmask'))
+                         from_nick=match.group('nick'),
+                         from_ident=match.group('ident'),
+                         from_host_mask=match.group('hostmask'))
                 
             else:
-                self.listen(line[1], " ".join(line[3:]), line[2],
+                self.listen(line[1][1:], " ".join(line[3:]), line[2],
                             from_nick=match.group('nick'),
                             from_ident=match.group('ident'),
                             from_host_mask=match.group('hostmask'))
