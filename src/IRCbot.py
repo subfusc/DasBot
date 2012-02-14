@@ -82,9 +82,12 @@ class IRCbot(object):
             return "Not in that channel"
 
     def msg(self, name, message, to = None):
-        if to: self.s.send("PRIVMSG " + name + " :" + to + ", " + message + "\n")
-        else: self.s.send("PRIVMSG " + name + " :" + message + "\n")
-        
+        if name[0] == '#':
+            if to: self.s.send("PRIVMSG " + name + " :" + to + ", " + message + "\n")
+            else: self.s.send("PRIVMSG " + name + " :" + message + "\n")
+        else:
+            self.s.send("PRIVMSG " + to + " :" + message + "\n")
+                
     def notify(self, name, message):
         self.s.send("NOTICE " + name + " :" + message + "\n")
 
