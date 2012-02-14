@@ -1,14 +1,23 @@
 # -*- coding: utf-8 -*-
 import AuthBot
+import time
+from GlobalConfig import *
 
 class Fiskern(AuthBot.AuthBot):
         
     def __init__(self, host, port, nick, ident, realname):
         super(Fiskern, self).__init__(host, port, nick, ident, realname)
 
-    def listen(self, command, msg, channel=None, **kwargs):
-        super(Fiskern, self).listen(command, msg, channel=channel, **kwargs)
-        print "RUNNING FISKERN BOT"
+    def cmd(self, command, args, channel, **kwargs):
+        super(Fiskern, self).cmd(command, args, channel, **kwargs)        
+        if VERBOSE: print "COMMAND FISKERN!"
+
+        if command == "insult":
+            self.msg(channel, "e du fette sprø i haue? æ ork da faen ikkje å ta mæ ti tel å lag sånnhærre tullekommandoa!", to="emanuel")
+        
+    def listen(self, command, msg, channel, **kwargs):
+        super(Fiskern, self).listen(command, msg, channel, **kwargs)
+        if VERBOSE: print "LISTEN FISKERN!"
 
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
