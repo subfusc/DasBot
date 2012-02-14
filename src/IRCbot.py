@@ -15,7 +15,7 @@ class IRCbot(object):
     def __init__(self, host, port, nick, ident, realname):
         self.host = host #: The IP/URL for the server
         self.port = port #: The port number for the server 
-        self.nick = nick #: The nick the bot is going to use
+        self._nick = nick #: The nick the bot is going to use
         self.ident = ident #: Identity of the bot
         self.realname = realname #: The "realname" of the bot
         self.s = socket.socket() #: Create a socket for the I/O to the server
@@ -25,7 +25,7 @@ class IRCbot(object):
         
     def connect(self):
         self.s.connect((self.host, self.port)) #Connect to server 
-        self.s.send('NICK ' + self.nick + '\n') #Send the nick to server 
+        self.s.send('NICK ' + self._nick + '\n') #Send the nick to server 
         self.s.send('USER ' + self.ident + ' ' + self.host + ' SB: ' + self.realname + '\n') #Identify to server
 
         while 1: # Join loop 
@@ -91,6 +91,13 @@ class IRCbot(object):
     def notify(self, name, message):
         self.s.send("NOTICE " + name + " :" + message + "\n")
 
+    def topic(self, channel, topic):
+        self.s.send("TOPIC " + channel + " :" + topic + "\n")
+
+    def nick(self, _nick):
+        self.s.send("NICK " + _nick + "\n")
+        self._nick = _nick
+        
     def _parse_args(self, args):
         length = len(args)
         if length > 5:
@@ -121,7 +128,8 @@ class IRCbot(object):
                          from_host_mask=match.group('hostmask'))
                 
             else:
-                self.listen(line[1][1:], " ".join(line[3:]), line[2],
+                line[3] = line[3][1:]
+                self.listen(line[1], " ".join(line[3:]), line[2],
                             from_nick=match.group('nick'),
                             from_ident=match.group('ident'),
                             from_host_mask=match.group('hostmask'))
