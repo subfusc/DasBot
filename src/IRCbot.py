@@ -108,18 +108,18 @@ class IRCbot(object):
             line[3] = line[3][1:]
             if line[3][0] == '!':
                 line[3] = line[3][1:]
-                
                 self.cmd(line[3], 
                          " ".join(line[4:]) if len(line) > 4 else None, 
                          line[2],
                          from_nick = match.group('nick'),
                          from_ident = match.group('ident'),
                          from_host_mask = match.group('hostmask'))
-            
-            self.listen(line[1], " ".join(line[3:]), line[2],
-                        from_nick=match.group('nick'),
-                        from_ident=match.group('ident'),
-                        from_host_mask=match.group('hostmask'))
+                
+            else:
+                self.listen(line[1], " ".join(line[3:]), line[2],
+                            from_nick=match.group('nick'),
+                            from_ident=match.group('ident'),
+                            from_host_mask=match.group('hostmask'))
             
         except Exception as e:
             print "I got an error here: %s" % e
