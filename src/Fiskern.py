@@ -15,11 +15,13 @@ class Fiskern(AuthBot.AuthBot):
         if command == "insult":
             self.msg(channel, "e du fette sprø i haue? æ ork da faen ikkje å ta mæ ti tel å lag sånnhærre tullekommandoa!", to=kwargs["from_nick"])
         elif command == "tell":
-            self.private_msg(kwargs["from_nick"], "emanuel is lazy!")
+            self.private_msg(kwargs["from_nick"], "emanuel is lazy")
             
     def listen(self, command, msg, channel, **kwargs):
         super(Fiskern, self).listen(command, msg, channel, **kwargs)
         if VERBOSE: print "LISTEN FISKERN!"
+        if msg.find("!insult") != -1:
+            self.msg(channel, "please !insult %s" % (kwargs["from_nick"]))
 
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
