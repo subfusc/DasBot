@@ -3,6 +3,7 @@
 
 import AuthBot
 from GlobalConfig import *
+import codecs
 import json
 import urllib2
 import time
@@ -19,15 +20,23 @@ class Shepard(AuthBot.AuthBot):
         if VERBOSE: print "COMMAND mrShepard!"
         if command == 't':
             svar = self.trafikanten_k(args)
+            print "Svar:", svar
+            print svar[0]
             if svar == -1:
                 s = "I am a Bear of Very Little Brain, and long words Bother me."
             else:
-                s = svar[0] + svar[1]
+                print svar
+                s1 = svar[0]
+                print type(s1)
+                print type(s1.decode('utf-8'))
+                #print type(unicode(s1.decode('utf-8')))
+                s2 = svar[1]
+                s = s1 + s2.encode('utf-8')
                 if len(svar) > 1:
                     s = s + " [neste "
                     for i in svar[2:-2]:
-                        s = s + i + "|"
-                    s = s + svar[-1] + "]"
+                        s = s + i.encode('utf-8') + "|"
+                    s = s + svar[-1].encode('utf-8') + "]"
             self.msg(channel, s, to=kwargs["from_nick"])
             #self.notify(kwargs["from_nick"], self.trafikanten_k(kwargs['Message']))
 
@@ -57,17 +66,15 @@ class Shepard(AuthBot.AuthBot):
     def trafikanten_k(self, msg):
         steder = {'sentrum': '1', 
                 'trikk': 'trikk', 
-                '∈': 'trikk',
                 'adamstuen': 'trikk', 
                 'sognsvann': 'Sognsvann',
                 'byn': '1',
                 'ullevål': '2',
-                'ååå': 'Sognsvann',
                 'murmansk': 'Sognsvann'}
         k = msg.split()
         print ""
         datere = re.compile('^\/Date\(([^+]*)\+.*$')
-        hvor = steder[k[0]].lower()
+        hvor = steder[k[0].lower()]
         nar = 0
         if len(k) > 1:
             nar = int(k[1])
@@ -81,7 +88,6 @@ class Shepard(AuthBot.AuthBot):
         !t sentrum når antall
         """
         tmp = []
-        print tmp
         if hvor != 'trikk':
             tmp.append("Avganger til %s: "  % k[0])
             print tmp
