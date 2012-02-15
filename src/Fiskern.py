@@ -3,6 +3,11 @@ import AuthBot
 import time
 from GlobalConfig import *
 from IRCFonts import *
+import re, sys, math
+numbers = r'(\d*\.\d+|\d+)'
+twonroper = r'' + numbers + '\s?([^.])\s?' + numbers + ''
+onenroper = r'^(\D*)\s' + numbers + '$'
+command = r'/.*'
 
 class Fiskern(AuthBot.AuthBot):
         
@@ -11,7 +16,6 @@ class Fiskern(AuthBot.AuthBot):
 
     def cmd(self, command, args, channel, **kwargs):
         super(Fiskern, self).cmd(command, args, channel, **kwargs)        
-        if VERBOSE: print "COMMAND FISKERN!"
 
         if command == "insult":
             self.msg(channel, "e du fette sprø i haue? æ ork da faen ikkje å ta mæ ti tel å lag sånnhærre tullekommandoa!", to=kwargs["from_nick"])
@@ -26,16 +30,10 @@ class Fiskern(AuthBot.AuthBot):
                     output += user + " "
             self.msg(channel, output)
             self.msg(channel, "se tell hælvette å føll me hær!")
-
-            ## SECURITY RISK? NO WAY!
-        # elif command == "eval":
-        #     try:
-        #         if DEBUG: print(args)
-        #         self.msg(channel, str(eval(args)))
-        #     except Exception as e:
-        #         if DEBUG: print(e)
-        #         self.msg(channel, "Not a valid expression")
-                
+        elif command == "calc":
+            result = self._math(args)
+            if result: self.msg(channel, result, to=kwargs["from_nick"])
+            else: self.msg(channel, result, to=kwargs["from_nick"])
 
         elif command == "topic":
             if args:
@@ -48,12 +46,33 @@ class Fiskern(AuthBot.AuthBot):
             
     def listen(self, command, msg, channel, **kwargs):
         super(Fiskern, self).listen(command, msg, channel, **kwargs)
-        if VERBOSE: print "LISTEN FISKERN!"
         if kwargs['from_nick'] == 'emanuel':
             self.msg(channel, "bipeti bapeti!", to="emanuel")
         if msg.find("!insult") != -1:
             self.msg(channel, "please !insult %s back" % (kwargs["from_nick"]))
 
+    def _math(self, input):
+        match = re.search(twonroper, input)
+        if match:
+            if "." in match.group(1): num1 = float(match.group(1))
+            else: num1 = int(match.group(1))
+            if "." in match.group(3): num2 = float(match.group(3))
+            else: num2 = int(match.group(3))
+
+            if match.group(2) == '+': return ("Result: %g") % (num1 + num2)
+            elif match.group(2) == '-': return ("Result: %g") % (num1 - num2)
+            elif match.group(2) == '/': return ("Result: %g") % (num1 / float(num2))
+            elif match.group(2) == '*': return ("Result: %g") % (num1 * num2)
+            else: print ("Operasjonen \"%s\" er ikke funnet.") % (match.group(2))
+
+        match = re.search(onenroper, input)
+        if match:
+            if "." in match.group(2): num1 = float(match.group(2))
+            else: num1 = int(match.group(2))
+
+            return "%s av %g er %g" % (match.group(1), num1, eval("math.%s(%d)" % (match.group(1), num1)))
+        return None
+        
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
     PORT=6667 #The connection port which is usually 6667 

@@ -14,11 +14,9 @@ class AuthBot(IRCbot.IRCbot):
 
     def cmd(self, command, args, channel, **kwargs):
         super(AuthBot, self).cmd(command, args, channel, **kwargs)
-        if VERBOSE: print "COMMAND AUTHBOT!"
         
     def listen(self, command, msg, channel, **kwargs):
         super(AuthBot, self).listen(command, msg, channel, **kwargs)
-        if VERBOSE: print "LISTEN AUTHBOT!"
 
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
