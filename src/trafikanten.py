@@ -18,9 +18,17 @@ class Shepard(AuthBot.AuthBot):
         super(Shepard, self).cmd(command, args, channel, **kwargs)        
         if VERBOSE: print "COMMAND mrShepard!"
         if command == 't':
-            svar = self.trafikanten_k(args).split('\n')
-            for s in svar:
-                self.msg(channel, s)
+            svar = self.trafikanten_k(args)
+            if svar == -1:
+                s = "I am a Bear of Very Little Brain, and long words Bother me."
+            else:
+                s = svar[0] + svar[1]
+                if len(svar) > 1:
+                    s = s + " [neste "
+                    for i in svar[2:-2]:
+                        s = s + i + "|"
+                    s = s + svar[-1] + "]"
+            self.msg(channel, s, to=kwargs["from_nick"])
             #self.notify(kwargs["from_nick"], self.trafikanten_k(kwargs['Message']))
 
     def listen(self, command, msg, channel, **kwargs):
@@ -49,39 +57,59 @@ class Shepard(AuthBot.AuthBot):
     def trafikanten_k(self, msg):
         steder = {'sentrum': '1', 
                 'trikk': 'trikk', 
-                'Sognsvann': 'Sognsvann',
-                'Murmansk': 'Sognsvann'}
+                '∈': 'trikk',
+                'adamstuen': 'trikk', 
+                'sognsvann': 'Sognsvann',
+                'byn': '1',
+                'ullevål': '2',
+                'ååå': 'Sognsvann',
+                'murmansk': 'Sognsvann'}
         k = msg.split()
+        print ""
         datere = re.compile('^\/Date\(([^+]*)\+.*$')
-        hvor = steder[k[0]]
+        hvor = steder[k[0]].lower()
         nar = 0
         if len(k) > 1:
-            nar = k[1]
+            nar = int(k[1])
         ant = 2
         if len(k) > 2:
-            ant = k[2]
-        s = self.trafikanten_realtime(steder[k[0]])
+            ant = int(k[2])
+        s = self.trafikanten_realtime(hvor)
         avganger = json.loads(s)
         nu = int(datere.match(avganger[0]['RecordedAtTime']).group(1))
         """
         !t sentrum når antall
         """
-        tmp = "Avganger til %s:\n" % hvor
-        count = 1
+        tmp = []
+        print tmp
+        if hvor != 'trikk':
+            tmp.append("Avganger til %s: "  % k[0])
+            print tmp
+        else:
+            tmp.append("Avganger med trikken: ")
+            print tmp
+        count = 0
         for avgang in avganger:
             tid = (int(datere.match(avgang['ExpectedDepartureTime']).group(1)) - nu-14)/60000
             print "::::::::::::::::::::::::::::\n", hvor
+            print avgang['DestinationName']
             print tmp
             if avgang['DestinationName'] == hvor and tid > nar:
                 count += 1
-                tmp = tmp + ' ' + str(tid) + '\n'
-            elif hvor == 'sentrum' and avgang['DirectionName'] == '1' and tid > nar:
+                tmp.append(str(tid))
+            elif hvor == '1' and avgang['DirectionName'] == '1' and tid > nar:
                 count += 1
-                tmp = tmp + ' ' + str(tid) + ' (' + avgang['DestinationName'] + ')\n'
-            if count == ant:
+                tmp.append(str(tid) + ' ('+ avgang['DestinationName'] + ')')
+            elif hvor == 'trikk' and avgang['DirectionName'] == '1' and tid > nar:
+                count += 1
+                tmp.append(str(tid) + ' (#'+ avgang['LineRef'] + ')')
+            elif hvor == '2' and avgang['DirectionName'] == '2' and tid > nar:
+                count += 1
+                tmp.append(str(tid) + ' ('+ avgang['DestinationName'] + ')')
+            if count > ant:
                 return tmp
 
-        return "I am a Bear of Very Little Brain, and long words Bother me."
+        return -1 
 
     def trafikanten(self, kommando):
         s = self.trafikanten_realtime(kommando)
@@ -91,7 +119,7 @@ class Shepard(AuthBot.AuthBot):
         setninger_normal = ['Neste bane mot {0} går om {1} minutter',
 'Du kommer deg til {0} om {1} minutter',
 'Apropos {0}. Det er {1} minutter til banen går dit',
-'Tralalalalabom. Tid minutter igjen til banen mot {0} går.',
+'Tralalalalabom. {1} minutter igjen til banen mot {0} går.',
 'Visste du at banen til {0} går om {1} minutter?',
 'Det er mye å si om {0}. Men vil du oppleve det personlig, kan du ta banen om {1} minutter.'
 ]
