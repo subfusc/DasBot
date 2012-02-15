@@ -7,8 +7,9 @@ import re
 import traceback
 from GlobalConfig import *
 
-IDENT_RE = r'^:(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>.+)\s*$'
+IDENT_RE = r'^:(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>\S+)'
 CHANNEL_JOIN_RE = r':\S+\s353[^:]+:(?P<nicks>[^\n]+)'
+MESSAGE_RE = r'^(?P<svcmd>[^!@\s]+)\s+:(?P<adress>[^!@]+(.[^!@\r\n])+)\s*$|' + IDENT_RE + r'\s+(?P<uscmd>\S+)\s+(?P<args>[^:\r\n]*)\s*(:(?P<msg>[^\r\n]+))?\s*$'
 
 class IRCbot(object):
 
@@ -22,6 +23,7 @@ class IRCbot(object):
         self.channel = {} #: Channels we are in
         self.ident_re = re.compile(IDENT_RE) #: Extract information from the identity string
         self.channel_join_re = re.compile(CHANNEL_JOIN_RE)
+        self.message_re = re.compile(MESSAGE_RE)
         
     def connect(self):
         self.s.connect((self.host, self.port)) #Connect to server 
@@ -98,45 +100,51 @@ class IRCbot(object):
         self.s.send("NICK " + _nick + "\n")
         self._nick = _nick
         
-    def _parse_args(self, args):
-        length = len(args)
-        if length > 5:
-            return " ".join(args[4:])
-        elif length == 5:
-            return args[4]
+    def _parse_args(self, args, offset):
+        length = len(args) + offset
+        if length > 5 + offset:
+            return " ".join(args[4 + offset:])
+        elif length == 5 + offset:
+            return args[4 + offset]
         else:
             return None 
         
     def _parse_raw_input(self, line):
-        line = line.rstrip()
-        line = line.split()
-
-        if DEBUG: print(line)
-        if len(line) == 2:
-            self._server_command(line[0], line[1][1:])
-            return
-
-        match = self.ident_re.match(line[0])
         try:
-            if line[3][1] == '!':
-                line[3] = line[3][2:]
-                self.cmd(line[3], 
-                         self._parse_args(line),
-                         line[2],
-                         from_nick=match.group('nick'),
-                         from_ident=match.group('ident'),
-                         from_host_mask=match.group('hostmask'))
+            match = self.message_re.match(line)
+
+            if DEBUG:
+                print(match.groups())
+                        
+            if match.group('svcmd'):
+                self._server_command(match.group('svcmd'), match.group('adress'))
+                return
+
+            if match.group('uscmd') == 'PRIVMSG':
+                try:
+                    if match.group('msg')[0] == '!':
+                        first_space = match.group('msg').find(" ")
+                        self.cmd(match.group('msg')[1:first_space] if first_space != -1 else match.group('msg')[1:],
+                                 match.group('msg')[first_space + 1:] if first_space != -1 else None,
+                                 match.group('args').strip(),
+                                 from_nick=match.group('nick'),
+                                 from_ident=match.group('ident'),
+                                 from_host_mask=match.group('hostmask'))
                 
+                    else:
+                        self.listen(match.group('uscmd'), match.group('msg'), match.group('args').strip(),
+                                    from_nick=match.group('nick'),
+                                    from_ident=match.group('ident'),
+                                    from_host_mask=match.group('hostmask'))
+
+                except Exception as e:
+                    print "I got an error here: %s" % e
+                    traceback.print_tb(sys.exc_info()[2], limit=1, file=sys.stdout)
             else:
-                line[3] = line[3][1:]
-                self.listen(line[1], " ".join(line[3:]), line[2],
-                            from_nick=match.group('nick'),
-                            from_ident=match.group('ident'),
-                            from_host_mask=match.group('hostmask'))
-            
-        except Exception as e:
-            print "I got an error here: %s" % e
-            traceback.print_tb(sys.exc_info()[2], limit=1, file=sys.stdout)
+                print(":IRC COMMAND: %s" % (match.groups()))
+        except:
+            if not match:
+                print("******************** WARNING :::: LINE DISCARDED IN _PARSE_RAW_INPUT")
             
     def start(self):
         while 1: # Main Loop
@@ -145,15 +153,15 @@ class IRCbot(object):
             if VERBOSE: print line #server message is output
             line = self._parse_raw_input(line)
 
-    def _server_command(self, command, msg):
+    def _server_command(self, command, server):
         """
         This command is for the network layer to respond to diffrent server
         requests, like ping.
         """
         
         if command == 'PING': #If server pings then pong 
-            if VERBOSE: print "replying to pong \'%s\'" % ('PONG ' + msg)
-            self.s.send('PONG ' + ":" + msg + '\n')
+            if VERBOSE: print "replying to pong \'%s\'" % ('PONG ' + server)
+            self.s.send('PONG ' + ":" + server + '\n')
 
     def cmd(self, command, args, channel, **kwargs):
         """
@@ -168,7 +176,19 @@ class IRCbot(object):
                                                                                        kwargs["from_nick"], 
                                                                                        kwargs["from_ident"],
                                                                                        kwargs["from_host_mask"]))   
-            
+
+    def management_cmd(self, command, nick, channel, **kwargs):
+        """
+        This Function should be extended when you want to listen too command args 
+        like KICK, JOIN, PING etc.
+        """
+        if VERBOSE:
+            print(":MANAGEMENT: Command: %s, Nick: %s, Channel: %s, Message: %s, From: %s!%s@%s" % (command, nick,
+                                                                                                    channel,
+                                                                                                    kwargs["msg"],
+                                                                                                    kwargs["from_nick"], 
+                                                                                                    kwargs["from_ident"],
+                                                                                                    kwargs["from_host_mask"]))
     def listen(self, command, msg, channel, **kwargs):
         """
         This Function is supposed to be extended in subclasses to provide functionality when you

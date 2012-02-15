@@ -27,6 +27,16 @@ class Fiskern(AuthBot.AuthBot):
             self.msg(channel, output)
             self.msg(channel, "se tell hælvette å føll me hær!")
 
+            ## SECURITY RISK? NO WAY!
+        # elif command == "eval":
+        #     try:
+        #         if DEBUG: print(args)
+        #         self.msg(channel, str(eval(args)))
+        #     except Exception as e:
+        #         if DEBUG: print(e)
+        #         self.msg(channel, "Not a valid expression")
+                
+
         elif command == "topic":
             if args:
                 self.topic(channel, args)
@@ -42,7 +52,7 @@ class Fiskern(AuthBot.AuthBot):
         if kwargs['from_nick'] == 'emanuel':
             self.msg(channel, "bipeti bapeti!", to="emanuel")
         if msg.find("!insult") != -1:
-            self.msg(channel, "please !insult %s" % (kwargs["from_nick"]))
+            self.msg(channel, "please !insult %s back" % (kwargs["from_nick"]))
 
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
