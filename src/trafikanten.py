@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import IRCbot
+import AuthBot
 from GlobalConfig import *
 import json
 import urllib2
@@ -9,17 +9,19 @@ import time
 import re
 import random
 
-class Shepard(IRCbot.IRCbot):
+class Shepard(AuthBot.AuthBot):
         
     def __init__(self, host, port, nick, ident, realname):
         super(Shepard, self).__init__(host, port, nick, ident, realname)
 
     def cmd(self, command, args, channel, **kwargs):
         super(Shepard, self).cmd(command, args, channel, **kwargs)        
-        if VERBOSE: print "COMMAND FISKERN!"
-        if command == '!t':
-            #self.msg(channel, self.trafikanten_k(args, **kwargs))
-            self.notify(kwargs["from_nick"], self.trafikanten_k(args))
+        if VERBOSE: print "COMMAND mrShepard!"
+        if command == 't':
+            svar = self.trafikanten_k(args).split('\n')
+            for s in svar:
+                self.msg(channel, s)
+            #self.notify(kwargs["from_nick"], self.trafikanten_k(kwargs['Message']))
 
     def listen(self, command, msg, channel, **kwargs):
         super(Shepard, self).listen(command, msg, channel, **kwargs)
@@ -42,33 +44,44 @@ class Shepard(IRCbot.IRCbot):
             f = urllib2.urlopen(url)
             s = f.read()
             f.close()
+        return s
 
-    def trafikanten_k(self, kommando, args, **kwargs):
-        stedet = {'sentrum': '1', 
+    def trafikanten_k(self, msg):
+        steder = {'sentrum': '1', 
                 'trikk': 'trikk', 
                 'Sognsvann': 'Sognsvann',
                 'Murmansk': 'Sognsvann'}
-        s = self.trafikanten_realtime(stedet[args[1]])
+        k = msg.split()
         datere = re.compile('^\/Date\(([^+]*)\+.*$')
+        hvor = steder[k[0]]
+        nar = 0
+        if len(k) > 1:
+            nar = k[1]
+        ant = 2
+        if len(k) > 2:
+            ant = k[2]
+        s = self.trafikanten_realtime(steder[k[0]])
         avganger = json.loads(s)
+        nu = int(datere.match(avganger[0]['RecordedAtTime']).group(1))
         """
-        !t sentrum a=4 t=1040
+        !t sentrum når antall
         """
-        if stedet['args[1]'] == 'sentrum':
-            tmp = ""
-            hvor = "sentrum"
-            for avgang in avganger:
-                if avgang['DirectionName'] == '1':
-                    tid = (int(datere.match(avgang['ExpectedDepartureTime']).group(1)) - nu+15)/60000
-                    if tmp != "":
-                        tmp = tmp.format(hvor, tid)
-                        return tmp
-                    elif tid == 0:
-                        tmp = random.choice(setninger_nu)
-                    else:
-                        tmp = random.choice(setninger_normal).format(hvor, tid)
-                        return tmp
-        
+        tmp = "Avganger til %s:\n" % hvor
+        count = 1
+        for avgang in avganger:
+            tid = (int(datere.match(avgang['ExpectedDepartureTime']).group(1)) - nu-14)/60000
+            print "::::::::::::::::::::::::::::\n", hvor
+            print tmp
+            if avgang['DestinationName'] == hvor and tid > nar:
+                count += 1
+                tmp = tmp + ' ' + str(tid) + '\n'
+            elif hvor == 'sentrum' and avgang['DirectionName'] == '1' and tid > nar:
+                count += 1
+                tmp = tmp + ' ' + str(tid) + ' (' + avgang['DestinationName'] + ')\n'
+            if count == ant:
+                return tmp
+
+        return "I am a Bear of Very Little Brain, and long words Bother me."
 
     def trafikanten(self, kommando):
         s = self.trafikanten_realtime(kommando)
