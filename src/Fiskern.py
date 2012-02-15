@@ -88,5 +88,3 @@ if __name__ == "__main__":
     #bot.msg("#nybrummbot", "Dæsken så mye fesk det e i fjorn i dag!")
     bot.notify("Subfusc", "hør du ette eller?")
     bot.start()
-
-    
