@@ -18,6 +18,12 @@ class Shepard(AuthBot.AuthBot):
     def cmd(self, command, args, channel, **kwargs):
         super(Shepard, self).cmd(command, args, channel, **kwargs)        
         if VERBOSE: print "COMMAND mrShepard!"
+        if command == 'help':
+            if args.split()[0] == 't':
+                self.notify(kwargs["from_nick"], "Sanntidsinfo fra trafikanten:")
+                self.notify(kwargs["from_nick"], "!t hvor [min [ant]]")
+                self.notify(kwargs["from_nick"], "«hvor» kan blant annet være følgende: sognsvann, ullevål, ringen, sentrum og trikk")
+
         if command == 't':
             svar = self.trafikanten_k(args)
             print "Svar:", svar
@@ -68,7 +74,9 @@ class Shepard(AuthBot.AuthBot):
                 'trikk': 'trikk', 
                 'adamstuen': 'trikk', 
                 'sognsvann': 'Sognsvann',
+                'ringen': 'Ringen',
                 'byn': '1',
+                'byen': '1',
                 'ullevål': '2',
                 'murmansk': 'Sognsvann'}
         k = msg.split()
