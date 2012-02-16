@@ -51,8 +51,13 @@ class Fiskern(AuthBot.AuthBot):
         elif command == "unban":
             args = args.split()
             self.unban(channel, nick=args[0], ident=args[1], hostmask=args[2])
+            
         elif command == "kick":
+            print "'%s''%s''%s'" % (channel, args, command)
             self.kick(channel, args)
+
+        elif command == "here":
+            self.msg(channel, str(self.user_in_channel(channel, args)), to=kwargs["from_nick"])
             
     def listen(self, command, msg, channel, **kwargs):
         super(Fiskern, self).listen(command, msg, channel, **kwargs)
@@ -61,6 +66,11 @@ class Fiskern(AuthBot.AuthBot):
         if msg.find("!insult") != -1:
             self.msg(channel, "please !insult %s back" % (kwargs["from_nick"]))
 
+    def management_cmd(self, command, args, **kwargs):
+        super(Fiskern, self).management_cmd(command, args, **kwargs)
+        if command == '482':
+            self.msg(args.split()[1], "I'm not allowed to do that")
+            
     def _math(self, input):
         match = re.search(twonroper, input)
         if match:
