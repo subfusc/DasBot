@@ -7,9 +7,12 @@ import re
 import traceback
 from GlobalConfig import *
 
-IDENT_RE = r'^:(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>\S+)'
+IDENT_RE = r'(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>\S+)'
+ADRESS_RE = r'[^!@]+(\.[^!@.\s]+)+'
 CHANNEL_JOIN_RE = r':\S+\s353[^:]+:(?P<nicks>[^\n]+)'
-MESSAGE_RE = r'^(?P<svcmd>[^!@\s]+)\s+:(?P<adress>[^!@]+(.[^!@\r\n])+)\s*$|' + IDENT_RE + r'\s+(?P<uscmd>\S+)\s+(?P<args>[^:\r\n]*)\s*(:(?P<msg>[^\r\n]+))?\s*$'
+MESSAGE_RE = r'^(?P<svcmd>[^!@\s]+)\s+:(?P<adress>[^!@]+(.[^!@\r\n])+)\s*$|^:(' + \
+    IDENT_RE + r'|(?P<adr>' + ADRESS_RE + \
+    r'))\s+(?P<uscmd>\S+)\s+(?P<args>[^:\r\n]*)\s*(:(?P<msg>[^\r\n]+))?\s*$'
 
 class IRCbot(object):
 
@@ -99,6 +102,21 @@ class IRCbot(object):
         self.s.send("NICK " + _nick + "\n")
         self._nick = _nick
         
+    def kick(self, channel, nick, message="I don't like you!"):
+        print "KICK " + channel + " " + nick + " :" + message
+        self.s.send("KICK " + channel + " " + nick + " :" + message + "\n")
+
+    def ban(self, channel, nick="*", ident="*", hostmask="*"):
+        if not (nick == "*" and ident == "*" and hostmask == "*"):
+            self.s.send("MODE " + channel + " +b %s!%s@%s\n" % (nick, ident, hostmask))
+
+    def unban(self, channel, nick="*", ident="*", hostmask="*"):
+        self.s.send("MODE " + channel + " -b %s!%s@%s\n" % (nick, ident, hostmask))
+
+    def user_in_channel(self, channel, nick):
+        channel = self.channel[channel]
+        return nick in channel["user"] or nick in channel["voice"] or nick in channel["op"] 
+        
     def _parse_args(self, args, offset):
         length = len(args) + offset
         if length > 5 + offset:
@@ -127,7 +145,7 @@ class IRCbot(object):
                         if match.group('msg')[0] == '!':
                             first_space = match.group('msg').find(" ")
                             self.cmd(match.group('msg')[1:first_space] if first_space != -1 else match.group('msg')[1:],
-                                     match.group('msg')[first_space + 1:] if first_space != -1 else None,
+                                     match.group('msg')[first_space + 1:].strip() if first_space != -1 else None,
                                      match.group('args').strip(),
                                      from_nick=match.group('nick'),
                                      from_ident=match.group('ident'),
@@ -144,8 +162,21 @@ class IRCbot(object):
                         traceback.print_tb(sys.exc_info()[2], limit=1, file=sys.stdout)
                 else:
                     #TODO parse for management
-                    print(":IRC COMMAND: %s" % (match.groups()))
-        except:
+                    if DEBUG: print(":IRC COMMAND: %s" % str(match.groups()))
+                    if match.group('nick'):
+                        self.management_cmd(match.group('uscmd'), 
+                                            match.group('args').strip(),
+                                            msg=match.group('msg'), 
+                                            from_nick=match.group('nick'),
+                                            from_ident=match.group('ident'),
+                                            from_host_mask=match.group('hostmask'))
+                    else:
+                        self.management_cmd(match.group('uscmd'), 
+                                            match.group('args').strip(),
+                                            msg=match.group('msg'), 
+                                            server_adr=match.group('adr'))
+        except Exception as e:
+            print("ERROR: %s" % e)
             if not match:
                 print("******************** WARNING :::: LINE DISCARDED IN _PARSE_RAW_INPUT")
                 print(line)
@@ -194,18 +225,58 @@ class IRCbot(object):
                                                                                        kwargs["from_ident"],
                                                                                        kwargs["from_host_mask"]))   
 
-    def management_cmd(self, command, nick, channel, **kwargs):
+    def __rm_user(self, channel, nick):
+        channel = self.channel[channel]
+        if nick in channel["user"]: 
+            x = channel["user"].index(nick)
+            del(channel["user"][x])
+        elif nick in channel["voice"]: del(channel["voice"][channel["voice"].index(nick)])
+        elif nick in channel["op"]: del(channel["op"][channel["op"].index(nick)])
+            
+    def management_cmd(self, command, args, **kwargs):
         """
         This Function should be extended when you want to listen too command args 
         like KICK, JOIN, PING etc.
         """
         if VERBOSE:
-            print(":MANAGEMENT: Command: %s, Nick: %s, Channel: %s, Message: %s, From: %s!%s@%s" % (command, nick,
-                                                                                                    channel,
-                                                                                                    kwargs["msg"],
-                                                                                                    kwargs["from_nick"], 
-                                                                                                    kwargs["from_ident"],
-                                                                                                    kwargs["from_host_mask"]))
+            if "from_nick" in kwargs:
+                print(":MANAGEMENT: Command: %s, Args: %s, Message: %s, From: %s!%s@%s" % (command,
+                                                                                           args,
+                                                                                           kwargs["msg"],
+                                                                                           kwargs["from_nick"], 
+                                                                                           kwargs["from_ident"],
+                                                                                           kwargs["from_host_mask"]))
+            else:
+                print(":MANAGEMENT: Command: %s, Args: %s, Message: %s, From: %s" % (command,
+                                                                                     args,
+                                                                                     kwargs["msg"],
+                                                                                     kwargs["server_adr"]))
+        if command == "JOIN":
+            self.channel[kwargs["msg"]]["user"].append(kwargs["from_nick"])
+        elif command == "QUIT":
+            for c in self.channel:
+                self.__rm_user(c, kwargs["from_nick"])
+        elif command == "PART":
+            self.__rm_user(args, kwargs["msg"])
+        elif command == "KICK":
+            args = args.split()
+            self.__rm_user(args[0], args[1])
+        elif command == "MODE":
+            args = args.split()
+            if len(args) == 3:
+                if args[1] == "+o":
+                    self.__rm_user(args[0], args[2])
+                    self.channel[args[0]]["op"].append(args[2])
+                elif args[1] == "-o":
+                    self.__rm_user(args[0], args[2])
+                    self.channel[args[0]]["user"].append(args[2])
+                elif args[1] == "+v":
+                    self.__rm_user(args[0], args[2])
+                    self.channel[args[0]]["voice"].append(args[2])
+                elif args[1] == "-v":
+                    self.__rm_user(args[0], args[2])
+                    self.channel[args[0]]["user"].append(args[2])
+                    
     def listen(self, command, msg, channel, **kwargs):
         """
         This Function is supposed to be extended in subclasses to provide functionality when you

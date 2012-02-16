@@ -18,6 +18,10 @@ class AuthBot(IRCbot.IRCbot):
     def listen(self, command, msg, channel, **kwargs):
         super(AuthBot, self).listen(command, msg, channel, **kwargs)
 
+
+    def management_cmd(self, command, args, **kwargs):
+        super(AuthBot, self).management_cmd(command, args, **kwargs)
+    
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
     PORT=6667 #The connection port which is usually 6667 

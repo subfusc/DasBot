@@ -18,7 +18,8 @@ class Synsebot(AuthBot.AuthBot):
     def cmd(self, command, args, channel, **kwargs):
         super(Synsebot, self).cmd(command, args, channel, **kwargs)
         if command == 'm-add':
-            self.mediekommentar-add(args)
+            if kwargs['from_nick'] in self.channel[channel]['op']:
+                self.mediekommentaradd(args)
         
     def listen(self, command, msg, channel, **kwargs):
         super(Synsebot, self).listen(command, msg, channel, **kwargs)
@@ -27,13 +28,17 @@ class Synsebot(AuthBot.AuthBot):
         if medieord.search(msg):
             self.msg(channel, self.mediekommentar(medieord.search(msg).group(0)))
 
-    def mediekommentar-add(self, args):
+    def mediekommentaradd(self, args):
         args = args.split()
         tag = args[0]
-        sitat = args[1:]
+        sitat = " ".join(args[1:])
+        print sitat
+        print args
         f = open('aviser.txt', 'a')
         f.write('\n\n')
-        f.write('#' + tag + '\n')
+        f.write('#')
+        f.write(tag)
+        f.write('\n')
         f.write(sitat)
         f.close()
         
@@ -51,10 +56,12 @@ class Synsebot(AuthBot.AuthBot):
 
         f = open('aviser.txt')
         tekst = f.read()
+        tekst = re.sub('\n\n+', '\n\n', tekst)
         tekst = tekst.split('\n\n')
+        print tekst
         a = {}
         for e in tekst:
-            tmp = re.sub("#(.*)\n", r"\g<1>###", e)
+            tmp = re.sub("#([^#]*).*\n", r"\g<1>###", e)
             tmp = tmp.split('###')
             if len(tmp) > 1:
                 if not tmp[0] in a:
