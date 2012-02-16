@@ -9,7 +9,7 @@ from GlobalConfig import *
 
 IDENT_RE = r'(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>\S+)'
 ADRESS_RE = r'[^!@]+(\.[^!@.\s]+)+'
-CHANNEL_JOIN_RE = r':\S+\s353[^:]+:(?P<nicks>[^\n]+)'
+CHANNEL_JOIN_RE = r':\S+.+?\s=\s#[^:]+:(?P<nicks>[^\n]+)'
 MESSAGE_RE = r'^(?P<svcmd>[^!@\s]+)\s+:(?P<adress>[^!@]+(.[^!@\r\n])+)\s*$|^:(' + \
     IDENT_RE + r'|(?P<adr>' + ADRESS_RE + \
     r'))\s+(?P<uscmd>\S+)\s+(?P<args>[^:\r\n]*)\s*(:(?P<msg>[^\r\n]+))?\s*$'
