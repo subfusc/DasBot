@@ -43,6 +43,16 @@ class Fiskern(AuthBot.AuthBot):
 
         elif command == "nick":
             self.nick(args)
+
+        elif command == "ban":
+            args = args.split()
+            self.ban(channel, nick=args[0], ident=args[1], hostmask=args[2])
+
+        elif command == "unban":
+            args = args.split()
+            self.unban(channel, nick=args[0], ident=args[1], hostmask=args[2])
+        elif command == "kick":
+            self.kick(channel, args)
             
     def listen(self, command, msg, channel, **kwargs):
         super(Fiskern, self).listen(command, msg, channel, **kwargs)
