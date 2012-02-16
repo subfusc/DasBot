@@ -5,18 +5,21 @@ from User import User
 
 class AuthSys:
 
-    def __init__(self):
+    def __init__(self, secret):
+        self.secret = secret
         self.userlist = {}
         self.domainlist = {}
-        nick = raw_input("NICK: ")
-        passwd = raw_input("PASS: ")
-        self.add(nick, passwd, "a")
 
-    def add(self, nick, passwd, level = "n"):
-        self.userlist[nick] = User(nick, passwd, level)
+    def add(self, nick, email, level = 0):
+        if len(self.userlist.keys()) == 0:
+            level = 100
+        try:
+            self.userlist[nick] = User(nick, email, self.secret, level)
+        except:
+            return "I got an error in registering. Please try again"
         
     def login(self, nick, passwd, domain):
-        if (nick in self.userlist) and self.userlist[nick].login(passwd, domain):
+        if (nick in self.userlist) and self.userlist[nick].login(passwd, domain, self.secret):
             self.domainlist[domain] = self.userlist[nick]
             return True
         return False

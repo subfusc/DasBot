@@ -2,19 +2,31 @@
 # -*- coding: utf-8 -*-
 # Skrevet av Sindre Wetjen
 import hashlib
+import os
+import smtplib
+from email.mime.text import MIMEText
 
 class User:
     
-    def __init__(self, nick, password, level = "n"):
+    def __init__(self, nick, email, secret, level = 0):
         self.nick = nick
-        self.password = hashlib.sha256()
-        self.password.update(password)
+        self.email = email
         self.lin = False
         self.domain = None
         self.level = level
+        self.cookie = "lolimon"
+        print email
+        msg = MIMEText('''hi %s
+your cookie is %s
+''' % (nick, self.cookie))
 
-        for x in range(0, 20):
-            self.password.digest()
+        msg['Subject'] = "Bot registration for %s" % nick
+        msg['From'] = 'sindrewe@ifi.uio.no'
+        msg['To'] = email
+
+        s = smtplib.SMTP('smtp.uio.no')
+        s.sendmail('sindrewe@ifi.uio.no', [email], msg.as_string())
+        s.close()
         
     def online(self, domain):
         return self.lin and self.domain == domain
@@ -22,9 +34,9 @@ class User:
     def get_level(self):
         return self.level
 
-    def check_password(self, string):
+    def check_password(self, string, secret):
         check = hashlib.sha256()
-        check.update(string)
+        check.update(string + secret)
 
         for x in range(0, 20):
             check.digest()
@@ -32,8 +44,8 @@ class User:
         password = self.password.copy()
         return password.digest() == check.digest()
 
-    def login(self, password, domain):
-        if self.check_password(password) and not self.lin:
+    def login(self, password, domain, secret):
+        if self.check_password(password, secret) and not self.lin:
             self.lin = True
             self.domain = domain
             return True
@@ -43,10 +55,18 @@ class User:
         self.lin = False
         self.domain = None
 
-    def change_pass(self, oldpass, newpass):
-        if check_password(self, oldpass):
+    def make_pass(self, cookie, passw, secret):
+        if cooke == self.cookie:
             self.password = haslib.sha256()
-            self.password.update(newpass)
+            self.password.update(passw + secret)
+            
+            for x in range(0, 20):
+                self.password.digest()
+        
+    def change_pass(self, oldpass, newpass, secret):
+        if check_password(self, oldpass, secret):
+            self.password = haslib.sha256()
+            self.password.update(newpass + secret)
             
             for x in range(0, 20):
                 self.password.digest()

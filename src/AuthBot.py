@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import IRCbot
+import AuthSys
 from GlobalConfig import *
 
 class AuthBot(IRCbot.IRCbot):
@@ -11,13 +12,20 @@ class AuthBot(IRCbot.IRCbot):
 
     def __init__(self, host, port, nick, ident, realname):
         super(AuthBot, self).__init__(host, port, nick, ident, realname)
-
+        secret = raw_input('SECRET:')
+        self.authsys = AuthSys.AuthSys(secret)
+        
     def cmd(self, command, args, channel, **kwargs):
         super(AuthBot, self).cmd(command, args, channel, **kwargs)
-        
+
+        if command == 'register':
+            args = args.split()
+            result = self.authsys.add(args[0], args[1])
+            if result: self.msg(channel, result, to=kwargs['from_nick'])
+            else: self.msg(channel, "Email sendt to %s" % (args[1]), to=kwargs['from_nick'])
+            
     def listen(self, command, msg, channel, **kwargs):
         super(AuthBot, self).listen(command, msg, channel, **kwargs)
-
 
     def management_cmd(self, command, args, **kwargs):
         super(AuthBot, self).management_cmd(command, args, **kwargs)
