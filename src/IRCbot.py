@@ -9,7 +9,7 @@ from GlobalConfig import *
 
 IDENT_RE = r'(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>\S+)'
 ADRESS_RE = r'[^!@]+(\.[^!@.\s]+)+'
-CHANNEL_JOIN_RE = r':\S+.+?\s=\s#[^:]+:(?P<nicks>[^\n]+)'
+CHANNEL_JOIN_RE = r'^:[^=]+=\s+#[^:]+:(?P<nicks>[^\r\n]+)\s*$'
 MESSAGE_RE = r'^(?P<svcmd>[^!@\s]+)\s+:(?P<adress>[^!@]+(.[^!@\r\n])+)\s*$|^:(' + \
     IDENT_RE + r'|(?P<adr>' + ADRESS_RE + \
     r'))\s+(?P<uscmd>\S+)\s+(?P<args>[^:\r\n]*)\s*(:(?P<msg>[^\r\n]+))?\s*$'
@@ -53,24 +53,30 @@ class IRCbot(object):
             self.channel[name] = {'op':[], 'voice':[], 'user':[]}
             self.s.send('JOIN ' + name + '\n');
 
-            while True:
+            exit = False
+            while not exit:
                 line = self.s.recv(1024)
-                if DEBUG: print line
+                for l in line.split('\n'):
+                    if DEBUG: print "IN FOR: ", l
 
-                match = self.channel_join_re.search(line)
-                if match:
-                    nicks = match.group('nicks')
-                    nicks = nicks.split()
-                    for nick in nicks:
-                        if nick[0] == "+":
-                            self.channel[name]['voice'].append(nick[1:])
-                        elif nick[0] == "@":
-                            self.channel[name]['op'].append(nick[1:])
-                        else:
-                            self.channel[name]['user'].append(nick)
+                    match = self.channel_join_re.search(l)
+                    if match:
+                        if DEBUG: print match.groups()
+                        nicks = match.group('nicks')
+                        nicks = nicks.split()
+                        for nick in nicks:
+                            if nick[0] == "+":
+                                self.channel[name]['voice'].append(nick[1:])
+                            elif nick[0] == "@":
+                                self.channel[name]['op'].append(nick[1:])
+                            else:
+                                self.channel[name]['user'].append(nick)
+
                     if DEBUG: print(self.channel[name])
                 
-                if line.find("366"): break
+                    if l.find('366') != -1: 
+                        exit = True
+                        break
             
             return True
         else:

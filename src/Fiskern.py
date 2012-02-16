@@ -58,6 +58,8 @@ class Fiskern(AuthBot.AuthBot):
 
         elif command == "here":
             self.msg(channel, str(self.user_in_channel(channel, args)), to=kwargs["from_nick"])
+        elif command == "windows":
+            self.msg(channel, "The best way to speed up your windows computer is 9.8m/s^2", to=kwargs["from_nick"])
             
     def listen(self, command, msg, channel, **kwargs):
         super(Fiskern, self).listen(command, msg, channel, **kwargs)
