@@ -40,7 +40,7 @@ class Shepard(AuthBot.AuthBot):
                 s = s1 + s2.encode('utf-8')
                 if len(svar) > 1:
                     s = s + " [neste "
-                    for i in svar[2:-2]:
+                    for i in svar[1:-2]:
                         s = s + i.encode('utf-8') + "|"
                     s = s + svar[-1].encode('utf-8') + "]"
             self.msg(channel, s, to=kwargs["from_nick"])
@@ -106,7 +106,7 @@ class Shepard(AuthBot.AuthBot):
         else:
             tmp.append("Avganger med trikken: ")
             print tmp
-        count = 0
+        count = 1
         for avgang in avganger:
             tid = (int(datere.match(avgang['ExpectedDepartureTime']).group(1)) - nu-14)/60000
             print "::::::::::::::::::::::::::::\n", hvor
