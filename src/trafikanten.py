@@ -4,6 +4,7 @@
 import AuthBot
 from GlobalConfig import *
 import codecs
+import IRCFonts
 import json
 import urllib2
 import time
@@ -20,14 +21,13 @@ class Shepard(AuthBot.AuthBot):
         if VERBOSE: print "COMMAND mrShepard!"
         if command == 'help':
             if args.split()[0] == 't':
-                self.notify(kwargs["from_nick"], "Sanntidsinfo fra trafikanten:")
-                self.notify(kwargs["from_nick"], "!t hvor [min [ant]]")
-                self.notify(kwargs["from_nick"], "«hvor» kan blant annet være følgende: sognsvann, ullevål, ringen, sentrum og trikk")
+                self.notify(kwargs['from_nick'], "Sanntidsinfo fra trafikanten:")
+                self.notify(kwargs['from_nick'], "!t hvor [min [ant]]")
+                self.notify(kwargs['from_nick'], "«hvor» kan blant annet være følgende: sognsvann, ullevål, ringen, sentrum og trikk")
 
         if command == 't':
             svar = self.trafikanten_k(args)
-            print "Svar:", svar
-            print svar[0]
+            print "SVAR: ", svar
             if svar == -1:
                 s = "I am a Bear of Very Little Brain, and long words Bother me."
             else:
@@ -123,7 +123,10 @@ class Shepard(AuthBot.AuthBot):
             if count > ant:
                 return tmp
 
-        return -1 
+        if len(tmp) < 2:
+            return -1 
+        else:
+            return tmp
 
     def trafikanten(self, kommando):
         s = self.trafikanten_realtime(kommando)
