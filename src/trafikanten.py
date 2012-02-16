@@ -28,7 +28,7 @@ class Shepard(AuthBot.AuthBot):
         if command == 't':
             svar = self.trafikanten_k(args)
             print "SVAR: ", svar
-            if svar == -1:
+            if len(svar) < 2:
                 s = "I am a Bear of Very Little Brain, and long words Bother me."
             else:
                 print svar
@@ -77,6 +77,10 @@ class Shepard(AuthBot.AuthBot):
                 'ringen': 'Ringen',
                 'byn': '1',
                 'byen': '1',
+                'jernbanetorget': '1',
+                'oslo': '1',
+                'nathionaltheatret': '1',
+                'byen': '1',
                 'ullevål': '2',
                 'murmansk': 'Sognsvann'}
         k = msg.split()
@@ -123,10 +127,7 @@ class Shepard(AuthBot.AuthBot):
             if count > ant:
                 return tmp
 
-        if len(tmp) < 2:
-            return -1 
-        else:
-            return tmp
+        return tmp
 
     def trafikanten(self, kommando):
         s = self.trafikanten_realtime(kommando)
