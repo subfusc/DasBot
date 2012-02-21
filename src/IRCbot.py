@@ -186,7 +186,6 @@ class IRCbot(object):
             if not match:
                 print("******************** WARNING :::: LINE DISCARDED IN _PARSE_RAW_INPUT")
                 print(line)
-                print(line.split())
                 newline = False
                 for char in line: 
                     if re.match('\\s', char): 
