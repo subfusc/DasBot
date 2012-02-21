@@ -11,14 +11,14 @@ import time
 import re
 import random
 
-class Shepard(AuthBot.AuthBot):
+class TrafikantenBot(AuthBot.AuthBot):
         
     def __init__(self, host, port, nick, ident, realname):
-        super(Shepard, self).__init__(host, port, nick, ident, realname)
+        super(TrafikantenBot, self).__init__(host, port, nick, ident, realname)
 
     def cmd(self, command, args, channel, **kwargs):
-        super(Shepard, self).cmd(command, args, channel, **kwargs)        
-        if VERBOSE: print "COMMAND mrShepard!"
+        super(TrafikantenBot, self).cmd(command, args, channel, **kwargs)        
+        if VERBOSE: print "COMMAND mrTrafikantenBot!"
         if command == 'help':
             if args.split()[0] == 't':
                 self.notify(kwargs['from_nick'], "Sanntidsinfo fra trafikanten:")
@@ -47,8 +47,8 @@ class Shepard(AuthBot.AuthBot):
             #self.notify(kwargs["from_nick"], self.trafikanten_k(kwargs['Message']))
 
     def listen(self, command, msg, channel, **kwargs):
-        super(Shepard, self).listen(command, msg, channel, **kwargs)
-        if VERBOSE: print "LISTEN mrShepard!"
+        super(TrafikantenBot, self).listen(command, msg, channel, **kwargs)
+        if VERBOSE: print "LISTEN mrTrafikantenBot!"
         if msg.lower().find("banen") != -1:
             self.msg(channel, self.trafikanten('sentrum'))
         if msg.lower().find("ringen") != -1:
@@ -220,7 +220,7 @@ if __name__ == "__main__":
     REALNAME='Tra La La' 
     OWNER='Trondth' #The bot owner's nick 
     
-    bot = Shepard(HOST, PORT, NICK, IDENT, REALNAME)
+    bot = TrafikantenBot(HOST, PORT, NICK, IDENT, REALNAME)
     bot.connect()
     bot.join("#nybrummbot")
     bot.notify("#nybrummbot", "tralalalalabom")

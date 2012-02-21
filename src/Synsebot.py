@@ -1,8 +1,7 @@
- -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import AuthBot
 from GlobalConfig import *
-import nltk
 import random
 import re
 
@@ -11,6 +10,8 @@ class Synsebot(AuthBot.AuthBot):
     This is a class where the IRCBot has an authentication system
     TODO: Use existing authentication mekanism
     """
+
+    avisertxt = 'data/aviser.txt'
 
     def __init__(self, host, port, nick, ident, realname):
         super(Synsebot, self).__init__(host, port, nick, ident, realname)
@@ -34,7 +35,7 @@ class Synsebot(AuthBot.AuthBot):
         sitat = " ".join(args[1:])
         print sitat
         print args
-        f = open('aviser.txt', 'a')
+        f = open(avisertxt, 'a')
         f.write('\n\n')
         f.write('#')
         f.write(tag)
@@ -55,7 +56,7 @@ class Synsebot(AuthBot.AuthBot):
         if tag in alias:
             tag = alias[tag]
 
-        f = open('aviser.txt')
+        f = open(avisertxt)
         tekst = f.read()
         tekst = re.sub('\n\n+', '\n\n', tekst)
         tekst = tekst.split('\n\n')

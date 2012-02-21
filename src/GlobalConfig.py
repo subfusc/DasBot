@@ -2,6 +2,7 @@
 
 VERBOSE = True
 DEBUG = False
+AUTHENTICATION=False
 VERSION = 0.1
 NAME = "DasBot"
 COMMAND_CHAR = "!"

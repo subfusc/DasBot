@@ -12,17 +12,25 @@ class AuthBot(IRCbot.IRCbot):
 
     def __init__(self, host, port, nick, ident, realname):
         super(AuthBot, self).__init__(host, port, nick, ident, realname)
+<<<<<<< HEAD
 #        secret = raw_input('SECRET:')
 #        self.authsys = AuthSys.AuthSys(secret)
+=======
+
+        if AUTHENTICATION:
+            secret = raw_input('SECRET:')
+            self.authsys = AuthSys.AuthSys(secret)
+>>>>>>> 4546eb727176901b0051afca650b8e984a19230b
         
     def cmd(self, command, args, channel, **kwargs):
         super(AuthBot, self).cmd(command, args, channel, **kwargs)
 
-        if command == 'register':
-            args = args.split()
-            result = self.authsys.add(args[0], args[1])
-            if result: self.msg(channel, result, to=kwargs['from_nick'])
-            else: self.msg(channel, "Email sendt to %s" % (args[1]), to=kwargs['from_nick'])
+        if AUTHENTICATION:
+            if command == 'register':
+                args = args.split()
+                result = self.authsys.add(args[0], args[1])
+                if result: self.msg(channel, result, to=kwargs['from_nick'])
+                else: self.msg(channel, "Email sendt to %s" % (args[1]), to=kwargs['from_nick'])
             
     def listen(self, command, msg, channel, **kwargs):
         super(AuthBot, self).listen(command, msg, channel, **kwargs)
