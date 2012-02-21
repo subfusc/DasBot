@@ -12,8 +12,8 @@ class AuthBot(IRCbot.IRCbot):
 
     def __init__(self, host, port, nick, ident, realname):
         super(AuthBot, self).__init__(host, port, nick, ident, realname)
-        secret = raw_input('SECRET:')
-        self.authsys = AuthSys.AuthSys(secret)
+#        secret = raw_input('SECRET:')
+#        self.authsys = AuthSys.AuthSys(secret)
         
     def cmd(self, command, args, channel, **kwargs):
         super(AuthBot, self).cmd(command, args, channel, **kwargs)

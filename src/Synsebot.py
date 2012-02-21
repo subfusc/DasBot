@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
+ -*- coding: utf-8 -*-
 
 import AuthBot
 from GlobalConfig import *
-#import nltk
+import nltk
 import random
 import re
 
@@ -23,7 +23,7 @@ class Synsebot(AuthBot.AuthBot):
         
     def listen(self, command, msg, channel, **kwargs):
         super(Synsebot, self).listen(command, msg, channel, **kwargs)
-        medieord = re.compile(r'vg|dagbladet|db\.no|avisa|aftenposten|dagsavisen|dn\.no|klassekampen|pressen|pressa|ap\.no', re.IGNORECASE)
+        medieord = re.compile(r'\b(vg|dagbladet|db\.no|avisa|aftenposten|dagsavisen|dn\.no|klassekampen|pressen|pressa|ap\.no)\b', re.IGNORECASE)
         print medieord.search(msg)
         if medieord.search(msg):
             self.msg(channel, self.mediekommentar(medieord.search(msg).group(0)))
@@ -49,7 +49,8 @@ class Synsebot(AuthBot.AuthBot):
                 'pressen': 'media',
                 'pressa': 'media',
                 'ap.no': 'ap',
-                'aftenposten': 'ap'
+                'aftenposten': 'ap',
+                'dn.no': 'dn'
                 }
         if tag in alias:
             tag = alias[tag]
@@ -69,7 +70,7 @@ class Synsebot(AuthBot.AuthBot):
                 else:
                     a[tmp[0]].append(tmp[1])
 
-        return random.choice(a[tag])
+        return random.choice(a[tag.lower()])
 
 
 if __name__ == "__main__":

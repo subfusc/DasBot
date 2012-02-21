@@ -72,6 +72,7 @@ class Shepard(AuthBot.AuthBot):
     def trafikanten_k(self, msg):
         steder = {'sentrum': '1', 
                 'trikk': 'trikk', 
+                'trikken': 'trikk', 
                 'adamstuen': 'trikk', 
                 'sognsvann': 'Sognsvann',
                 'ringen': 'Ringen',
@@ -114,16 +115,16 @@ class Shepard(AuthBot.AuthBot):
             print tmp
             if avgang['DestinationName'] == hvor and tid > nar:
                 count += 1
-                tmp.append(str(tid))
+                tmp.append(str(tid) + ' min')
             elif hvor == '1' and avgang['DirectionName'] == '1' and tid > nar:
                 count += 1
-                tmp.append(str(tid) + ' ('+ avgang['DestinationName'] + ')')
+                tmp.append(str(tid) + ' min ('+ avgang['DestinationName'] + ')')
             elif hvor == 'trikk' and avgang['DirectionName'] == '1' and tid > nar:
                 count += 1
-                tmp.append(str(tid) + ' (#'+ avgang['LineRef'] + ')')
+                tmp.append(str(tid) + ' min (#'+ avgang['LineRef'] + ')')
             elif hvor == '2' and avgang['DirectionName'] == '2' and tid > nar:
                 count += 1
-                tmp.append(str(tid) + ' ('+ avgang['DestinationName'] + ')')
+                tmp.append(str(tid) + ' min ('+ avgang['DestinationName'] + ')')
             if count > ant:
                 return tmp
 
