@@ -12,6 +12,7 @@ class Synsebot(AuthBot.AuthBot):
     """
 
     avisertxt = 'data/aviser.txt'
+    #print avisertxt
 
     def __init__(self, host, port, nick, ident, realname):
         super(Synsebot, self).__init__(host, port, nick, ident, realname)
@@ -34,8 +35,9 @@ class Synsebot(AuthBot.AuthBot):
         tag = args[0]
         sitat = " ".join(args[1:])
         print sitat
-        print args
-        f = open(avisertxt, 'a')
+        #print args
+        f = open(Synsebot.avisertxt, 'a')
+        #print Synsebot.avisertxt
         f.write('\n\n')
         f.write('#')
         f.write(tag)
@@ -56,11 +58,12 @@ class Synsebot(AuthBot.AuthBot):
         if tag in alias:
             tag = alias[tag]
 
-        f = open(avisertxt)
+        f = open(Synsebot.avisertxt)
+        #print Synsebot.avisertxt
         tekst = f.read()
         tekst = re.sub('\n\n+', '\n\n', tekst)
         tekst = tekst.split('\n\n')
-        print tekst
+        #print tekst
         a = {}
         for e in tekst:
             tmp = re.sub("#([^#]*).*\n", r"\g<1>###", e)
