@@ -296,18 +296,18 @@ class IRCbot(object):
         cmd.
         """
         if VERBOSE:
-            print(":LISTEN: Command: %s, Message: %s, Channel: %s, From: %s!%s@%s" % (command, msg, 
-                                                                                      channel,
-                                                                                      kwargs["from_nick"], 
-                                                                                      kwargs["from_ident"],
-                                                                                      kwargs["from_host_mask"]))
+            print(":LISTEN: Command: %s, Message (%d): %s, Channel: %s, From: %s!%s@%s" % (command, len(msg), msg, 
+                                                                                           channel,
+                                                                                           kwargs["from_nick"], 
+                                                                                           kwargs["from_ident"],
+                                                                                           kwargs["from_host_mask"]))
+
     def help(self, command, args, channel, **kwargs):
         if VERBOSE:
             print(":HELP: Command: %s, Message: %s, Channel: %s, From: %s!%s@%s" % (command, args, channel,
                                                                                     kwargs["from_nick"], 
                                                                                     kwargs["from_ident"],
                                                                                     kwargs["from_host_mask"]))
-        
             
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
