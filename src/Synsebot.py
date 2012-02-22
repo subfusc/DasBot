@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import AuthBot
+import TrafikantenBot
 from GlobalConfig import *
 import random
 import re
 
-class Synsebot(AuthBot.AuthBot):
+class Synsebot(TrafikantenBot.TrafikantenBot):
     """
     This is a class where the IRCBot has an authentication system
     TODO: Use existing authentication mekanism

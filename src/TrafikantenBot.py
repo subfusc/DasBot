@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import AuthBot
+import DebugBot
 from GlobalConfig import *
 import codecs
 import IRCFonts
@@ -11,7 +11,7 @@ import time
 import re
 import random
 
-class TrafikantenBot(AuthBot.AuthBot):
+class TrafikantenBot(DebugBot.DebugBot):
         
     def __init__(self, host, port, nick, ident, realname):
         super(TrafikantenBot, self).__init__(host, port, nick, ident, realname)
