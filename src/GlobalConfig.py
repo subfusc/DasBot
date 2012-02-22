@@ -6,3 +6,4 @@ AUTHENTICATION=False
 VERSION = 0.1
 NAME = "DasBot"
 COMMAND_CHAR = "!"
+HELP_CHAR = '?'
