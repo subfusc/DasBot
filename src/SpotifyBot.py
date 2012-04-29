@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from urllib import urlopen
 import re
-import AuthBot
+import DebugBot
 import time
 from GlobalConfig import *
 
@@ -40,7 +40,7 @@ class SpotifyExtract:
         artist = artist.replace(" ", "+")
         return "http://www.youtube.com/results?search_query=%s+%s" % (title, artist)
 
-class SpotifyBot(AuthBot.AuthBot):
+class SpotifyBot(DebugBot.DebugBot):
         
     def __init__(self, host, port, nick, ident, realname):
         super(SpotifyBot, self).__init__(host, port, nick, ident, realname)
