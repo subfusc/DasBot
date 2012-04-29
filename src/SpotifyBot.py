@@ -13,13 +13,17 @@ artist_re = r'''<div\s*id="artist">\s*
 </div>'''
 
 spotify_adr = r'\s*(http://open.spotify.com/[^/]*\S*)\s*'
+spotify_thing = r'\s*spotify:([^:]+):(\S*)\s*'
 
 class SpotifyExtract:
 
     def __init__(self):
         self.tre = re.compile(title_re)
         self.are = re.compile(artist_re, re.X)
-    
+
+    def rewrite_and_parse(self, t, desc):
+        return self.parse_spotify("http://open.spotify.com/%s/%s" % (t, desc))
+        
     def parse_spotify(self, url):
         artist = None
         title = None
@@ -45,6 +49,7 @@ class SpotifyBot(DebugBot.DebugBot):
     def __init__(self, host, port, nick, ident, realname):
         super(SpotifyBot, self).__init__(host, port, nick, ident, realname)
         self.spre = re.compile(spotify_adr)
+        self.spt = re.compile(spotify_thing)
         self.spe = SpotifyExtract()
         
     def listen(self, command, msg, channel, **kwargs):
@@ -54,6 +59,14 @@ class SpotifyBot(DebugBot.DebugBot):
             result = self.spe.parse_spotify(match.group(1))
             self.msg(channel, "Check out: %s - %s" % (result[1], result[0]))
             self.msg(channel, "To make it easy: %s" % (self.spe.youtube_search(result[1], result[0])))
+            return
+
+        match = self.spt.search(msg)
+        if match:
+            result = self.spe.rewrite_and_parse(match.group(1), match.group(2))
+            self.msg(channel, "Check out: %s - %s" % (result[1], result[0]))
+            self.msg(channel, "To make it easy: %s" % (self.spe.youtube_search(result[1], result[0])))
+            return
 
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 

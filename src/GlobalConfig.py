@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 VERBOSE = True
-DEBUG = False
+DEBUG = True
 VERSION = 0.2
 NAME = "ISKBot"
 COMMAND_CHAR = "!"
