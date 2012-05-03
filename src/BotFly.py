@@ -37,6 +37,7 @@ class BotFly(DebugBot.DebugBot):
 
   def middag(self):
     kafe = Kafe('Informatikkafeen')
+    print kafe.todaysDinner()
     return kafe.todaysDinner()
 
 if __name__ == '__main__':
