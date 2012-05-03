@@ -16,19 +16,17 @@ class Kafe(object):
             if cafe['name'] == self.cafename:
                 self.menu = cafe['menu']
                 self.opening_hours = cafe['open']
-        self.opnhrsless = self.opening_hours[self.weekday].split("-")[0].replace(":", "")
-        self.opnhrsmore = self.opening_hours[self.weekday].split("-")[1].replace(":", "")
-        self.currenthr = time.localtime().tm_hour + time.localtime().tm_min
     
     def todaysDinner(self):
         if self.opening_hours[self.weekday] == u'Stengt':
             return [u"Kafeen er stengt"]
-        elif self.opnhrsless > self.currenthr or self.opnhrsmore < self.currenthr:
-            return [u"Kafeen er stengt", u"Åpningstidene er " + self.opening_hours[self.weekday]]
         else:
             tmp = list()
             for dt in self.menu[self.weekday]:
                 for j in self.menu[self.weekday][dt]:
-                    tmpstr = j.replace("     ", " ").encode('utf-8')
+                    tmpstr = j.replace("     ", " ").strip(",").encode('utf-8')
                     tmp.append(tmpstr)
-                    return tmp
+            return tmp
+if __name__ == "__main__":
+    test = Kafe('Informatikkafeen')
+    print test.todaysDinner()

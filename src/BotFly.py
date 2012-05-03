@@ -21,7 +21,6 @@ class BotFly(DebugBot.DebugBot):
       self.msg(channel, self.metern())
     elif command == 'middag':
       for rett in self.middag():
-        print rett
         self.msg(channel, rett)
 
   def listen(self, command, msg, channel, **kwargs):
@@ -37,6 +36,7 @@ class BotFly(DebugBot.DebugBot):
 
   def middag(self):
     kafe = Kafe('Informatikkafeen')
+	print kafe.todaysDinner()
     return kafe.todaysDinner()
 
 if __name__ == '__main__':
