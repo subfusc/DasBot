@@ -4,7 +4,9 @@
 import hashlib
 import os
 import smtplib
+import random
 from email.mime.text import MIMEText
+from GlobalConfig import *
 
 class User:
     
@@ -21,11 +23,11 @@ your cookie is %s
 ''' % (nick, self.cookie))
 
         msg['Subject'] = "Bot registration for %s" % nick
-        msg['From'] = 'sindrewe@ifi.uio.no'
+        msg['From'] = BOT_EMAIL
         msg['To'] = email
 
         s = smtplib.SMTP('smtp.uio.no')
-        s.sendmail('sindrewe@ifi.uio.no', [email], msg.as_string())
+        s.sendmail(BOT_EMAIL, [email], msg.as_string())
         s.close()
         
     def online(self, domain):
@@ -38,7 +40,7 @@ your cookie is %s
         check = hashlib.sha256()
         check.update(string + secret)
 
-        for x in range(0, 20):
+        for x in range(0, HASH_ROUNDS):
             check.digest()
 
         password = self.password.copy()
@@ -57,18 +59,18 @@ your cookie is %s
 
     def make_pass(self, cookie, passw, secret):
         if cooke == self.cookie:
-            self.password = haslib.sha256()
+            self.password = hashlib.sha256()
             self.password.update(passw + secret)
             
-            for x in range(0, 20):
+            for x in range(0, HASH_ROUNDS):
                 self.password.digest()
         
     def change_pass(self, oldpass, newpass, secret):
         if check_password(self, oldpass, secret):
-            self.password = haslib.sha256()
+            self.password = hashlib.sha256()
             self.password.update(newpass + secret)
             
-            for x in range(0, 20):
+            for x in range(0, HASH_ROUNDS):
                 self.password.digest()
 
 
