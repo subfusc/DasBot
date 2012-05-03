@@ -21,7 +21,6 @@ class BotFly(DebugBot.DebugBot):
       self.msg(channel, self.metern())
     elif command == 'middag':
       for rett in self.middag():
-        print rett
         self.msg(channel, rett)
 
   def listen(self, command, msg, channel, **kwargs):
@@ -33,7 +32,7 @@ class BotFly(DebugBot.DebugBot):
     maskiner = re.compile('sorterytter|spartiate|regent|reigersber|soleil|speedwell|quittance|ramilles|starrenburg|slesvig|repulse|skjold|spes|stcroix|vengance|sejer')
     pattern = re.compile('.::0.')
     response = [line.split(" ")[0] for line in response if pattern.search(line) and maskiner.search(line)]
-    return "Disse er på metern nå: " + "".join(response)
+    return "Disse er på metern nå: " + " ".join(response)
 
   def middag(self):
     kafe = Kafe('Informatikkafeen')
