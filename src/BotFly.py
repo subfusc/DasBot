@@ -23,10 +23,6 @@ class BotFly(DebugBot.DebugBot):
       for rett in self.middag():
         self.msg(channel, rett)
 
-  def listen(self, command, msg, channel, **kwargs):
-    super(BotFly, self).listen(command, msg, channel, **kwargs)
-    if VERBOSE: print "Listen BotFly"
-
   def metern(self):
     response = os.popen('rwho').readlines()
     maskiner = re.compile('sorterytter|spartiate|regent|reigersber|soleil|speedwell|quittance|ramilles|starrenburg|slesvig|repulse|skjold|spes|stcroix|vengance|sejer')
@@ -36,7 +32,7 @@ class BotFly(DebugBot.DebugBot):
 
   def middag(self):
     kafe = Kafe('Informatikkafeen')
-	print kafe.todaysDinner()
+    print kafe.todaysDinner()
     return kafe.todaysDinner()
 
 if __name__ == '__main__':

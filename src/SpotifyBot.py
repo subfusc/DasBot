@@ -3,6 +3,7 @@ from urllib import urlopen
 import re
 import BotFly
 import time
+from TinyUrl import tinyurl
 from GlobalConfig import *
 
 title_re = r'<h1 id="title">\s*<a id="title" href=".*?">([^<]*)</a>\s*</h1>'
@@ -25,20 +26,28 @@ class SpotifyExtract:
         return self.parse_spotify("http://open.spotify.com/%s/%s" % (t, desc))
         
     def parse_spotify(self, url):
-        artist = None
-        title = None
-        site = urlopen(url).read()
+        try:
+            artist = None
+            title = None
+            site = urlopen(url).read()
 
-        match = self.tre.search(site)
-        if match: 
-            title = match.group(1)
+            match = self.tre.search(site)
+            if match: 
+                title = match.group(1)
 
-        match = self.are.search(site)
-        if match:
-            artist = match.group(1)
+            match = self.are.search(site)
+            if match:
+                artist = match.group(1)
 
-        return (artist, title)
-
+            return (artist, title)
+        except:
+            return None
+        
+    def grooveshark_search(self, title, artist):
+        title = title.replace(" ", "+")
+        artist = artist.replace(" ", "+")
+        return "http://grooveshark.com/#!/search?q=%s+%s" % (title, artist)
+    
     def youtube_search(self, title, artist):
         title = title.replace(" ", "+")
         artist = artist.replace(" ", "+")
@@ -51,21 +60,24 @@ class SpotifyBot(BotFly.BotFly):
         self.spre = re.compile(spotify_adr)
         self.spt = re.compile(spotify_thing)
         self.spe = SpotifyExtract()
+
+    def check_and_msg(self, channel, result):
+        if result:
+            self.msg(channel, "Check out: %s - %s" % (result[1], result[0]))
+            self.msg(channel, "To make it easy: %s" % (tinyurl.create_one(self.spe.grooveshark_search(result[1], result[0]))))
+        else:
+            self.msg(channel, "Spotify Timed out??")
         
     def listen(self, command, msg, channel, **kwargs):
         super(SpotifyBot, self).listen(command, msg, channel, **kwargs)
         match = self.spre.search(msg)
         if match:
-            result = self.spe.parse_spotify(match.group(1))
-            self.msg(channel, "Check out: %s - %s" % (result[1], result[0]))
-            self.msg(channel, "To make it easy: %s" % (self.spe.youtube_search(result[1], result[0])))
+            self.check_and_msg(channel, self.spe.parse_spotify(match.group(1)))
             return
 
         match = self.spt.search(msg)
         if match:
-            result = self.spe.rewrite_and_parse(match.group(1), match.group(2))
-            self.msg(channel, "Check out: %s - %s" % (result[1], result[0]))
-            self.msg(channel, "To make it easy: %s" % (self.spe.youtube_search(result[1], result[0])))
+            self.check_and_msg(channel, self.spe.rewrite_and_parse(match.group(1), match.group(2)))
             return
 
 if __name__ == "__main__":
@@ -78,7 +90,7 @@ if __name__ == "__main__":
     
     bot = SpotifyBot(HOST, PORT, NICK, IDENT, REALNAME)
     bot.connect()
-    bot.join("#isk")
+    bot.join("#iskbot")
     # bot.notify("#iskbot", "Ingenting e som å lig i fjorn å feske på en fin sommardag!")
     # bot.msg("#iskbot", "Dæsken så mye fesk det e i fjorn i dag!")
     bot.start()
