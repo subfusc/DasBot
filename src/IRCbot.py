@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 
 import sys 
@@ -303,6 +304,9 @@ class IRCbot(object):
                                                                                            kwargs["from_host_mask"]))
 
     def help(self, command, args, channel, **kwargs):
+        if command == "":
+            self.notify(kwargs["from_nick"], "? CMD - Will give you help on a given command.")
+            self.notify(kwargs["from_nick"], "? all - Will give you a list of available commands.")
         if VERBOSE:
             print(":HELP: Command: %s, Message: %s, Channel: %s, From: %s!%s@%s" % (command, args, channel,
                                                                                     kwargs["from_nick"], 

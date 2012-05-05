@@ -17,6 +17,16 @@ class DebugBot(AuthBot.AuthBot):
     def listen(self, command, msg, channel, **kwargs):
         super(DebugBot, self).listen(command, msg, channel, **kwargs)
 
+    def help(self, command, args, channel, **kwargs):
+        super(DebugBot, self).help(command, args, channel, **kwargs)
+        if DEBUG or VERBOSE:
+            if command == "whos":
+                self.notify(kwargs["from_nick"], 
+                            "!whos [op|voice|user] will give a list of all the people the bot thinks are $OPT.")
+            elif command == "all":
+                self.notify(kwargs["from_nick"],
+                            "DebugBot: whos")
+                
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
     PORT=6667 #The connection port which is usually 6667 
