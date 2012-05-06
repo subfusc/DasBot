@@ -1,5 +1,20 @@
-
 # -*- coding: utf-8 -*-
+# Basic interface class for communicating with an IRC server.
+# Copyright (C) 2012  Sindre Wetjen
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 import sys 
 import socket 
@@ -10,7 +25,7 @@ from GlobalConfig import *
 
 IDENT_RE = r'(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>\S+)'
 ADRESS_RE = r'[^!@]+(\.[^!@.\s]+)+'
-CHANNEL_JOIN_RE = r'^:[^=]+=\s+#[^:]+:(?P<nicks>[^\r\n]+)\s*$'
+CHANNEL_JOIN_RE = r'\s*:[^3]+353[^:]+:(?P<nicks>[^\r\n]+)\s*'
 MESSAGE_RE = r'^(?P<svcmd>[^!@\s]+)\s+:(?P<adress>[^!@]+(.[^!@\r\n])+)\s*$|^:(' + \
     IDENT_RE + r'|(?P<adr>' + ADRESS_RE + \
     r'))\s+(?P<uscmd>\S+)\s+(?P<args>[^:\r\n]*)\s*(:(?P<msg>[^\r\n]+))?\s*$'
@@ -18,6 +33,9 @@ MESSAGE_RE = r'^(?P<svcmd>[^!@\s]+)\s+:(?P<adress>[^!@]+(.[^!@\r\n])+)\s*$|^:(' 
 class IRCbot(object):
 
     def __init__(self, host, port, nick, ident, realname):
+        """ 
+        Make an instance of the IRCbot class and prepare it for a Connection 
+        """
         self.host = host #: The IP/URL for the server
         self.port = port #: The port number for the server 
         self._nick = nick #: The nick the bot is going to use
@@ -25,8 +43,8 @@ class IRCbot(object):
         self.realname = realname #: The "realname" of the bot
         self.s = socket.socket() #: Create a socket for the I/O to the server
         self.channel = {} #: Channels we are in
-        self.ident_re = re.compile(IDENT_RE) #: Extract information from the identity string
-        self.channel_join_re = re.compile(CHANNEL_JOIN_RE)
+        self.ident_re = re.compile(IDENT_RE) 
+        self.channel_join_re = re.compile(CHANNEL_JOIN_RE) 
         self.message_re = re.compile(MESSAGE_RE)
         
     def connect(self):
@@ -60,7 +78,7 @@ class IRCbot(object):
                 for l in line.split('\n'):
                     if DEBUG: print "IN FOR: ", l
 
-                    match = self.channel_join_re.search(l)
+                    match = self.channel_join_re.match(l)
                     if match:
                         if DEBUG: print match.groups()
                         nicks = match.group('nicks')
@@ -304,6 +322,12 @@ class IRCbot(object):
                                                                                            kwargs["from_host_mask"]))
 
     def help(self, command, args, channel, **kwargs):
+        """
+        The function that should be extended in order to provide help to user for your command.
+        Command is the command the user is asking help for.
+        Args are ... well args...
+        channel is the channel the help request came from.
+        """
         if command == "":
             self.notify(kwargs["from_nick"], "? CMD - Will give you help on a given command.")
             self.notify(kwargs["from_nick"], "? all - Will give you a list of available commands.")

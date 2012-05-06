@@ -13,4 +13,5 @@ if __name__ == '__main__':
     bot = Bot(HOST, PORT, NICK, IDENT, REALNAME)
     bot.connect()
     bot.join("#iskbot")
+    #bot.join("#isk")
     bot.start()
