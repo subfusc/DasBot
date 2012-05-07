@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from GlobalConfig import *
 from Regex import *
 import BeautifulSoup as bs
