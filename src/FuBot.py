@@ -5,46 +5,92 @@ from Regex import *
 import BeautifulSoup as bs
 import IRCbot
 import urllib2
+import os
 import re
-
-FUDEBUG = True
 
 class FuBot(IRCbot.IRCbot):
 
     def __init__(self, host, port, nick, ident, realname):
         super(FuBot,self).__init__(host, port, nick, ident, realname)
 
+    def cmd(self, command, args, channel, **kwargs):
+        if command == "gr":
+            a = args.split()
+            if len(a) == 1:
+                w = GramWord(a[0])
+                if w.is_grammatical():
+                    self.msg(channel,"Word \""+w.get_word()+"\" is grammatical.")
+                else:
+                    self.msg(channel,"Word \""+w.get_word()+"\" is not grammatical.")
+            else:
+                self.msg(channel,"usage: !gr [ word | term | utterance ]")
+
+
     def listen(self, command, msg, channel, **kwargs):
-
         url_match = re.search(URLREGEX,msg)
-
         if (url_match):
-            page_content = self.get_page_content(url_match.group()) 
-            page_title = self.get_page_title(page_content)
-            self.msg(channel,"Tittel -- "+page_title) if page_title else None
+            t = UrlTitle(url_match.group()).get()
+            self.msg(channel,"Title: "+t) if t else None
+        
+
+class GramWord:
+    
+    dictd = None
+    dicts = None
+    word = None
+
+    def __init__(self, w):
+        self.dictd = "/usr/share/dict"
+        self.dicts = os.listdir(self.dictd)
+        self.word = w
+
+    def is_grammatical(self):
+        if len(self.dicts):
+            gr = False
+            for df in self.dicts:
+                f = open(self.dictd+"/"+df).read().split()
+                if self.word.lower() in f:
+                    gr = True
+            return gr
+
+    def get_word(self):
+        return self.word
 
 
-    def get_page_content(self, page_url):
-        """ Returns the content of a page."""
-        page_req = urllib2.Request(page_url, headers={'User-Agent' : "Magic Browser"}) 
+class UrlTitle:
+    
+    page_url = None
+    page_title = None
+    page_content = None
+
+    def __init__(self,page_url):
+        self.page_url = page_url
+        self.get_page_content() 
+        self.get_page_title()
+
+    def get_page_content(self):
+        """ Gets the content of a page."""
+        page_req = urllib2.Request(self.page_url, 
+                headers={'User-Agent' : "Magic Browser"}) 
         try:
-            page_content = urllib2.urlopen(page_req)
+            self.page_content = urllib2.urlopen(page_req)
         except urllib2.URLError, (err):
             print "%s" % (err)
-            return None
-        return page_content
+            page_content = None
 
-
-    def get_page_title(self, page_content):
+    def get_page_title(self):
         """ 
-        Returns the title contained in a page.
+        Gets the title contained in a page.
         !! Needs to pay more attention to different charsets within the title. !!
         """
-        page_soup = bs.BeautifulSoup(page_content)
-        page_title = page_soup.title.string
-        page_title = page_title.strip().replace("\n","").encode('utf-8')
-        return page_title if page_title else None
+        page_soup = bs.BeautifulSoup(self.page_content)
+        title = page_soup.title.string
+        title = title.strip().replace("\n","").encode('utf-8')
+        self.page_title = title if title else None
 
+    def get(self):
+        return self.page_title
+    
 
 if __name__ == '__main__':
   HOST = 'irc.ifi.uio.no'
