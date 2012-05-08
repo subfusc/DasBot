@@ -3,14 +3,14 @@
 from GlobalConfig import *
 from Regex import *
 import BeautifulSoup as bs
-import IRCbot
+import DebugBot
 import urllib2
 import os
 import re
 
 grammar_cmd = "gr"
 
-class FuBot(IRCbot.IRCbot):
+class FuBot(DebugBot.DebugBot):
 
     def __init__(self, host, port, nick, ident, realname):
         super(FuBot,self).__init__(host, port, nick, ident, realname)
