@@ -21,6 +21,7 @@ import socket
 import string 
 import re
 import traceback
+import time
 from GlobalConfig import *
 
 IDENT_RE = r'(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>\S+)'
@@ -46,8 +47,8 @@ class IRCbot(object):
         self.ident_re = re.compile(IDENT_RE) 
         self.channel_join_re = re.compile(CHANNEL_JOIN_RE) 
         self.message_re = re.compile(MESSAGE_RE)
-	if RAWLOG: self.log = open(RAWLOG_FILE, 'w+');
-        
+        if RAWLOG: self.log = open(RAWLOG_FILE, 'w+')
+
     def connect(self):
         self.s.connect((self.host, self.port)) #Connect to server 
         self.s.send('NICK ' + self._nick + '\n') #Send the nick to server 
@@ -62,12 +63,12 @@ class IRCbot(object):
             if '376' in line:
                 if VERBOSE: print(":CONNECT: MOTD FOUND!, CONNECTED")
                 break
-            
+
             if len(line) > 1 and line[0] == 'PING': #If server pings then pong 
                 self.s.send('PONG ' + line[1] + '\n')  
-        
+
         return True
-    
+
     def join(self, name):
         if not name in self.channel:
             self.channel[name] = {'op':[], 'voice':[], 'user':[]}
@@ -76,7 +77,7 @@ class IRCbot(object):
             exit = False
             while not exit:
                 line = self.s.recv(1024)
-		if RAWLOG: self.log.write(line)
+                if RAWLOG: self.log.write(line)
                 for l in line.split('\n'):
                     if DEBUG: print "IN FOR: ", l
 
@@ -94,11 +95,11 @@ class IRCbot(object):
                                 self.channel[name]['user'].append(nick)
 
                     if DEBUG: print(self.channel[name])
-                
+
                     if l.find('366') != -1: 
                         exit = True
                         break
-            
+
             return True
         else:
             return True
@@ -118,7 +119,7 @@ class IRCbot(object):
 
     def private_msg(self, to, message):
         self.s.send("PRIVMSG %s :%s\n" % (to, message))
-            
+
     def notify(self, name, message):
         self.s.send("NOTICE " + name + " :" + message + "\n")
 
@@ -128,7 +129,7 @@ class IRCbot(object):
     def nick(self, _nick):
         self.s.send("NICK " + _nick + "\n")
         self._nick = _nick
-        
+
     def kick(self, channel, nick, message="I don't like you!"):
         print "KICK " + channel + " " + nick + " :" + message
         self.s.send("KICK " + channel + " " + nick + " :" + message + "\n")
@@ -143,7 +144,7 @@ class IRCbot(object):
     def user_in_channel(self, channel, nick):
         channel = self.channel[channel]
         return nick in channel["user"] or nick in channel["voice"] or nick in channel["op"] 
-        
+
     def _parse_args(self, args, offset):
         length = len(args) + offset
         if length > 5 + offset:
@@ -152,18 +153,20 @@ class IRCbot(object):
             return args[4 + offset]
         else:
             return None 
-        
+
     def _parse_raw_input(self, line):
         try:
-	    if RAWLOG: self.log.write(line)
-            line = line.split('\n')
+	    if RAWLOG: 
+			self.log.write(time.strftime("%D %H:%M"))
+			self.log.write(line)
+			line = line.split('\n')
             if DEBUG: print line
             for l in line[:-1]:
                 match = self.message_re.match(l)
-                
+
                 if DEBUG:
                     print(match.groups())
-                
+
                 if match.group('svcmd'):
                     self._server_command(match.group('svcmd'), match.group('adress'))
                     return
@@ -173,25 +176,25 @@ class IRCbot(object):
                         if match.group('msg')[0] == COMMAND_CHAR:
                             first_space = match.group('msg').find(" ")
                             self.cmd(match.group('msg')[1:first_space] if first_space != -1 else match.group('msg')[1:],
-                                     match.group('msg')[first_space + 1:].strip() if first_space != -1 else None,
-                                     match.group('args').strip(),
-                                     from_nick=match.group('nick'),
-                                     from_ident=match.group('ident'),
-                                     from_host_mask=match.group('hostmask'))
+								match.group('msg')[first_space + 1:].strip() if first_space != -1 else None,
+								match.group('args').strip(),
+								from_nick=match.group('nick'),
+								from_ident=match.group('ident'),
+								from_host_mask=match.group('hostmask'))
                         elif match.group('msg')[0] == HELP_CHAR:
                             first_space = match.group('msg').find(" ", 2)
                             self.help(match.group('msg')[1:first_space].strip() if first_space != -1 else match.group('msg')[1:].strip(),
-                                     match.group('msg')[first_space + 1:].strip() if first_space != -1 else None,
-                                     match.group('args').strip(),
-                                     from_nick=match.group('nick'),
-                                     from_ident=match.group('ident'),
-                                     from_host_mask=match.group('hostmask'))
+								match.group('msg')[first_space + 1:].strip() if first_space != -1 else None,
+								match.group('args').strip(),
+								from_nick=match.group('nick'),
+								from_ident=match.group('ident'),
+								from_host_mask=match.group('hostmask'))
                         else:
                             self.listen(match.group('uscmd'), match.group('msg'), match.group('args').strip(),
-                                        from_nick=match.group('nick'),
-                                        from_ident=match.group('ident'),
-                                        from_host_mask=match.group('hostmask'))
-                            
+								from_nick=match.group('nick'),
+								from_ident=match.group('ident'),
+								from_host_mask=match.group('hostmask'))
+
                     except Exception as e:
                         print "I got an error here: %s" % e
                         traceback.print_tb(sys.exc_info()[2], limit=1, file=sys.stdout)
@@ -200,16 +203,16 @@ class IRCbot(object):
                     if DEBUG: print(":IRC COMMAND: %s" % str(match.groups()))
                     if match.group('nick'):
                         self.management_cmd(match.group('uscmd'), 
-                                            match.group('args').strip(),
-                                            msg=match.group('msg'), 
-                                            from_nick=match.group('nick'),
-                                            from_ident=match.group('ident'),
-                                            from_host_mask=match.group('hostmask'))
+							match.group('args').strip(),
+							msg=match.group('msg'), 
+							from_nick=match.group('nick'),
+							from_ident=match.group('ident'),
+							from_host_mask=match.group('hostmask'))
                     else:
                         self.management_cmd(match.group('uscmd'), 
-                                            match.group('args').strip(),
-                                            msg=match.group('msg'), 
-                                            server_adr=match.group('adr'))
+							match.group('args').strip(),
+							msg=match.group('msg'), 
+							server_adr=match.group('adr'))
         except Exception as e:
             print("ERROR: %s" % e)
             if not match:
@@ -226,7 +229,7 @@ class IRCbot(object):
                             newline = False 
                 print("")
                 print("******************** END WARNING ::::")
-            
+
     def start(self):
         while 1: # Main Loop
             line = self.s.recv(1024) #recieve server messages
@@ -241,7 +244,7 @@ class IRCbot(object):
         """
         if VERBOSE:
             print(":SERVER: Command: %s, Server: %s" % (command, server))
-        
+
         if command == 'PING':
             self.s.send('PONG ' + ":" + server + '\n')
 
@@ -254,10 +257,10 @@ class IRCbot(object):
         """
         if VERBOSE:
             print(":COMMAND: Command: %s, Args: %s, Channel: %s, From: %s!%s@%s" % (command, args, 
-                                                                                       channel,
-                                                                                       kwargs["from_nick"], 
-                                                                                       kwargs["from_ident"],
-                                                                                       kwargs["from_host_mask"]))   
+				channel,
+				kwargs["from_nick"], 
+				kwargs["from_ident"],
+				kwargs["from_host_mask"]))   
 
     def __rm_user(self, channel, nick):
         channel = self.channel[channel]
@@ -266,7 +269,7 @@ class IRCbot(object):
             del(channel["user"][x])
         elif nick in channel["voice"]: del(channel["voice"][channel["voice"].index(nick)])
         elif nick in channel["op"]: del(channel["op"][channel["op"].index(nick)])
-            
+
     def management_cmd(self, command, args, **kwargs):
         """
         This Function should be extended when you want to listen too command args 
@@ -275,16 +278,16 @@ class IRCbot(object):
         if VERBOSE:
             if "from_nick" in kwargs:
                 print(":MANAGEMENT: Command: %s, Args: %s, Message: %s, From: %s!%s@%s" % (command,
-                                                                                           args,
-                                                                                           kwargs["msg"],
-                                                                                           kwargs["from_nick"], 
-                                                                                           kwargs["from_ident"],
-                                                                                           kwargs["from_host_mask"]))
+					args,
+					kwargs["msg"],
+					kwargs["from_nick"], 
+					kwargs["from_ident"],
+					kwargs["from_host_mask"]))
             else:
                 print(":MANAGEMENT: Command: %s, Args: %s, Message: %s, From: %s" % (command,
-                                                                                     args,
-                                                                                     kwargs["msg"],
-                                                                                     kwargs["server_adr"]))
+					args,
+					kwargs["msg"],
+					kwargs["server_adr"]))
         if command == "JOIN":
             self.channel[kwargs["msg"]]["user"].append(kwargs["from_nick"])
         elif command == "QUIT":
@@ -310,7 +313,7 @@ class IRCbot(object):
                 elif args[1] == "-v":
                     self.__rm_user(args[0], args[2])
                     self.channel[args[0]]["user"].append(args[2])
-                    
+
     def listen(self, command, msg, channel, **kwargs):
         """
         This Function is supposed to be extended in subclasses to provide functionality when you
@@ -319,10 +322,10 @@ class IRCbot(object):
         """
         if VERBOSE:
             print(":LISTEN: Command: %s, Message (%d): %s, Channel: %s, From: %s!%s@%s" % (command, len(msg), msg, 
-                                                                                           channel,
-                                                                                           kwargs["from_nick"], 
-                                                                                           kwargs["from_ident"],
-                                                                                           kwargs["from_host_mask"]))
+				channel,
+				kwargs["from_nick"], 
+				kwargs["from_ident"],
+				kwargs["from_host_mask"]))
 
     def help(self, command, args, channel, **kwargs):
         """
@@ -336,10 +339,10 @@ class IRCbot(object):
             self.notify(kwargs["from_nick"], "? all - Will give you a list of available commands.")
         if VERBOSE:
             print(":HELP: Command: %s, Message: %s, Channel: %s, From: %s!%s@%s" % (command, args, channel,
-                                                                                    kwargs["from_nick"], 
-                                                                                    kwargs["from_ident"],
-                                                                                    kwargs["from_host_mask"]))
-            
+				kwargs["from_nick"], 
+				kwargs["from_ident"],
+				kwargs["from_host_mask"]))
+
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 
     PORT=6667 #The connection port which is usually 6667 
@@ -347,7 +350,7 @@ if __name__ == "__main__":
     IDENT='automott' 
     REALNAME='Aweseome Bot' 
     OWNER='Trondth' #The bot owner's nick 
-    
+
     bot = IRCbot(HOST, PORT, NICK, IDENT, REALNAME)
     bot.connect()
     bot.join("#nybrummbot")
