@@ -8,26 +8,31 @@ import urllib2
 import os
 import re
 
+grammar_cmd = "gr"
+
 class FuBot(IRCbot.IRCbot):
 
     def __init__(self, host, port, nick, ident, realname):
         super(FuBot,self).__init__(host, port, nick, ident, realname)
 
     def help(self, command, args, channel, **kwargs):
-            if command == "gr":
-                self.msg(channel,"!gr [word] will determine if this word is grammtical.")
+        super(FuBot, self).help(command, args, channel, **kwargs)
+        if command == grammar_cmd:
+            self.msg(channel,"!gr [word] determines if the spelling of the given word is correct")
 
     def cmd(self, command, args, channel, **kwargs):
-        if command == "gr":
+        if command == grammar_cmd:
             a = args.split()
             if len(a) == 1:
                 w = GramWord(a[0])
                 if w.is_grammatical():
-                    self.msg(channel,"Word \""+w.get_word()+"\" is grammatical.")
+                    _str = "['{0}' : {1}] is correct.".format(a[0],w.get_lang())
+                    self.msg(channel,_str)
                 else:
-                    self.msg(channel,"Word \""+w.get_word()+"\" is not grammatical.")
+                    _str = "['{0}'] is not correct.".format(a[0])
+                    self.msg(channel,_str)
             else:
-                self.help(self,command,channel,kwargs)
+                self.help(command, args, channel, **kwargs)
 
     def listen(self, command, msg, channel, **kwargs):
         url_match = re.search(URLREGEX,msg)
@@ -38,23 +43,37 @@ class FuBot(IRCbot.IRCbot):
 
 class GramWord:
     
-    dictd = None
-    dicts = None
+    dict_dir = "/usr/share/dict/"
+    dict_nor = "data/norskeord.txt"
+    dict_files = []
     word = None
+    lang = None
 
     def __init__(self, w):
-        self.dictd = "/usr/share/dict"
-        self.dicts = os.listdir(self.dictd)
+        self.dict_files = [ self.dict_dir+f for f in os.listdir(self.dict_dir)]
+        self.dict_files += [ self.dict_nor ]
         self.word = w
 
     def is_grammatical(self):
-        if len(self.dicts):
-            gr = False
-            for df in self.dicts:
-                f = open(self.dictd+"/"+df).read().split()
-                if self.word.lower() in f:
-                    gr = True
-            return gr
+        en_gr = 0 
+        no_gr = 0
+        found = False
+        for df in self.dict_files:
+            f = open(df).read().split()
+            if self.word.lower() in f:
+                if df == self.dict_nor: 
+                    self.lang = "NO"
+                    no_gr = True
+                else:
+                    self.lang = "EN"
+                    en_gr = True
+                found = True
+        if (en_gr and no_gr):
+            self.lang = "NO, EN"
+        return found
+
+    def get_lang(self):
+        return self.lang
 
     def get_word(self):
         return self.word
@@ -105,6 +124,6 @@ if __name__ == '__main__':
 
   bot = FuBot(HOST, PORT, NICK, IDENT, REALNAME)
   bot.connect()
-  bot.join('#iskbot')
-  #bot.join('#fubot')
+  #bot.join('#iskbot')
+  bot.join('#fubot')
   bot.start()
