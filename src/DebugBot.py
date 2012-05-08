@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 import AuthBot
 import time
+import threading
 from GlobalConfig import *
+
+def printall():
+    print "I WAITED!"
+
+def printtochannel(bot, channel, message):
+    bot.msg(channel, "I waited!")
 
 class DebugBot(AuthBot.AuthBot):
         
@@ -16,7 +23,11 @@ class DebugBot(AuthBot.AuthBot):
             if command == "import":
                 test = __import__("test")
                 self.msg(channel, test.test_string())
-            
+            if command == "wait":
+                self.msg(channel, "Will try and wait %g secs" % float(args))
+                t = threading.Timer(float(args), printtochannel, [self, channel, "I WAITED!"])
+                t.start()
+                
     def listen(self, command, msg, channel, **kwargs):
         super(DebugBot, self).listen(command, msg, channel, **kwargs)
 
