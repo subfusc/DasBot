@@ -13,6 +13,10 @@ class FuBot(IRCbot.IRCbot):
     def __init__(self, host, port, nick, ident, realname):
         super(FuBot,self).__init__(host, port, nick, ident, realname)
 
+    def help(self, command, args, channel, **kwargs):
+            if command == "gr":
+                self.msg(channel,"!gr [word] will determine if this word is grammtical.")
+
     def cmd(self, command, args, channel, **kwargs):
         if command == "gr":
             a = args.split()
@@ -23,8 +27,7 @@ class FuBot(IRCbot.IRCbot):
                 else:
                     self.msg(channel,"Word \""+w.get_word()+"\" is not grammatical.")
             else:
-                self.msg(channel,"usage: !gr [ word | term | utterance ]")
-
+                self.help(self,command,channel,kwargs)
 
     def listen(self, command, msg, channel, **kwargs):
         url_match = re.search(URLREGEX,msg)
@@ -102,5 +105,6 @@ if __name__ == '__main__':
 
   bot = FuBot(HOST, PORT, NICK, IDENT, REALNAME)
   bot.connect()
-  bot.join('#fubot')
+  bot.join('#iskbot')
+  #bot.join('#fubot')
   bot.start()
