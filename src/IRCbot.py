@@ -46,6 +46,7 @@ class IRCbot(object):
         self.ident_re = re.compile(IDENT_RE) 
         self.channel_join_re = re.compile(CHANNEL_JOIN_RE) 
         self.message_re = re.compile(MESSAGE_RE)
+	if RAWLOG: self.log = open(RAWLOG_FILE, 'w+');
         
     def connect(self):
         self.s.connect((self.host, self.port)) #Connect to server 
@@ -75,6 +76,7 @@ class IRCbot(object):
             exit = False
             while not exit:
                 line = self.s.recv(1024)
+		if RAWLOG: self.log.write(line)
                 for l in line.split('\n'):
                     if DEBUG: print "IN FOR: ", l
 
@@ -153,6 +155,7 @@ class IRCbot(object):
         
     def _parse_raw_input(self, line):
         try:
+	    if RAWLOG: self.log.write(line)
             line = line.split('\n')
             if DEBUG: print line
             for l in line[:-1]:

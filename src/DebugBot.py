@@ -13,6 +13,9 @@ class DebugBot(AuthBot.AuthBot):
         if DEBUG or VERBOSE:
             if command == "whos":
                 self.msg(channel, str(self.channel[channel][args]) if args in self.channel[channel] else "Not legal key", to=kwargs['from_nick'])
+            if command == "import":
+                test = __import__("test")
+                self.msg(channel, test.test_string())
             
     def listen(self, command, msg, channel, **kwargs):
         super(DebugBot, self).listen(command, msg, channel, **kwargs)
