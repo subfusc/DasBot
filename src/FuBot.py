@@ -18,7 +18,8 @@ class FuBot(IRCbot.IRCbot):
     def help(self, command, args, channel, **kwargs):
         super(FuBot, self).help(command, args, channel, **kwargs)
         if command == grammar_cmd:
-            self.msg(channel,"!gr [word] determines if the spelling of the given word is correct")
+            _msg = "!gr [word] determines if the spelling of the given word is correct"
+            self.notify(kwargs["from_user"], _msg)
 
     def cmd(self, command, args, channel, **kwargs):
         if command == grammar_cmd:
@@ -55,8 +56,8 @@ class GramWord:
         self.word = w
 
     def is_grammatical(self):
-        en_gr = 0 
-        no_gr = 0
+        en_gr = False 
+        no_gr = False
         found = False
         for df in self.dict_files:
             f = open(df).read().split()
@@ -101,10 +102,7 @@ class UrlTitle:
             page_content = None
 
     def get_page_title(self):
-        """ 
-        Gets the title contained in a page.
-        !! Needs to pay more attention to different charsets within the title. !!
-        """
+        """Gets the title contained in a page."""
         page_soup = bs.BeautifulSoup(self.page_content)
         title = page_soup.title.string
         title = title.strip().replace("\n","").encode('utf-8')
@@ -124,6 +122,6 @@ if __name__ == '__main__':
 
   bot = FuBot(HOST, PORT, NICK, IDENT, REALNAME)
   bot.connect()
-  #bot.join('#iskbot')
-  bot.join('#fubot')
+  bot.join('#iskbot')
+  #bot.join('#fubot')
   bot.start()
