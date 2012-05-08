@@ -9,11 +9,10 @@ import string
 from email.mime.text import MIMEText
 from GlobalConfig import *
 
-class User:
+def create_cookie(length=12, chars=string.letters + string.digits): 
+    return ''.join([random.choice(chars) for x in range(length)])
 
-    @staticmethod
-    def create_cookie(length=12, chars=string.letters + string.digits): 
-        return ''.join([random.choice(chars) for x in range(length)])
+class User:
      
     def __init__(self, nick, email, secret, level = 0):
         self.nick = nick
@@ -46,6 +45,7 @@ You have 24 hours to register.
         return self.level
 
     def check_password(self, string, secret):
+        if self.password == None: return False
         check = hashlib.sha256()
         check.update(string + secret)
 
@@ -67,6 +67,7 @@ You have 24 hours to register.
         self.domain = None
 
     def make_pass(self, cookie, passw, secret):
+        print self.nick, cookie, self.cookie, passw
         if self.cookie != None and cookie == self.cookie:
             self.password = hashlib.sha256()
             self.password.update(passw + secret)
@@ -74,6 +75,8 @@ You have 24 hours to register.
             for x in range(0, HASH_ROUNDS):
                 self.password.digest()
             self.cookie = None
+            return True
+        return False
         
     def change_pass(self, oldpass, newpass, secret):
         if check_password(self, oldpass, secret):

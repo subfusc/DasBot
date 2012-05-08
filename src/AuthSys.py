@@ -14,9 +14,10 @@ class AuthSys:
         if len(self.userlist.keys()) == 0:
             level = 100
         try:
-            if not nick in userlist:
+            if not nick in self.userlist:
                 self.userlist[nick] = User(nick, email, self.secret, level)
-        except:
+        except Exception as e:
+            print e
             return "I got an error in registering. Please try again"
         
     def login(self, nick, passwd, domain):
@@ -33,15 +34,16 @@ class AuthSys:
            return self.domainlist[domain].get_level()
 
     def is_online(self, nick):
-        if nick in userlist:
-            return userlist[nick].is_online()
+        if nick in self.userlist:
+            return self.userlist[nick].is_online()
         
     def list_users(self):
         return str(self.userlist.keys())
 
     def setpass(self, nick, cookie, passwd):
-        if nick in userlist:
-            return userlist[nick].make_pass(cookie, passwd, self.secret)
+        print nick, cookie, passwd
+        if nick in self.userlist:
+            return self.userlist[nick].make_pass(cookie, passwd, self.secret)
         return False
         
     def logout(self, domain):

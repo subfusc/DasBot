@@ -34,7 +34,7 @@ class AuthBot(IRCbot.IRCbot):
                 args = args.split()
                 result = self.authsys.login(args[0], args[1], "%s!%s@%s" % (kwargs['from_nick'],
                                                                             kwargs['from_ident'],
-                                                                            kwargs=['from_host_mask']))
+                                                                            kwargs['from_host_mask']))
                 if result: self.msg(channel, "Logged in!", to=kwargs['from_nick'])
                 else: self.msg(channel, "Wrong pass!", to=kwargs['from_nick'])
             elif command == 'online':
