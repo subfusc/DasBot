@@ -69,7 +69,6 @@ class SpotifyBot(BotFly.BotFly):
             self.msg(channel, "Spotify Timed out??")
         
     def listen(self, command, msg, channel, **kwargs):
-        super(SpotifyBot, self).listen(command, msg, channel, **kwargs)
         match = self.spre.search(msg)
         if match:
             self.check_and_msg(channel, self.spe.parse_spotify(match.group(1)))
@@ -79,6 +78,7 @@ class SpotifyBot(BotFly.BotFly):
         if match:
             self.check_and_msg(channel, self.spe.rewrite_and_parse(match.group(1), match.group(2)))
             return
+        super(SpotifyBot, self).listen(command, msg, channel, **kwargs)
 
 if __name__ == "__main__":
     HOST='irc.ifi.uio.no' #The server we want to connect to 

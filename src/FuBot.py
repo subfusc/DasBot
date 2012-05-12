@@ -48,12 +48,13 @@ class FuBot(DebugBot.DebugBot):
 
 
     def listen(self, command, msg, channel, **kwargs):
-        url_match = self.ure(msg)
+        super(FuBot, self).listen(command, msg, channel, **kwargs)
+        url_match = self.ure.search(msg)
         talk_match = re.match(TALK_REGEX,msg,re.IGNORECASE)
 
         if url_match:
             t = self.urltitle(url_match.group())
-            self.msg(channel,"Title: "+t) if t else None
+            self.msg(channel, "Title: " + t) if t else None
         elif talk_match:
             self.msg(channel,"Yes, my liege?")
         
