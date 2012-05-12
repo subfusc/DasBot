@@ -47,7 +47,7 @@ class IRCbot(object):
         self.ident_re = re.compile(IDENT_RE) 
         self.channel_join_re = re.compile(CHANNEL_JOIN_RE) 
         self.message_re = re.compile(MESSAGE_RE)
-        if RAWLOG: self.log = open(RAWLOG_FILE, 'w+')
+        if RAWLOG: self.log = open(RAWLOG_FILE, 'a')
 
     def connect(self):
         self.s.connect((self.host, self.port)) #Connect to server 
