@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from GlobalConfig import *
-from Regex import *
+#from Regex import * <-- What is this?
 import BeautifulSoup as bs
 import DebugBot
 import urllib2
@@ -32,7 +32,9 @@ class FuBot(DebugBot.DebugBot):
         elif command == fortune_cmd:
             help_msg = "!"+fortune_cmd+" prints a random, hopefully interesting, adage."
             self.notify(kwargs["from_nick"], help_msg)
-
+        elif command == "all":
+            self.notify(kwargs["from_nick"], "FuBot: %s, %s" % (gram_cmd, fortune_cmd))
+            
 
     def cmd(self, command, args, channel, **kwargs):
         super(FuBot, self).cmd(command, args, channel, **kwargs)
