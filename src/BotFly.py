@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import DebugBot
+import FuBot
 from GlobalConfig import *
 import IRCFonts
 import os
@@ -8,7 +8,7 @@ import time
 import re
 import urllib2
 from Kafe import Kafe
-class BotFly(DebugBot.DebugBot):
+class BotFly(FuBot.FuBot):
 
   def __init__(self, host, port, nick, ident, realname):
     super(BotFly, self).__init__(host, port, nick, ident, realname)
