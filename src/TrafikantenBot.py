@@ -16,14 +16,19 @@ class TrafikantenBot(SpotifyBot.SpotifyBot):
     def __init__(self, host, port, nick, ident, realname):
         super(TrafikantenBot, self).__init__(host, port, nick, ident, realname)
 
-    def cmd(self, command, args, channel, **kwargs):
-        super(TrafikantenBot, self).cmd(command, args, channel, **kwargs)        
-        if VERBOSE: print "COMMAND mrTrafikantenBot!"
-        if command == 'help':
-            if args.split()[0] == 't':
+    def help(self, command, args, channel, **kwargs):
+        super(TrafikantenBot, self).help(command, args, channel, **kwargs)
+        if DEBUG or VERBOSE:
+            if command == 't':
                 self.notify(kwargs['from_nick'], "Sanntidsinfo fra trafikanten:")
                 self.notify(kwargs['from_nick'], "!t hvor [min [ant]]")
                 self.notify(kwargs['from_nick'], "«hvor» kan blant annet være følgende: sognsvann, ullevål, ringen, sentrum og trikk")
+            if command == 'all':
+                self.notify(kwargs['from_nick'], "TrafikantenBot: t")
+
+    def cmd(self, command, args, channel, **kwargs):
+        super(TrafikantenBot, self).cmd(command, args, channel, **kwargs)        
+        if VERBOSE: print "COMMAND mrTrafikantenBot!"
 
         if command == 't':
             svar = self.trafikanten_k(args)
@@ -49,11 +54,13 @@ class TrafikantenBot(SpotifyBot.SpotifyBot):
     def listen(self, command, msg, channel, **kwargs):
         super(TrafikantenBot, self).listen(command, msg, channel, **kwargs)
         if VERBOSE: print "LISTEN mrTrafikantenBot!"
-        if msg.lower().find("banen") != -1:
+        if re.search(r"\bbanen\b", msg.lower()):
             self.msg(channel, self.trafikanten('sentrum'))
-        if msg.lower().find("ringen") != -1:
+        elif re.search(r"\bsentrum\b", msg.lower()):
+            self.msg(channel, self.trafikanten('sentrum'))
+        if re.search(r"\bringen\b", msg.lower()):
             self.msg(channel, self.trafikanten('ringen'))
-        if msg.lower().find("sognsvann") != -1:
+        if re.search(r"\bsognsvann\b", msg.lower()):
             self.msg(channel, self.trafikanten('sognsvann'))
 
     def trafikanten_realtime(self,hva):
@@ -88,7 +95,9 @@ class TrafikantenBot(SpotifyBot.SpotifyBot):
         print ""
         datere = re.compile('^\/Date\(([^+]*)\+.*$')
         hvor = steder[k[0].lower()]
-        nar = 0
+        if len(msg) == 0:
+            hvor = 1
+        nar = -1
         if len(k) > 1:
             nar = int(k[1])
         ant = 2

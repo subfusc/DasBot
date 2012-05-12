@@ -5,13 +5,13 @@ from Synsebot import Synsebot as Bot
 if __name__ == '__main__':
     HOST='irc.ifi.uio.no' #The server we want to connect to 
     PORT=6667 #The connection port which is usually 6667 
-    NICK='ISKBotT' #The bot's nickname 
-    IDENT='ISKBotT' 
+    NICK='ISKBot' #The bot's nickname 
+    IDENT='ISKBot' 
     REALNAME='Informatikk: språk og teknologi botten.' 
     OWNER='ISK' #The bot owner's nick 
     
     bot = Bot(HOST, PORT, NICK, IDENT, REALNAME)
     bot.connect()
-    bot.join("#iskbot")
-    #bot.join("#isk")
+    #bot.join("#iskbot")
+    bot.join("#isk")
     bot.start()

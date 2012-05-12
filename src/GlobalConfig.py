@@ -9,7 +9,7 @@ HELP_CHAR = '?'
 
 # IRCbot config
 RAWLOG = True
-RAWLOG_FILE = "ircraw.log"
+RAWLOG_FILE = "/uio/arkimedes/s71/sindrewe/www_docs/IRC.log"
 
 # Security 
 AUTHENTICATION = False
