@@ -76,11 +76,11 @@ class IRCbot(object):
 
             exit = False
             while not exit:
-                line = self.s.recv(1024)
+                line = self.s.recv(2048)
                 if RAWLOG: self.log.write(line)
                 for l in line.split('\n'):
                     if DEBUG: print "IN FOR: ", l
-
+                        
                     match = self.channel_join_re.match(l)
                     if match:
                         if DEBUG: print match.groups()
@@ -96,10 +96,9 @@ class IRCbot(object):
 
                     if DEBUG: print(self.channel[name])
 
-                    if l.find('366') != -1: 
+                    if l.find(' 366 ') != -1: 
                         exit = True
                         break
-
             return True
         else:
             return True
