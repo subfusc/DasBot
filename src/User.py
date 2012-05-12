@@ -5,21 +5,26 @@ import hashlib
 import os
 import smtplib
 import random
+import string
 from email.mime.text import MIMEText
 from GlobalConfig import *
 
+def create_cookie(length=12, chars=string.letters + string.digits): 
+    return ''.join([random.choice(chars) for x in range(length)])
+
 class User:
-    
+     
     def __init__(self, nick, email, secret, level = 0):
         self.nick = nick
         self.email = email
         self.lin = False
         self.domain = None
         self.level = level
-        self.cookie = "lolimon"
+        self.cookie = create_cookie()
         print email
         msg = MIMEText('''hi %s
-your cookie is %s
+your cookie is %s.
+You have 24 hours to register.
 ''' % (nick, self.cookie))
 
         msg['Subject'] = "Bot registration for %s" % nick
@@ -33,10 +38,14 @@ your cookie is %s
     def online(self, domain):
         return self.lin and self.domain == domain
 
+    def is_online(self):
+        return self.lin and self.domain != None
+    
     def get_level(self):
         return self.level
 
     def check_password(self, string, secret):
+        if self.password == None: return False
         check = hashlib.sha256()
         check.update(string + secret)
 
@@ -58,12 +67,16 @@ your cookie is %s
         self.domain = None
 
     def make_pass(self, cookie, passw, secret):
-        if cooke == self.cookie:
+        print self.nick, cookie, self.cookie, passw
+        if self.cookie != None and cookie == self.cookie:
             self.password = hashlib.sha256()
             self.password.update(passw + secret)
             
             for x in range(0, HASH_ROUNDS):
                 self.password.digest()
+            self.cookie = None
+            return True
+        return False
         
     def change_pass(self, oldpass, newpass, secret):
         if check_password(self, oldpass, secret):
@@ -72,6 +85,8 @@ your cookie is %s
             
             for x in range(0, HASH_ROUNDS):
                 self.password.digest()
+            return True
+        return False
 
 
 if __name__ == "__main__":

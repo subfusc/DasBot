@@ -25,7 +25,24 @@ class AuthBot(IRCbot.IRCbot):
                 result = self.authsys.add(args[0], args[1])
                 if result: self.msg(channel, result, to=kwargs['from_nick'])
                 else: self.msg(channel, "Email sendt to %s" % (args[1]), to=kwargs['from_nick'])
-            
+            elif command == 'setpass':
+                args = args.split()
+                result = self.authsys.setpass(args[0], args[1], args[2])
+                if result: self.msg(channel, "Password updated", to=kwargs['from_nick'])
+                else: self.msg(channel, "Cookie not correct!", to=kwargs['from_nick'])
+            elif command == 'login':
+                args = args.split()
+                result = self.authsys.login(args[0], args[1], "%s!%s@%s" % (kwargs['from_nick'],
+                                                                            kwargs['from_ident'],
+                                                                            kwargs['from_host_mask']))
+                if result: self.msg(channel, "Logged in!", to=kwargs['from_nick'])
+                else: self.msg(channel, "Wrong pass!", to=kwargs['from_nick'])
+            elif command == 'online':
+                result = self.authsys.is_online(args)
+                if result: self.msg(channel, "He is online!", to=kwargs['from_nick'])
+                else: self.msg(channel, "He is not online!", to=kwargs['from_nick'])
+                
+                
     def listen(self, command, msg, channel, **kwargs):
         super(AuthBot, self).listen(command, msg, channel, **kwargs)
 
