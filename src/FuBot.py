@@ -2,6 +2,7 @@
 
 from GlobalConfig import *
 import BeautifulSoup
+import htmlentitydefs
 import DebugBot
 import urllib2
 import random
@@ -16,13 +17,13 @@ URL_REGEX = r"^(?:https?://(?:(?:(?:(?:(?:[a-zA-Z\d](?:(?:[a-zA-Z\d]|-)*[a-zA-Z\
 TALK_REGEX = r"^FuBot:.*$"
 
 class FuBot(DebugBot.DebugBot):
-    
+
 
     def __init__(self, host, port, nick, ident, realname):
         super(FuBot,self).__init__(host, port, nick, ident, realname)
         self.ure = re.compile(URL_REGEX)
         self.tre = re.compile(TALK_REGEX, re.IGNORECASE)
-        
+
 
     def help(self, command, args, channel, **kwargs):
         super(FuBot, self).help(command, args, channel, **kwargs)
@@ -34,7 +35,7 @@ class FuBot(DebugBot.DebugBot):
             self.notify(kwargs["from_nick"], help_msg)
         elif command == "all":
             self.notify(kwargs["from_nick"], "FuBot: %s, %s" % (gram_cmd, fortune_cmd))
-            
+
 
     def cmd(self, command, args, channel, **kwargs):
         super(FuBot, self).cmd(command, args, channel, **kwargs)
@@ -57,7 +58,7 @@ class FuBot(DebugBot.DebugBot):
             self.msg(channel, "Title: " + t) if t else None
         elif talk_match:
             self.msg(channel,"Yes, my liege?")
-        
+
 
     def gram(self, args):
         argv = args.split()
@@ -78,7 +79,7 @@ class FuBot(DebugBot.DebugBot):
                 small_fort.append(small_f)
         index = random.randint(0,len(small_fort)-1)
         return small_fort[index]
-        
+
 
     def urltitle(self, url):
         req = urllib2.Request(url, headers={'User-Agent':"Magic Browser"}) 
@@ -88,13 +89,41 @@ class FuBot(DebugBot.DebugBot):
             print "%s" % (err)
             return
         page_soup = BeautifulSoup.BeautifulSoup(page_content)
-        title = page_soup.title.string
-        title = title.strip().replace("\n","").encode('utf-8')
-        return title if title else None
+        title = None
+        if page_soup.title and page_soup.title.string:
+            title = page_soup.title.string.strip().replace("\n","")
+            title = self.unescape(title).encode("utf-8")
+        return title
+
+
+    """
+    Fredrik Lundh, 2006
+    http://effbot.org/zone/re-sub.htm#unescape-html
+    """
+    def unescape(self, text):
+        def fixup(m):
+            text = m.group(0)
+            if text[:2] == "&#":
+                # character reference
+                try:
+                    if text[:3] == "&#x":
+                        return unichr(int(text[3:-1], 16))
+                    else:
+                        return unichr(int(text[2:-1]))
+                except ValueError:
+                    pass
+            else:
+                # named entity
+                try:
+                    text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+                except KeyError:
+                    pass
+            return text # leave as is
+        return re.sub("&#?\w+;", fixup, text)
 
 
 class GramWord:
-    
+
     dict_dir = "/usr/share/dict/"
     dict_nor = "data/norskeord.txt"
     dict_files = []
@@ -135,7 +164,7 @@ if __name__ == '__main__':
     IDENT = 'FuBot'
     REALNAME = 'FuBot'
     OWNER = 'wictorht'
-    
+
     bot = FuBot(HOST, PORT, NICK, IDENT, REALNAME)
     bot.connect()
     bot.join("#fubot")
