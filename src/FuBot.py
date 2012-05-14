@@ -55,7 +55,7 @@ class FuBot(DebugBot.DebugBot):
 
         if url_match:
             t = self.urltitle(url_match.group())
-            self.msg(channel, "Title: " + t) if t else None
+            self.msg(channel, t) if t else None
         elif talk_match:
             self.msg(channel, "Yes, my liege?")
 
