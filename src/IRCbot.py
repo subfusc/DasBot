@@ -43,11 +43,12 @@ class IRCbot(object):
         self.ident = ident #: Identity of the bot
         self.realname = realname #: The "realname" of the bot
         self.s = socket.socket() #: Create a socket for the I/O to the server
+        self.s.settimeout(600)
         self.channel = {} #: Channels we are in
         self.ident_re = re.compile(IDENT_RE) 
         self.channel_join_re = re.compile(CHANNEL_JOIN_RE) 
         self.message_re = re.compile(MESSAGE_RE)
-        if RAWLOG: self.log = open(RAWLOG_FILE, 'a')
+        if RAWLOG: self.log = open(RAWLOG_FILE, 'a', 1)
 
     def connect(self):
         self.s.connect((self.host, self.port)) #Connect to server 
@@ -230,11 +231,11 @@ class IRCbot(object):
                 print("******************** END WARNING ::::")
 
     def start(self):
+        line = self.s.recv(1024)
         while 1: # Main Loop
-            line = self.s.recv(1024) #recieve server messages
-
             if DEBUG: print line #server message is output
             line = self._parse_raw_input(line)
+            line = self.s.recv(1024) #recieve server messages
 
     def _server_command(self, command, server):
         """
