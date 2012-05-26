@@ -129,33 +129,24 @@ class FuBot(DebugBot.DebugBot):
 
 class GramWord:
 
-    dict_dir = "/usr/share/dict/"
-    dict_nor = "data/norskeord.txt"
-    dict_files = []
-    word = None
-    lang = []
-
     def __init__(self, w):
+        self.dict_dir = "/usr/share/dict/"
+        self.dict_nor = "data/norskeord.txt"
         self.dict_files = [ self.dict_dir+f for f in os.listdir(self.dict_dir)]
-        self.dict_files += [ self.dict_nor ]
+        self.dict_files.append(self.dict_nor)
+        self.lang = list()
         self.word = w
 
     def is_grammatical(self):
-        en_gr = False 
-        no_gr = False
         found = False
         for df in self.dict_files:
             f = open(df).read().split()
             if self.word.lower() in f:
                 if df == self.dict_nor: 
-                    self.lang = ["NO"]
-                    no_gr = True
+                    self.lang.append("NO")
                 else:
-                    self.lang = ["EN"]
-                    en_gr = True
+                    self.lang.append("EN")
                 found = True
-        if (en_gr and no_gr):
-            self.lang = ["NO"]+["EN"]
         return found
 
     def get_lang(self):
@@ -172,5 +163,5 @@ if __name__ == '__main__':
 
     bot = FuBot(HOST, PORT, NICK, IDENT, REALNAME)
     bot.connect()
-    bot.join("#fubot")
+    bot.join("#iskbot")
     bot.start()
