@@ -15,7 +15,7 @@ class KarmaBot(IRCbot.IRCbot):
                 super(KarmaBot, self).cmd(command, args, channel, **kwargs)
                 if VERBOSE: print("COMMAND KarmaBot")
                 print(command)
-                if command == '+1' and len(args.split()) == 1: # TODO: Check if args really is a user
+                if command == '+1' and len(args.split()) == 1 and isUser(channel, args.strip()): # TODO: Check if args really is a user
                         to = args.strip()
 			
                         if kwargs['from_nick'] == to:
@@ -30,7 +30,7 @@ class KarmaBot(IRCbot.IRCbot):
                         self.k.addKarma(kwargs['from_nick'], to)
                         self.msg(channel, to + " just got a +1. Way to go ;)")
 			return
-                elif command == '-1' and len(args.split()) == 1:
+                elif command == '-1' and len(args.split()) == 1 and isUser(channel, args.strip()):
                         to = args.strip()
 			
                         if kwargs['from_nick'] == to:
@@ -44,44 +44,48 @@ class KarmaBot(IRCbot.IRCbot):
                         self.k.delKarma(kwargs['from_nick'], to)
                         self.msg(channel, to + " just got a -1. Get a grip, " + to + ".")
 			return
+		elif command == 'karma':
+			if not args:
+				cmd = [ ]
+			else:
+				cmd = args.split()
 
-                elif command == 'topkarma':
-                        if args and len(args.split()) == 1:
-                                try:
-                                        args = int(args[0])
-                                except:
-                                        return
-                                result = self.k.getTopUsers(args)
+			if len(cmd) == 0:
 
-                                if args > 3:
-                                        rank = 1
-                                        self.msg(kwargs['from_nick'], "Karma top:")
-                                        for user in result:
-                                                self.msg(kwargs['from_nick'], "#" + str(rank) + " <" + user[0] + "> with " + str(user[1]) + " karma")
-                                                rank += 1
-                                                return
-                                elif args <= 3:
-                                        rank = 1
-                                        output = "The karma top: "
-                                        for user in result:
-                                                output += "#" + str(rank) + " <" + user[0] + "> with " + str(user[1]) + " karma || "
-                                                rank += 1
+				karma = self.k.getUserKarma(kwargs['from_nick'])
 
-                                        self.msg(channel, output[:-3])
+				if karma:
+					self.notify(kwargs['from_nick'], "You have " + str(karma) + " karma.")
+				else:
+					self.notify(kwargs['from_nick'], "You don't have any karma.")
+
+				return
+			elif len(cmd) == 1:
+
+				if cmd[0].strip() == 'top':
+					result = self.k.getTopUsers(3) # Number of users to show
+
+					rank = 1
+
+					output = "The karma top3 is: "
+
+					for user in result:
+						output += "#" + str(rank) + " <" + user[0] + "> with " + str(user[1]) + " karma || "
+						rank += 1
+
+					self.msg(channel, output[:-3])
+
 					return
-		elif command == '+u':
-			self.msg(channel, str(self.isUser(channel, kwargs['from_nick'])))
-			return
-                elif command == 'topkarma' and not args:
-                	rank = 1
-                	output = "The karma top: "
-                        result = self.k.getTopUsers(3)
-                        for user in result:
-                        	output += "#" + str(rank) + " <" + user[0] + "> with " + str(user[1]) + " karma || "
-                                rank += 1
-			
-                        self.msg(channel, output[:-3])
-			return
+				else:
+					karma = self.k.getUserKarma(cmd[0])
+
+					if karma:
+						self.msg(channel, cmd[0] + " has " + str(karma) + " karma.")
+					else:
+						self.notify(kwargs['from_nick'], "This user doesn't exist in the database.")
+
+					return
+
 
 	def isUser(self, channel, username):
 		users = []

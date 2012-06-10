@@ -96,6 +96,23 @@ class Karma:
 			connection.close()
 
 			return result
+	
+	# Fetches a spesific users karma
+	def getUserKarma(self, username):
+		connection = sql.connect(dbName)
+
+		cursor = connection.cursor()
+
+		cursor.execute("select " + KEY_KARMA + " from " + TABLE_USERS + " where " + KEY_USERNAME + "=\'" + username + "\'")
+
+		result = cursor.fetchone()
+
+		connection.close()
+
+		if result:
+			return result[0]
+		else:
+			return None
 
 	# Creates database and tables if not already there
 	def testOrCreateDb(self):
