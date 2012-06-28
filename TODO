@@ -1,0 +1,8 @@
+Sindre Wetjen:
+* Finish the authentication part of the bot: Pri 1
+
+* Restructure to ensure that everything that needs authentication, gets authentication
+
+* Implement a first draft of a Plugin Bot
+
+* BUG: Bot does not handle netsplitt as it should (regarding to whois)
