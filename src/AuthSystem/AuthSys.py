@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 # Skrevet av Sindre Wetjen
 from User import User
+from AuthConfig import *
 import sqlite3
 import threading
-
-DATABASE_NAME = 'user_database.sql'
 
 def timed_delete_user(system, user_nick):
     if not system.registered_user(user_nick):
@@ -19,7 +18,7 @@ class AuthSys:
         (nick string, email string, date integer, level integer, password blob, 
         UNIQUE (nick, email), PRIMARY KEY (nick))""")
         self.db.commit()
-        
+
         self.secret = secret
         self.userlist = {}
         self.domainlist = {}
@@ -27,15 +26,15 @@ class AuthSys:
     def recover_users(self): 
         for row in self.db.execute("SELECT * FROM users"):
             self.userlist[row[0]] = User(row[0], row[1],
-                                         date = row[2],
-                                         level = row[3], 
-                                         password = str(row[4]))
-        
+                date = row[2],
+                level = row[3], 
+                password = str(row[4]))
+
     def add(self, nick, email, level = 0):
         try:
             if len(self.userlist.keys()) == 0: level = 100
             x = 0
-            
+
             for row in self.db.execute("SELECT * FROM users WHERE email = ?", [email]):
                 x += 1
             if x == 0 and (not nick in self.userlist):
@@ -44,7 +43,7 @@ class AuthSys:
         except Exception as e:
             print e
             return "I got an error in registering. Please try again"
-        
+
     def login(self, nick, passwd, domain):
         if (nick in self.userlist) and self.userlist[nick].login(passwd, domain, self.secret):
             self.domainlist[domain] = self.userlist[nick]
@@ -53,22 +52,45 @@ class AuthSys:
 
     def online(self, domain):
         return domain in self.domainlist
-    
+
     def level(self, domain):
         if domain in self.domainlist:
-           return self.domainlist[domain].get_level()
+            return self.domainlist[domain].get_level()
 
     def is_online(self, nick):
         if nick in self.userlist:
             return self.userlist[nick].is_online()
-        
+
     def list_users(self):
         return str(self.userlist.keys())
 
+    def resetpass(self, nick):
+        if nick in self.userlist:
+            user = self.userlist[nick]
+            user.reset_pass()
+
+    def online_info(self, domain):
+        if self.online(domain):
+            user = self.domainlist[domain]
+            if user.is_online(): return (user.get_nick(), user.get_level())
+        return (None, 0) 
+
+    def change_level(self, nick, level, domain):
+        if self.online(domain):
+            admin = self.domainlist[domain]
+            if admin.get_level() > level and nick in self.userlist:
+                user = self.userlist[nick]
+                self.delete_user(nick)
+                user.level = level
+                self.userlist[user.get_nick()] = user
+                user.put_in_sqlite3_database(self.db)
+                
     def setpass(self, nick, cookie, passwd):
         if nick in self.userlist:
             result = self.userlist[nick].make_pass(cookie, passwd, self.secret)
-            if result: self.userlist[nick].put_in_sqlite3_database(self.db)
+            if result: 
+                self.db.execute("DELETE FROM users WHERE nick = ?", [nick])
+                self.userlist[nick].put_in_sqlite3_database(self.db)
             return result
         return False
 
@@ -82,7 +104,7 @@ class AuthSys:
         return nick in self.userlist and \
         self.userlist[nick].password != None and \
         self.userlist[nick].cookie == None
-    
+
     def logout(self, domain):
         if domain in self.domainlist:
             self.domainlist[domain].logout()

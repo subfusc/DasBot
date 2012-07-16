@@ -27,16 +27,18 @@ class User:
             self.cookie = create_cookie()
         
             if BOT_EMAIL != '':
-                msg = MIMEText('''hi %s
-                your cookie is %s.
+                msg = MIMEText('''Hi {u},
+                Your cookie is {c}.
+                To complete the registration use the following command:
+                /msg {i} !setpass {c} <desired password>
                 You have 24 hours to register.
-                ''' % (nick, self.cookie))
+                '''.format(u = nick, c = self.cookie, i = BOT_NICK))
                 
-                msg['Subject'] = "Bot registration for %s" % nick
+                msg['Subject'] = "Bot registration for {u}".format(u = nick)
                 msg['From'] = BOT_EMAIL
                 msg['To'] = email
                 
-                s = smtplib.SMTP('smtp.uio.no')
+                s = smtplib.SMTP('localhost')
                 s.sendmail(BOT_EMAIL, [email], msg.as_string())
                 s.close()
         else:
@@ -51,6 +53,9 @@ class User:
     def get_level(self):
         return self.level
 
+    def get_nick(self):
+        return self.nick
+    
     def check_password(self, string, secret):
         if self.password == None: return False
         if string == None: return False
@@ -81,9 +86,27 @@ class User:
             self.cookie = None
             return True
         return False
+
+    def reset_pass(self): 
+            self.cookie = create_cookie()
+        
+            if BOT_EMAIL != '':
+                msg = MIMEText('''Hi {u},
+                Your cookie is {c}.
+                To change you password, use the following command:
+                /msg {b} !reset {c} <newpass> 
+                '''.format(u = nick, c = self.cookie, i = BOT_NICK))
+                
+                msg['Subject'] = "Bot registration for {u}".format(u = nick)
+                msg['From'] = BOT_EMAIL
+                msg['To'] = email
+                
+                s = smtplib.SMTP('localhost')
+                s.sendmail(BOT_EMAIL, [email], msg.as_string())
+                s.close()
     
-    def change_pass(self, oldpass, newpass, secret):
-        if self.check_password(oldpass, secret):
+    def change_pass(self, passortoken, newpass, secret):
+        if self.check_password(passortoken, secret) or (self.cookie != None and self.cookie == passortoken):
             password = hashlib.sha256()
             password.update(newpass + secret)
             

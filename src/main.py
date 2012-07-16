@@ -1,17 +1,33 @@
 # -*- coding:utf-8
 #!/usr/bin/env python
-from Synsebot import Synsebot as Bot
+from AuthBot import AuthBot as Bot
+from GlobalConfig import *
+import os
+from threading import Timer
 
-if __name__ == '__main__':
-    HOST='irc.ifi.uio.no' #The server we want to connect to 
-    PORT=6667 #The connection port which is usually 6667 
-    NICK='TROLLOLOLOL' #The bot's nickname 
-    IDENT='TROLLOLOLOL' 
-    REALNAME='Informatikk: språk og teknologi botten.' 
-    OWNER='ISK' #The bot owner's nick 
+def delayed_say(bot, channel, msg):
+    bot.msg(channel, msg)
+
+if __name__ == '__main__':    
+    if CHANGE_RUNTIME_USER:
+        os.setgid(GID)
+        os.setuid(UID)
     
-    bot = Bot(HOST, PORT, NICK, IDENT, REALNAME)
+    bot = Bot()
     bot.connect()
-    #bot.join("#iskbot")
     bot.join("#iskbot")
+    bot.msg("#iskbot", "I AM HERE!")
+    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
     bot.start()
+
