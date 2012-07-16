@@ -290,11 +290,6 @@ class IRCbot(object):
 					args,
 					kwargs["msg"],
 					kwargs["server_adr"]))
-        elif command == "PART":
-            self.__rm_user(args, kwargs["msg"])
-        elif command == "KICK":
-            args = args.split()
-            self.__rm_user(args[0], args[1])
 
     def listen(self, command, msg, channel, **kwargs):
         """

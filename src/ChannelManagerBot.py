@@ -23,22 +23,18 @@ class ChannelManagementBot(IRCbot):
     def __init__(self):
         super(ChannelManagementBot, self).__init__()
         self.channel = {}
-        self.nicks = {}
+        self.nicks = []
 
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("ChannelManagementBot CMD function")
         super(ChannelManagementBot, self).cmd(command, args, channel, **kwargs)
-        if command == "whos":
-            if args in self.channel[channel]:
-                self.msg(channel, "[" + ", ".join(self.channel[channel][args]) + "]", to = kwargs['from_nick'])
-            else: self.msg(channel, "Illegal key!", to = kwargs['from_nick'])
+        if command == "here":
+            self.msg(channel, "[" + ", ".join(self.channel[channel]) + "]", to = kwargs['from_nick'])
         
     def management_cmd(self, command, args, **kwargs):
-        if command == "MODE":
-            self._mode_parse(args, **kwargs)
-        elif command == "JOIN":
-            self.channel[kwargs["msg"]]["user"].append(kwargs["from_nick"])
-            self.nicks[kwargs["from_nick"]] == True
+        if command == "JOIN":
+            self.channel[kwargs["msg"]].append(kwargs["from_nick"])
+            self.nicks.append(kwargs["from_nick"])
         elif command == "QUIT":
             for c in self.channel:
                 self.__rm_user(c, kwargs["from_nick"])
@@ -57,71 +53,44 @@ class ChannelManagementBot(IRCbot):
                 
     def manage_users_during_join(self, name, args):
         if not name in self.channel: 
-            self.channel[name] = {}
-            self.channel[name]['user'] = []
-            self.channel[name]['op'] = []
-            self.channel[name]['voice'] = []
+            self.channel[name] = []
 
         nicks = args.split()
         for nick in nicks:
             if nick[0] == "+":
-                self.channel[name]['voice'].append(nick[1:])
-                self.channel[name]['user'].append(nick[1:])
+                self.channel[name].append(nick[1:])
+                self.nicks.append(nick[1:])
             elif nick[0] == "@":
-                self.channel[name]['op'].append(nick[1:])
-                self.channel[name]['user'].append(nick[1:])
+                self.channel[name].append(nick[1:])
+                self.nicks.append(nick[1:])
             else:
-                self.channel[name]['user'].append(nick)
-            self.nicks[nick] = True
+                self.channel[name].append(nick)
+                self.nicks.append(nick)
 
     def __exists_in_one_channel(self, nick):
         for channel in self.channel:
-            if nick in channel["user"]: return True
+            if nick in channel: return True
         return False
             
     def __rm_user(self, channel, nick):
         channel = self.channel[channel]
-        if nick in channel["user"]: del(channel["user"][channel["user"].index(nick)])
-        if nick in channel["voice"]: del(channel["voice"][channel["voice"].index(nick)])
-        if nick in channel["op"]: del(channel["op"][channel["op"].index(nick)])
+        if nick in channel: del(channel[channel.index(nick)])
 
     def __change_nick(self, from_nick, to_nick): 
         self.__rm_user_from_nick(from_nick)
-        self.nicks[to_nick] = True
+        self.nicks.append(to_nick)
         self.__change_nick_all_channels(from_nick, to_nick)
 
     def __change_nick_all_channels(self, from_nick, to_nick): 
         for c in self.channel:
             channel = self.channel[c]
-            if from_nick in channel["users"]:
-                channel["users"].append(from_nick)
-                if from_nick in channel["voice"]:
-                    channel["voice"].append(to_nick)
-                if from_nick in channel["op"]:
-                    channel["op"].append(to_nick)
+            if from_nick in channel:
+                channel.append(from_nick)
                 self.__rm_user(c, from_nick)
             
     def __rm_user_from_nicks(self, nick):
         del(self.nicks[self.nicks.index(nick)])
-            
-    def __rm_voice(self, channel, nick):
-        channel = self.channel[channel]
-        if nick in channel["voice"]: del(channel["voice"][channel["voice"].index(nick)])
-
-    def __rm_op(self, channel, nick):
-        channel = self.channel[channel]
-        if nick in channel["op"]: del(channel["op"][channel["op"].index(nick)])
 
     def visible_for_bot(self, nick):
         return nick in self.nicks
-            
-    def _mode_parse(args, **kwargs):
-        args = args.split()
-        add = True if args[0][0] == "+" else False
-        for x, char in enumerate(args[0][1:]):
-            if char == 'o':
-                if add: self.channel[args[0]]["op"].append(args[x + 2])
-                else: self.__rm_op(args[0], args[x + 2])
-            if char == 'v':
-                if add: self.channel[args[0]]["voice"].append(args[x + 2])
-                else: self.__rm_voice(args[0], args[x + 2])
+
