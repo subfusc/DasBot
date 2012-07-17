@@ -8,3 +8,6 @@
 /src/Fiskern.py
 /src/IRC.log
 /src/ircraw.log
+*.log
+*.sql
+*#

@@ -29,8 +29,11 @@ PING_DELAY = 10 * 60
 LOG_FILE = 'irc.log'
 LOG_BUFFER_SIZE = 1
 
+# Plugin Bot config
+LOAD_PLUGINS = ["Spotify", "Trafikanten"]
+
 # Authentication System Config
-AUTHENTICATION = False
+AUTHENTICATION = True
 RECOVER_USERS = True
 DATABASE_NAME = 'user_database.sql'
 HASH_ROUNDS = 200

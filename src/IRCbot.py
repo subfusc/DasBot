@@ -45,7 +45,6 @@ class IRCbot(object):
         self.realname = REAL_NAME #: The "realname" of the bot
         self.s = socket.socket() #: Create a socket for the I/O to the server
         self.s.settimeout(600)
-        self.channel = {} #: Channels we are in
         self.ident_re = re.compile(IDENT_RE) 
         self.channel_join_re = re.compile(CHANNEL_JOIN_RE) 
         self.message_re = re.compile(MESSAGE_RE)
@@ -144,6 +143,12 @@ class IRCbot(object):
     def deop(self, channel, nick): 
         self.send_sync("MODE " + channel + " -o " + nick + "\n")
 
+    def voice(self, channel, nick): 
+        self.send_sync("MODE " + channel + " +v " + nick + "\n")
+
+    def devoice(self, channel, nick): 
+        self.send_sync("MODE " + channel + " -v " + nick + "\n")
+        
     def send_sync(self, msg):
         self.send_lock.acquire()
         self.s.send(msg)

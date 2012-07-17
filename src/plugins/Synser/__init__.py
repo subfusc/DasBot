@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
-from GlobalConfig import *
 import random
 import re
 
-DEBUG = False
+avisertxt = 'data/aviser.txt'
 
 class Plugin():
     """
     This is a class where the IRCBot has an authentication system
     TODO: Use existing authentication mekanism
     """
-
-    avisertxt = 'aviser.txt'
-    #print avisertxt
 
     def __init__(self):
         self.medieord = re.compile(r'\b(vg|dagbladet|db\.no|avisa|aftenposten|dagsavisen|dn\.no|klassekampen|pressen|pressa|ap\.no)\b', re.IGNORECASE)
@@ -24,7 +20,7 @@ class Plugin():
         
     def listen(self, msg, channel, **kwargs):
         if self.medieord.search(msg):
-            return [(0, channel, self.mediekommentar(medieord.search(msg).group(0)))]
+            return [(0, channel, self.mediekommentar(self.medieord.search(msg).group(0)))]
 
     def mediekommentaradd(self, args):
         args = args.split()
@@ -32,7 +28,7 @@ class Plugin():
         sitat = " ".join(args[1:])
         print sitat
         #print args
-        f = open(Synsebot.avisertxt, 'a')
+        f = open(avisertxt, 'a')
         #print Synsebot.avisertxt
         f.write('\n\n')
         f.write('#')
@@ -54,12 +50,12 @@ class Plugin():
         if tag in alias:
             tag = alias[tag]
 
-        f = open(Synsebot.avisertxt)
+        f = open(avisertxt)
         #print Synsebot.avisertxt
         tekst = f.read()
         tekst = re.sub('\n\n+', '\n\n', tekst)
         tekst = tekst.split('\n\n')
-        #print tekst
+        print tekst
         a = {}
         for e in tekst:
             tmp = re.sub("#([^#]*).*\n", r"\g<1>###", e)

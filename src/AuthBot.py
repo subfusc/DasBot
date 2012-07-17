@@ -51,6 +51,13 @@ class AuthBot(LoggerBot.LoggerBot):
                 if result: self.msg(channel, "He is online!", to=kwargs['from_nick'])
                 else: self.msg(channel, "He is not online!", to=kwargs['from_nick'])
 
+            elif command == 'chlvl' or command == 'changelevel':
+                args = args.split()
+                nick, level = (args[0], int(args[1]))
+                self.authsys.change_level(nick, level,
+                                          "{u}@{h}".format(u = kwargs['from_ident'], 
+                                                           h =  kwargs['from_host_mask']))
+                
             else:
                 # :::: IMPORTANT NOTE ::::
                 # NO AUTHENTICATION COMMAND SHOULD BE
