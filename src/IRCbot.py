@@ -108,7 +108,7 @@ class IRCbot(object):
 
     def msg(self, name, message, to = None):
         if name[0] == '#':
-            if to: self.send_sync("PRIVMSG " + name + " :" + to + ", " + message + "\n")
+            if to: self.send_sync("PRIVMSG " + name + " :" + to + ": " + message + "\n")
             else: self.send_sync("PRIVMSG " + name + " :" + message + "\n")
         elif to != None:
             self.send_sync("PRIVMSG " + to + " :" + message + "\n")
