@@ -13,6 +13,15 @@ class AuthBot(LoggerBot.LoggerBot):
     def __init__(self):
         super(AuthBot, self).__init__()
         if AUTHENTICATION:
+            if IRC_DEBUG:
+                print("""
+                ::::::::::::: WARNING :::::::::::::::: 
+                The IRC_DEBUG option is ON in the current
+                configuration. This will cause passwords to
+                come up in plaintext in your terminal. This 
+                is not recommended for any other use other
+                than debugging!""")
+
             secret = raw_input('SECRET:')
             self.authsys = AuthSys(secret)
             self.nick_user_relation = {}
@@ -26,6 +35,7 @@ class AuthBot(LoggerBot.LoggerBot):
             kwargs['auth_nick'], kwargs['auth_level'] = self.authsys.online_info("{u}@{h}".format(u = kwargs['from_ident'], h =  kwargs['from_host_mask']))
             if command == 'register':
                 args = args.split()
+                if IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
                 if len(args) == 2:
                     result = self.authsys.add(args[0], args[1])
                     if result: self.msg(channel, result, to=kwargs['from_nick'])
@@ -33,6 +43,7 @@ class AuthBot(LoggerBot.LoggerBot):
 
             elif command == 'setpass':
                 args = args.split()
+                if IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
                 if len(args) == 3:
                     result = self.authsys.setpass(args[0], args[1], args[2])
                     if result: self.msg(channel, "Password updated", to=kwargs['from_nick'])
@@ -40,6 +51,7 @@ class AuthBot(LoggerBot.LoggerBot):
 
             elif command == 'login':
                 args = args.split()
+                if IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
                 if len(args) == 2:
                     result = self.authsys.login(
                         args[0], args[1], 

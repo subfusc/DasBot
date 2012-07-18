@@ -28,12 +28,21 @@ class User:
             if DEBUG: print(self.cookie)
         
             if BOT_EMAIL != '':
-                msg = MIMEText('''Hi {u},
+                msg = '''Hi {u},
                 Your cookie is {c}.
                 To complete the registration use the following command:
                 /msg {i} !setpass {c} <desired password>
                 You have 24 hours to register.
-                '''.format(u = nick, c = self.cookie, i = BOT_NICK))
+                '''.format(u = nick, c = self.cookie, i = BOT_NICK)
+
+                if IRC_DEBUG:
+                    msg += """
+                    WARNING: The admin of this bot has debuging turned on.
+                    This means he can see your password in plain text
+                    while you are registering or login in, in his terminal.
+                    """
+                
+                MIMEText(msg)
                 
                 msg['Subject'] = "Bot registration for {u}".format(u = nick)
                 msg['From'] = BOT_EMAIL
@@ -96,6 +105,13 @@ class User:
                 To change you password, use the following command:
                 /msg {b} !reset {c} <newpass> 
                 '''.format(u = nick, c = self.cookie, i = BOT_NICK))
+
+                if IRC_DEBUG:
+                    msg += """
+                    WARNING: The admin of this bot has debuging turned on.
+                    This means he can see your password in plain text
+                    while you are registering or login in, in his terminal.
+                    """
                 
                 msg['Subject'] = "Bot registration for {u}".format(u = nick)
                 msg['From'] = BOT_EMAIL

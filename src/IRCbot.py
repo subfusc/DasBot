@@ -82,7 +82,6 @@ class IRCbot(object):
             while not exit:
                 line = self.s.recv(2048)
                 if not line: break
-                if RAWLOG: self.log.write(line)
                 for l in line.split('\n'):
                     if DEBUG: print "IN FOR: ", l
                         
@@ -170,7 +169,7 @@ class IRCbot(object):
     def _parse_raw_input(self, line):
         try:
             line = line.split('\n')
-            if DEBUG: print line
+            if IRC_DEBUG: print line
             for l in line[:-1]:
                 match = self.message_re.match(l)
 
@@ -178,7 +177,7 @@ class IRCbot(object):
                     print(":ERROR: \'" + l + "\' doesn't match the regex.")
                     continue
 
-                if DEBUG:
+                if IRC_DEBUG:
                     print(match.groups())
 
                 if match.group('svcmd'):
@@ -228,27 +227,28 @@ class IRCbot(object):
 							msg=match.group('msg'), 
 							server_adr=match.group('adr'))
         except Exception as e:
-            print("ERROR: %s" % e)
-            if not match:
-                print("******************** WARNING :::: LINE DISCARDED IN _PARSE_RAW_INPUT")
-                print(line)
-                newline = False
-                for char in line: 
-                    if re.match('\\s', char): 
-                        print(ord(char)),
-                        newline = True
-                    else:
-                        if newline:
-                            print("")
-                            newline = False 
-                print("")
-                print("******************** END WARNING ::::")
+            if IRC_DEBUG:
+                print("ERROR: %s" % e)
+                if not match:
+                    print("******************** WARNING :::: LINE DISCARDED IN _PARSE_RAW_INPUT")
+                    print(line)
+                    newline = False
+                    for char in line: 
+                        if re.match('\\s', char): 
+                            print(ord(char)),
+                            newline = True
+                        else:
+                            if newline:
+                                print("")
+                                newline = False 
+                    print("")
+                    print("******************** END WARNING ::::")
 
     def start(self):
         line = self.s.recv(1024)
         while 1: # Main Loop
             if not line: break
-            if DEBUG: print line #server message is output
+            if IRC_DEBUG: print line #server message is output
             line = self._parse_raw_input(line)
             line = self.s.recv(1024) #recieve server messages
 

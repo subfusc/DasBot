@@ -3,6 +3,7 @@
 # General Config Options
 VERBOSE = True
 DEBUG = True
+IRC_DEBUG = False
 VERSION = 0.2
 NAME = "TestBot"
 COMMAND_CHAR = "!"
@@ -18,8 +19,6 @@ NICK = NAME
 IDENT = NAME
 REAL_NAME = NAME
 OWNER = "Subfusc"
-RAWLOG = False
-RAWLOG_FILE = "IRC.log"
 
 # ChannelManagerBot Config
 # Not in use ATM
