@@ -105,3 +105,6 @@ class AuthBot(LoggerBot.LoggerBot):
             if kwargs['from_nick'] in self.nick_user_relation:
                 self.nick_user_relation[kwargs['msg']] = self.nick_user_relation[kwargs['from_nick']]
                 del(self.nick_user_relation[kwargs['from_nick']])
+            if kwargs['from_nick'] in self.user_nick_relation:
+                self.user_nick_relation[kwargs['msg']] = self.user_nick_relation[kwargs['from_nick']]
+                del(self.user_nick_relation[kwargs['from_nick']])
