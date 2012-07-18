@@ -22,6 +22,7 @@ RAWLOG = False
 RAWLOG_FILE = "IRC.log"
 
 # ChannelManagerBot Config
+# Not in use ATM
 PING_USERS = True
 PING_DELAY = 10 * 60
 
@@ -30,12 +31,12 @@ LOG_FILE = 'irc.log'
 LOG_BUFFER_SIZE = 1
 
 # Plugin Bot config
-LOAD_PLUGINS = ["Spotify", "Trafikanten"]
+LOAD_PLUGINS = ["Spotify", "Trafikanten", "Karma", "Synser"]
 
 # Authentication System Config
 AUTHENTICATION = True
 RECOVER_USERS = True
-DATABASE_NAME = 'user_database.sql'
+DATABASE_NAME = 'data/user_database.sql'
 HASH_ROUNDS = 200
 BOT_EMAIL = ''
 BOT_NICK = NAME

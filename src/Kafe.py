@@ -27,6 +27,7 @@ class Kafe(object):
                     tmpstr = j.replace("     ", " ").strip(",").encode('utf-8')
                     tmp.append(tmpstr)
             return tmp
+
 if __name__ == "__main__":
     test = Kafe('Informatikkafeen')
     print test.todaysDinner()

@@ -155,17 +155,3 @@ class GramWord:
 
     def get_lang(self):
         return self.lang
-
-
-if __name__ == '__main__':
-    HOST = 'irc.ifi.uio.no'
-    PORT = 6667
-    NICK = 'FuBot'
-    IDENT = 'FuBot'
-    REALNAME = 'FuBot'
-    OWNER = 'wictorht'
-
-    bot = FuBot(HOST, PORT, NICK, IDENT, REALNAME)
-    bot.connect()
-    bot.join("#fubot")
-    bot.start()

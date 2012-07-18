@@ -25,6 +25,7 @@ class User:
         if password == None:
             self.password = None
             self.cookie = create_cookie()
+            if DEBUG: print(self.cookie)
         
             if BOT_EMAIL != '':
                 msg = MIMEText('''Hi {u},
@@ -55,16 +56,19 @@ class User:
 
     def get_nick(self):
         return self.nick
-    
+
+    def __create_hash(self, string, secret):
+        check = hashlib.sha256()
+        check.update(str(self.date) + string + (secret if secret else "default"))
+        
+        for x in range(0, HASH_ROUNDS):
+            check.digest()
+        return check.digest()
+            
     def check_password(self, string, secret):
         if self.password == None: return False
         if string == None: return False
-        check = hashlib.sha256()
-        check.update(string + (secret if secret else ""))
-
-        for x in range(0, HASH_ROUNDS):
-            check.digest()
-        return self.password == check.digest()
+        return self.password == self.__create_hash(string, secret)
 
     def login(self, password, ident, secret):
         if self.check_password(password, secret):
@@ -77,19 +81,15 @@ class User:
         
     def make_pass(self, cookie, passw, secret):
         if self.cookie != None and cookie == self.cookie:
-            password = hashlib.sha256()
-            password.update(passw + secret)
-            
-            for x in range(0, HASH_ROUNDS):
-                password.digest()
-            self.password = password.digest()
+            self.password = self.__create_hash(passw, secret)
             self.cookie = None
             return True
         return False
 
     def reset_pass(self): 
             self.cookie = create_cookie()
-        
+            if DEBUG: print(self.cookie)
+            
             if BOT_EMAIL != '':
                 msg = MIMEText('''Hi {u},
                 Your cookie is {c}.
@@ -107,12 +107,7 @@ class User:
     
     def change_pass(self, passortoken, newpass, secret):
         if self.check_password(passortoken, secret) or (self.cookie != None and self.cookie == passortoken):
-            password = hashlib.sha256()
-            password.update(newpass + secret)
-            
-            for x in range(0, HASH_ROUNDS):
-                password.digest()
-            self.password = password.digest()
+            self.password = self.__create_hash(newpass, secret)
             return True
         return False
 

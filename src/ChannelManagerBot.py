@@ -27,6 +27,7 @@ class ChannelManagementBot(IRCbot):
 
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("ChannelManagementBot CMD function")
+        kwargs["channel_users"] = self.channel[channel]
         super(ChannelManagementBot, self).cmd(command, args, channel, **kwargs)
         if command == "here":
             self.msg(channel, "[" + ", ".join(self.channel[channel]) + "]", to = kwargs['from_nick'])

@@ -15,6 +15,8 @@ class AuthBot(LoggerBot.LoggerBot):
         if AUTHENTICATION:
             secret = raw_input('SECRET:')
             self.authsys = AuthSys(secret)
+            self.nick_user_relation = {}
+            self.user_nick_relation = {}
             if RECOVER_USERS:
                 self.authsys.recover_users()
         
@@ -43,7 +45,10 @@ class AuthBot(LoggerBot.LoggerBot):
                         args[0], args[1], 
                         "{i}@{h}".format(i = kwargs['from_ident'], 
                                          h = kwargs['from_host_mask']))
-                    if result: self.msg(channel, "Logged in!", to=kwargs['from_nick'])
+                    if result: 
+                        self.nick_user_relation[kwargs['from_nick']] = args[0]
+                        self.user_nick_relation[args[0]] = kwargs['from_nick']
+                        self.msg(channel, "Logged in!", to=kwargs['from_nick'])
                     else: self.msg(channel, "Wrong pass!", to=kwargs['from_nick'])
 
             elif command == 'online':
@@ -65,6 +70,9 @@ class AuthBot(LoggerBot.LoggerBot):
                 # BE LOGGED AT ANY TIME AND IT SHOULD
                 # NEVER BE NECCESARY TO DO POST-PROCESSING
                 # ON THESE COMMANDS.
+                kwargs['nick_to_user'] = self.nick_user_relation
+                kwargs['user_to_nick'] = self.user_nick_relation
+                if DEBUG: print("NICK TO USER RELATION DICTIONARY: " + str(self.nick_user_relation) + str(self.user_nick_relation))
                 super(AuthBot, self).cmd(command, args, channel, **kwargs)
         else:
             kwargs['auth_nick'], kwargs['auth_level'] = (None, 0)
@@ -77,5 +85,11 @@ class AuthBot(LoggerBot.LoggerBot):
         super(AuthBot, self).management_cmd(command, args, **kwargs)
         if command == "QUIT":
             self.authsys.logout("{i}@{h}".format(i = kwargs['from_ident'], h = kwargs['from_host_mask']))
+            if kwargs['from_nick'] in self.nick_user_relation: del(self.nick_user_relation[kwargs['from_nick']])
         if command == "PART" and not self.visible_for_bot(kwargs['from_nick']):
             self.authsys.logout("{i}@{h}".format(i = kwargs['from_ident'], h = kwargs['from_host_mask']))
+            if kwargs['from_nick'] in self.nick_user_relation: del(self.nick_user_relation[kwargs['from_nick']])
+        if command == "NICK":
+            if kwargs['from_nick'] in self.nick_user_relation:
+                self.nick_user_relation[kwargs['msg']] = self.nick_user_relation[kwargs['from_nick']]
+                del(self.nick_user_relation[kwargs['from_nick']])
