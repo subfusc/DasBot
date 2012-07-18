@@ -27,7 +27,7 @@ PING_USERS = True
 PING_DELAY = 10 * 60
 
 # LOGGER BOT config
-LOG_FILE = 'irc.log'
+LOG_FILE = 'data/irc.log'
 LOG_BUFFER_SIZE = 1
 
 # Plugin Bot config

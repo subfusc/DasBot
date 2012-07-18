@@ -3,7 +3,6 @@
 from GlobalConfig import *
 import BeautifulSoup
 import htmlentitydefs
-import DebugBot
 import urllib2
 import random
 import sys
@@ -19,50 +18,46 @@ SUB_REGEX = r"\s+"
 
 FORTUNE_LIMIT = 79
 
-class FuBot(DebugBot.DebugBot):
+class Plugin(object):
 
 
-    def __init__(self, host, port, nick, ident, realname):
-        super(FuBot,self).__init__(host, port, nick, ident, realname)
+    def __init__(self):
         self.ure = re.compile(URL_REGEX)
         self.tre = re.compile(TALK_REGEX, re.IGNORECASE)
         self.sre = re.compile(SUB_REGEX)
 
 
     def help(self, command, args, channel, **kwargs):
-        super(FuBot, self).help(command, args, channel, **kwargs)
         if command == gram_cmd:
             help_msg = "!"+gram_cmd+" [word] determines if the spelling of the given word is correct."
-            self.notify(kwargs["from_nick"], help_msg)
+            return [(1, kwargs["from_nick"], help_msg)]
         elif command == fortune_cmd:
             help_msg = "!"+fortune_cmd+" prints a random, hopefully interesting, adage."
-            self.notify(kwargs["from_nick"], help_msg)
+            return [(1, kwargs["from_nick"], help_msg)]
         elif command == "all":
-            self.notify(kwargs["from_nick"], "FuBot: %s, %s" % (gram_cmd, fortune_cmd))
+            return [(1, kwargs["from_nick"], "FuBot: %s, %s" % (gram_cmd, fortune_cmd))]
 
 
     def cmd(self, command, args, channel, **kwargs):
-        super(FuBot, self).cmd(command, args, channel, **kwargs)
         if command == gram_cmd:
             if args:
-                self.msg(channel, self.gram(args))
+                return [(0, channel, self.gram(args))]
             else:
-                self.help(command, args, channel,**kwargs)
+               return self.help(command, args, channel,**kwargs)
         elif command == fortune_cmd:
-            self.msg(channel, self.fortune())
+            return [(0, channel, self.fortune())]
 
 
-    def listen(self, command, msg, channel, **kwargs):
-        super(FuBot, self).listen(command, msg, channel, **kwargs)
+    def listen(self, msg, channel, **kwargs):
         url_match = self.ure.search(msg)
         talk_match = self.tre.match(msg)
 
         if url_match:
             url_s = url_match.group()
             t = self.urltitle(url_s)
-            self.msg(channel, t) if t else None
+            return [(0, channel, t)] if t else None
         elif talk_match:
-            self.msg(channel, "Yes, my liege?")
+            return [(0, channel, kwargs['from_nick'], "Yes, my liege?")]
 
 
     def gram(self, args):
