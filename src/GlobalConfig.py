@@ -31,7 +31,7 @@ LOG_FILE = 'irc.log'
 LOG_BUFFER_SIZE = 1
 
 # Plugin Bot config
-LOAD_PLUGINS = ["Spotify", "Trafikanten", "Karma", "Synser"]
+LOAD_PLUGINS = ["Spotify", "Trafikanten", "Karma", "Synser", "Kafe"]
 
 # Authentication System Config
 AUTHENTICATION = True
