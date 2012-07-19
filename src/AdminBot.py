@@ -3,10 +3,10 @@
 # Written by Sindre Wetjen < sindre dot w at gmail dot com >
 # License GPLv3
 # For full licence see the LICENSE file in the top directory.
-from PluginBot import PluginBot
+from CronBot import CronBot
 from GlobalConfig import *
 
-class AdminBot(PluginBot):
+class AdminBot(CronBot):
 
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("AdminBot cmd")

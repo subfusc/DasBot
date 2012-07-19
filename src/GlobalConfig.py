@@ -32,6 +32,9 @@ LOG_BUFFER_SIZE = 1
 # Plugin Bot config
 LOAD_PLUGINS = ["Spotify", "Trafikanten", "Karma", "Synser", "Kafe"]
 
+# CRON JOB BOT config
+START_CRON_BOT = True
+
 # Authentication System Config
 AUTHENTICATION = True
 RECOVER_USERS = True

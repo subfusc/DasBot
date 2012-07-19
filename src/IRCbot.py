@@ -49,6 +49,7 @@ class IRCbot(object):
         self.channel_join_re = re.compile(CHANNEL_JOIN_RE) 
         self.message_re = re.compile(MESSAGE_RE)
         self.send_lock = Lock()
+        self.exit = False
         
     def __del__(self):
         self.s.close()
@@ -207,7 +208,8 @@ class IRCbot(object):
 								from_nick=match.group('nick'),
 								from_ident=match.group('ident'),
 								from_host_mask=match.group('hostmask'))
-
+                    except KeyboardInterrupt:
+                        self.exit = True
                     except Exception as e:
                         print "I got an error here: %s" % e
                         traceback.print_tb(sys.exc_info()[2], limit=1, file=sys.stdout)
@@ -226,6 +228,8 @@ class IRCbot(object):
 							match.group('args').strip(),
 							msg=match.group('msg'), 
 							server_adr=match.group('adr'))
+        except KeyboardInterrupt:
+            self.exit = True
         except Exception as e:
             if IRC_DEBUG:
                 print("ERROR: %s" % e)
@@ -245,13 +249,18 @@ class IRCbot(object):
                     print("******************** END WARNING ::::")
 
     def start(self):
-        line = self.s.recv(1024)
-        while 1: # Main Loop
-            if not line: break
-            if IRC_DEBUG: print line #server message is output
-            line = self._parse_raw_input(line)
-            line = self.s.recv(1024) #recieve server messages
+        try:
+            line = self.s.recv(1024)
+            while not self.exit: # Main Loop
+                if not line: break
+                if IRC_DEBUG: print line #server message is output
+                line = self._parse_raw_input(line)
+                line = self.s.recv(1024) #recieve server messages
+        except KeyboardInterrupt:
+            return
 
+    def stop(self): pass
+        
     def _server_command(self, command, server):
         """
         This command is for the network layer to respond to diffrent server

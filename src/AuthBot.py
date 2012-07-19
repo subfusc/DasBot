@@ -11,7 +11,6 @@ class AuthBot(LoggerBot.LoggerBot):
     """
 
     def __init__(self):
-        super(AuthBot, self).__init__()
         if AUTHENTICATION:
             if IRC_DEBUG:
                 print("""
@@ -28,6 +27,7 @@ class AuthBot(LoggerBot.LoggerBot):
             self.user_nick_relation = {}
             if RECOVER_USERS:
                 self.authsys.recover_users()
+        super(AuthBot, self).__init__()
         
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("Authentication Bot Command")
@@ -93,6 +93,23 @@ class AuthBot(LoggerBot.LoggerBot):
     def listen(self, command, msg, channel, **kwargs):
         super(AuthBot, self).listen(command, msg, channel, **kwargs)
 
+    def help(self, command, args, channel, **kwargs):
+        super(AuthBot, self).help(command, args, channel, **kwargs)
+        if command == 'register':
+            self.notify(kwargs['from_nick'], "!register <nick> <email>")
+            self.notify(kwargs['from_nick'], "This will register a nick with an email in the bots user")
+            self.notify(kwargs['from_nick'], "database. Please follow the email instructions to set a ")
+            self.notify(kwargs['from_nick'], "password.")
+        elif command == 'login':
+            self.notify(kwargs['from_nick'], "!login <nick> <password>")
+            self.notify(kwargs['from_nick'], "Log in to an account using your registered nick and password")
+        elif command == 'setpass':
+            self.notify(kwargs['from_nick'], "!setpass <nick> <cookie> <password>")
+            self.notify(kwargs['from_nick'], "Set the password for nick with a cookie that will be sendt to")
+            self.notify(kwargs['from_nick'], "your email.")
+        elif command == 'all':
+            self.notify(kwargs['from_nick'], "-AuthBot-: login, setpass, chlvl, changelevel, online, register")
+        
     def management_cmd(self, command, args, **kwargs):
         super(AuthBot, self).management_cmd(command, args, **kwargs)
         if command == "QUIT":

@@ -30,4 +30,4 @@ if __name__ == '__main__':
     # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
     # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
     bot.start()
-
+    bot.stop()

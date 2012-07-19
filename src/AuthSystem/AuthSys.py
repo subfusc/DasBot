@@ -40,9 +40,14 @@ class AuthSys:
             if x == 0 and (not nick in self.userlist):
                 self.userlist[nick] = User(nick, email, level=level)
                 threading.Timer(24 * 60 * 60, timed_delete_user, [self, nick])
+            else:
+                if not x == 0:
+                    return "That email is already registered. Please use another one."
+                elif nick in self.userlist:
+                    return "That username is taken. Please try another username"
         except Exception as e:
             print e
-            return "I got an error in registering. Please try again"
+            return "I got an error in registering. Please try again."
 
     def login(self, nick, passwd, domain):
         if (nick in self.userlist) and self.userlist[nick].login(passwd, domain, self.secret):

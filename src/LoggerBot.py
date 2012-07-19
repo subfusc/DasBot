@@ -12,9 +12,11 @@ class LoggerBot(AdminBot):
     def __init__(self):
         super(LoggerBot, self).__init__()
         self.file = open(LOG_FILE, 'a', LOG_BUFFER_SIZE)
+        self.file.write("{n} Started at {d}\n".format(n = NAME, d = strftime("[%H:%M %Y/%m/%d]")))
         
     def __del__(self):
         super(LoggerBot, self).__del__()
+        self.file.write("{n} Stopped at {d}\n".format(n = NAME, d = strftime("[%H:%M %Y/%m/%d]")))
         self.file.close()
         
     def _server_command(self, command, server):

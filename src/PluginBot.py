@@ -27,7 +27,7 @@ class PluginBot(ChannelManagementBot):
         if 'LOAD_PLUGINS' in locals() or 'LOAD_PLUGINS' in globals() and isinstance(LOAD_PLUGINS, list):
             for plugin in LOAD_PLUGINS:
                 self.__load_plugin(plugin)
-
+                
     def _send_message(self, message_array):
         if message_array == None: return
         for message in message_array: 
@@ -111,7 +111,8 @@ class PluginBot(ChannelManagementBot):
                 except Exception as e:
                     print("Plugin {p} gave error {ex}".format(p=name, ex = e))
                     self.__unload_plugin(name)
-                    self.msg(channel, "Plugin {p} gave an error and has been unloaded.", to=kwargs['from_nick'])
+                    self.msg(channel, "Plugin {p} gave an error and has been unloaded.".format(p = name),
+                             to=kwargs['from_nick'])
                 
         if DEBUG: print("PluginBot CMD")
 
@@ -124,7 +125,8 @@ class PluginBot(ChannelManagementBot):
                 except Exception as e:
                     print("Plugin {p} gave error {ex}".format(p=name, ex = e))
                     self.__unload_plugin(name)
-                    self.msg(channel, "Plugin {p} gave an error and has been unloaded.", to=kwargs['from_nick'])
+                    self.msg(channel, "Plugin {p} gave an error and has been unloaded.".format(p = name),
+                             to=kwargs['from_nick'])
                     
         super(PluginBot, self).listen(command, msg, channel, **kwargs)
         if DEBUG: print("PluginBot Listen end")
@@ -138,7 +140,8 @@ class PluginBot(ChannelManagementBot):
                 except Exception as e:
                     print("Plugin {p} gave error {ex}".format(p=name, ex = e))
                     self.__unload_plugin(name)
-                    self.msg(channel, "Plugin {p} gave an error and has been unloaded.", to=kwargs['from_nick'])
+                    self.msg(channel, "Plugin {p} gave an error and has been unloaded.".format(p = name),
+                             to=kwargs['from_nick'])
                     
         super(PluginBot, self).help(command, args, channel, **kwargs)
         if DEBUG: print("PluginBot Help end")
