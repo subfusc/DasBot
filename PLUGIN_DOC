@@ -23,3 +23,29 @@ Information available in kwargs:
                 current nick on IRC as key. This will contain the nick if the user is online.
 - user_to_nick: same as above, only reversed key and value. This has a lazy evaluation, so it will
                 not delete a user even if he goes online. But will reset if the user changes nick
+
+Return values:
+
+To send messages or notifies to a channel, you have to return it. It should be in the form of 
+a list with touples, where each touple must contain the following:
+
+(0, channel, message) // Same as send message to channel.
+(0, channel, nick, message) // Same as above but will be prefixed witht the nick e.g Bob: <message>
+(1, channel, message) // Notify in a channel (if channel == user, the user will be notified)
+
+So return values would be e.g:
+
+[(0, "#iskbot", "Nothing more to do here")]
+
+will give channel message:
+Bot: Nothing more to do here
+
+
+
+[(0, "#iskbot", "Bob is being mean")
+(1, "Bob", "This is a warning for bad behaviour")]
+
+will give channel message:
+Bot: Bob is being mean
+and notification to Bob:
+-Notice- This is a warning for bad behaviour

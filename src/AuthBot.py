@@ -38,8 +38,8 @@ class AuthBot(LoggerBot.LoggerBot):
                 if IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
                 if len(args) == 2:
                     result = self.authsys.add(args[0], args[1])
-                    if result: self.msg(channel, result, to=kwargs['from_nick'])
-                    else: self.msg(channel, "Email sendt to {u}.".format(u = args[1]), to=kwargs['from_nick'])
+                    if result: self.notify(kwargs['from_nick'], result)
+                    else: self.notify(kwargs['from_nick'], "Email sendt to {u}.".format(u = args[1]))
 
             elif command == 'setpass':
                 args = args.split()
@@ -60,8 +60,8 @@ class AuthBot(LoggerBot.LoggerBot):
                     if result: 
                         self.nick_user_relation[kwargs['from_nick']] = args[0]
                         self.user_nick_relation[args[0]] = kwargs['from_nick']
-                        self.msg(channel, "Logged in!", to=kwargs['from_nick'])
-                    else: self.msg(channel, "Wrong pass!", to=kwargs['from_nick'])
+                        self.notify(kwargs['from_nick'], "Logged in!")
+                    else: self.notify(kwargs['from_nick'], "Wrong pass!")
 
             elif command == 'online':
                 result = self.authsys.is_online(args)

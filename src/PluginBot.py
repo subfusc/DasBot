@@ -61,6 +61,11 @@ class PluginBot(ChannelManagementBot):
                 x.append(module)
         for module in x:
             del(sys.modules[module])
+
+    def __has_plugin(self, name):
+        for module in self.__functions[0]:
+            if name == module: return True
+        return False
             
     def __unload_plugin(self, name):
         try:
@@ -80,7 +85,9 @@ class PluginBot(ChannelManagementBot):
         if DEBUG: print("PluginBot CMD")
         if kwargs['auth_level'] >= 90:
             if command == "load":
-                if self.__load_plugin(args):
+                if self.__has_plugin(args): 
+                    self.msg(channel, "Plugin \"" + args + "\" is allready loaded!", to = kwargs['from_nick'])
+                elif self.__load_plugin(args):
                     self.msg(channel, "Plugin \"" + args + "\" is now loaded.", to = kwargs['from_nick'])
                 else: self.msg(channel, "Plugin \"" + args + "\" could not be loaded.", to = kwargs['from_nick'])
             elif command == "unload":
@@ -97,23 +104,41 @@ class PluginBot(ChannelManagementBot):
                 self.__system_unload(args)
 
         super(PluginBot, self).cmd(command, args, channel, **kwargs)
-        for obj, attr in zip(self.__functions[1], self.__functions[2]):
-            if attr: 
-                self._send_message(obj.cmd(command, args, channel, **kwargs))
+        for name, obj, attr in zip(self.__functions[0], self.__functions[1], self.__functions[2]):
+            if attr:
+                try:
+                    self._send_message(obj.cmd(command, args, channel, **kwargs))
+                except Exception as e:
+                    print("Plugin {p} gave error {ex}".format(p=name, ex = e))
+                    self.__unload_plugin(name)
+                    self.msg(channel, "Plugin {p} gave an error and has been unloaded.", to=kwargs['from_nick'])
+                
         if DEBUG: print("PluginBot CMD")
 
     def listen(self, command, msg, channel, **kwargs):
         if DEBUG: print("PluginBot Listen begin")
-        for obj, attr in zip(self.__functions[1], self.__functions[3]):
+        for name, obj, attr in zip(self.__functions[0], self.__functions[1], self.__functions[3]):
             if attr: 
-                self._send_message(obj.listen(msg, channel, **kwargs))
+                try:
+                    self._send_message(obj.listen(msg, channel, **kwargs))
+                except Exception as e:
+                    print("Plugin {p} gave error {ex}".format(p=name, ex = e))
+                    self.__unload_plugin(name)
+                    self.msg(channel, "Plugin {p} gave an error and has been unloaded.", to=kwargs['from_nick'])
+                    
         super(PluginBot, self).listen(command, msg, channel, **kwargs)
         if DEBUG: print("PluginBot Listen end")
 
     def help(self, command, args, channel, **kwargs):
         if DEBUG: print("PluginBot Help begin")
-        for obj, attr in zip(self.__functions[1], self.__functions[4]):
+        for name, obj, attr in zip(self.__functions[0], self.__functions[1], self.__functions[4]):
             if attr: 
-                self._send_message(obj.help(command, args, channel, **kwargs))
+                try:
+                    self._send_message(obj.help(command, args, channel, **kwargs))
+                except Exception as e:
+                    print("Plugin {p} gave error {ex}".format(p=name, ex = e))
+                    self.__unload_plugin(name)
+                    self.msg(channel, "Plugin {p} gave an error and has been unloaded.", to=kwargs['from_nick'])
+                    
         super(PluginBot, self).help(command, args, channel, **kwargs)
         if DEBUG: print("PluginBot Help end")
