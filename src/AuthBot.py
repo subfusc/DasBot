@@ -28,6 +28,10 @@ class AuthBot(LoggerBot.LoggerBot):
             if RECOVER_USERS:
                 self.authsys.recover_users()
         super(AuthBot, self).__init__()
+
+    def stop(self):
+        super(AuthBot, self).stop()
+        del(self.authsys)
         
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("Authentication Bot Command")

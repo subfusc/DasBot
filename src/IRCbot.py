@@ -250,16 +250,16 @@ class IRCbot(object):
 
     def start(self):
         try:
-            line = self.s.recv(1024)
             while not self.exit: # Main Loop
+                line = self.s.recv(1024) #recieve server messages
                 if not line: break
                 if IRC_DEBUG: print line #server message is output
                 line = self._parse_raw_input(line)
-                line = self.s.recv(1024) #recieve server messages
         except KeyboardInterrupt:
             return
 
-    def stop(self): pass
+    def stop(self):
+        self.s.close()
         
     def _server_command(self, command, server):
         """

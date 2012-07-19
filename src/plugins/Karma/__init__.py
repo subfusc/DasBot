@@ -7,6 +7,9 @@ class Plugin(object):
     def __init__(self): 
         self.k = Karma()
 
+    def stop(self):
+        del(self.k)
+        
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("COMMAND KarmaBot")
         if kwargs['auth_nick'] != None:

@@ -23,10 +23,16 @@ class PluginBot(ChannelManagementBot):
     def __init__(self):
         super(PluginBot, self).__init__()
         self.__plugins = None
-        self.__functions = [[], [], [], [], []]
+        self.__functions = [[], [], [], [], [], []]
         if 'LOAD_PLUGINS' in locals() or 'LOAD_PLUGINS' in globals() and isinstance(LOAD_PLUGINS, list):
             for plugin in LOAD_PLUGINS:
                 self.__load_plugin(plugin)
+
+    def stop(self):
+        super(PluginBot, self).stop()
+        for obj, attr in zip(self.__functions[1], self.__functions[5]):
+            if attr:
+                obj.stop()
                 
     def _send_message(self, message_array):
         if message_array == None: return
@@ -49,6 +55,7 @@ class PluginBot(ChannelManagementBot):
             self.__functions[2].append(hasattr(plugin, 'cmd'))
             self.__functions[3].append(hasattr(plugin, 'listen'))
             self.__functions[4].append(hasattr(plugin, 'help'))
+            self.__functions[5].append(hasattr(plugin, 'stop'))
             return True
         except Exception as e:
             print(e)
@@ -70,12 +77,15 @@ class PluginBot(ChannelManagementBot):
     def __unload_plugin(self, name):
         try:
             index = self.__functions[0].index(name)
+            if self.__functions[5][index]:
+                self.__functions[1].stop()
             self.__system_unload(name)
             del(self.__functions[0][index])
             del(self.__functions[1][index])
             del(self.__functions[2][index])
             del(self.__functions[3][index])
             del(self.__functions[4][index])
+            del(self.__functions[5][index])
             return True
         except Exception as e:
             print(e)

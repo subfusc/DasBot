@@ -23,6 +23,10 @@ class AuthSys:
         self.userlist = {}
         self.domainlist = {}
 
+    def __del__(self):
+        if DEBUG: print("AUTH SYS DELETE CALLED")
+        self.db.close()
+        
     def recover_users(self): 
         for row in self.db.execute("SELECT * FROM users"):
             self.userlist[row[0]] = User(row[0], row[1],
@@ -83,7 +87,8 @@ class AuthSys:
     def change_level(self, nick, level, domain):
         if self.online(domain):
             admin = self.domainlist[domain]
-            if admin.get_level() > level and nick in self.userlist:
+            if admin.get_level() > level and nick in self.userlist \
+              and self.userlist[nick].get_level() < admin.get_level():
                 user = self.userlist[nick]
                 self.delete_user(nick)
                 user.level = level

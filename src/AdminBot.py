@@ -5,6 +5,7 @@
 # For full licence see the LICENSE file in the top directory.
 from CronBot import CronBot
 from GlobalConfig import *
+import sys
 
 class AdminBot(CronBot):
 
@@ -12,6 +13,9 @@ class AdminBot(CronBot):
         if DEBUG: print("AdminBot cmd")
         super(AdminBot, self).cmd(command, args, channel, **kwargs)
         if DEBUG: print("Admin Bot Auth: {u} :: {l}".format(u = kwargs["auth_nick"], l = kwargs["auth_level"]))
+        if kwargs['auth_level'] > 95:
+            if command == 'quit':
+                self.exit = True
         if kwargs['auth_level'] >= 80:
             if command == 'op':
                 self.op(channel, args)

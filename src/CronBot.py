@@ -124,11 +124,6 @@ class CronBot(PluginBot):
         if START_CRON_BOT:
             self.cronjob.start()
         
-    def __del__(self):
-        super(CronBot, self).__del__()
-        if START_CRON_BOT:
-            self.cronjob.stop()
-
     def stop(self):
         super(CronBot, self).stop()
         if START_CRON_BOT:

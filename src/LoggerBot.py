@@ -18,6 +18,11 @@ class LoggerBot(AdminBot):
         super(LoggerBot, self).__del__()
         self.file.write("{n} Stopped at {d}\n".format(n = NAME, d = strftime("[%H:%M %Y/%m/%d]")))
         self.file.close()
+
+    def stop(self):
+        super(LoggerBot,self).stop()
+        self.file.write("{n} Stopped at {d}\n".format(n = NAME, d = strftime("[%H:%M %Y/%m/%d]")))
+        self.file.close()
         
     def _server_command(self, command, server):
         if not command == 'PING':
