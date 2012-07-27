@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Basic interface class for communicating with an IRC server.
+# Classes to make a cron system for an IRC bot.
 # Copyright (C) 2012  Sindre Wetjen
 
 # This program is free software: you can redistribute it and/or modify
