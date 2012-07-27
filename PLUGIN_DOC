@@ -1,15 +1,16 @@
+DOCUMENTATION
+========== 
+
 This document describes most of the aspects people need to know in order to write a plugin for this IRC bot.
 
-The bot will search for plugins.<name> and try to instanciate a class of type Plugin()
-this plugin can have three diffrent function that is called. These are:
+The bot will search for plugins.<name> and try to instanciate a class of type `Plugin`. The `Plugin` class provides three different functions that can be used. These are:
 
-- cmd (for commands like !kick)
-- listen (to get everything said in a channel)
-- help (so you can inform people of your commands)
-       Syntax of help is ?<cmd>
-       ?all should list all of the available commands in your Plugin
+- `cmd` (for IRC commands like `!kick`)
+- `listen` (to get everything said in a channel)
+- `help` (so you can inform people of your commands) Syntax of help is: `?<cmd>`. The command `?all` lists all of the available commands provided by a plugin.
 
-Information available in kwargs:
+Information available in kwargs
+---------
 
 - from_nick: The nick of the sender of this message/command
 - from_ident: The ident from the hostmask of the sender of this message/command
@@ -29,28 +30,32 @@ Information available in kwargs:
                 will execute (Class)._send_reminder(channel, msg)
            Return values should be the same as below.
 
-Return values:
+
+Return values
+-------------
 
 To send messages or notifies to a channel, you have to return it. It should be in the form of 
 a list with touples, where each touple must contain the following:
 
-(0, channel, message) // Same as send message to channel.
-(0, channel, nick, message) // Same as above but will be prefixed witht the nick e.g Bob: <message>
-(1, channel, message) // Notify in a channel (if channel == user, the user will be notified)
+    (0, channel, message) // Same as send message to channel.
+    (0, channel, nick, message) // Same as above but will be prefixed witht the nick e.g Bob: <message>
+    (1, channel, message) // Notify in a channel (if channel == user, the user will be notified)
 
 So return values would be e.g:
 
-[(0, "#iskbot", "Nothing more to do here")]
+    [(0, "#iskbot", "Nothing more to do here")]
 
 will give channel message:
-Bot: Nothing more to do here
 
+    Bot: Nothing more to do here
 
+and
 
-[(0, "#iskbot", "Bob is being mean")
-(1, "Bob", "This is a warning for bad behaviour")]
+    [(0, "#iskbot", "Bob is being mean"), (1, "Bob", "This is a warning for bad behaviour")]
 
 will give channel message:
-Bot: Bob is being mean
+
+    Bot: Bob is being mean
 and notification to Bob:
--Notice- This is a warning for bad behaviour
+
+    -Notice- This is a warning for bad behaviour
