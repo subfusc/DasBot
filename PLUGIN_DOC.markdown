@@ -26,7 +26,7 @@ Information available in kwargs
                 not delete a user even if he goes online. But will reset if the user changes nick
 - new_job: This is the function to add jobs to the CronBot. It takes a touple with the unix time you 
            want the function to execute, the function and a list of argument. 
-           e.g: kwargs['new_job']((time.time() + 20, self._send_reminder, [channel, msg]))
+           e.g: ```kwargs['new_job']((time.time() + 20, self._send_reminder, [channel, msg]))```
                 will execute (Class)._send_reminder(channel, msg)
            Return values should be the same as below.
 

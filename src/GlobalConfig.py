@@ -33,7 +33,7 @@ LOG_BUFFER_SIZE = 1
 LOAD_PLUGINS = ["Spotify", "Trafikanten", "Karma", "Synser", "Kafe"]
 
 # CRON JOB BOT config
-START_CRON_BOT = True
+START_CRON_BOT = False
 
 # Authentication System Config
 AUTHENTICATION = True
