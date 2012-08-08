@@ -106,7 +106,7 @@ class User:
                 text = '''Hi {u},
                 Your cookie is {c}.
                 To change you password, use the following command:
-                /msg {b} !setpass {u} {c} <newpass> 
+                /msg {i} !setpass {u} {c} <newpass> 
                 '''.format(u = self.nick, c = self.cookie, i = BOT_NICK)
 
                 if IRC_DEBUG:
