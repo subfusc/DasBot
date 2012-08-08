@@ -101,6 +101,8 @@ class AuthSys:
         if nick in self.userlist:
             user = self.userlist[nick]
             user.reset_pass()
+            return True
+        return False
 
     def online_info(self, domain):
         if self.online(domain):

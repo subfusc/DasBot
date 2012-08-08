@@ -104,7 +104,10 @@ class AuthBot(LoggerBot.LoggerBot):
                                                                    h =  kwargs['from_host_mask']))
             elif command == 'resetpass' or command == 'reset':
                 if args:
-                    self.authsys.resetpass(args)
+                    if self.authsys.resetpass(args):
+                        self.notify(kwargs['from_nick'], "Password sendt to " + args + "'s email.")
+                    else:
+                        self.notify(kwargs['from_nick'], "That user doesn't exist.")
 
             elif command == 'listusers' and args and args[0] == 'verbose' and kwargs['auth_level'] >= 95:
                 self.notify(kwargs['from_nick'], '== List of all users == ')
