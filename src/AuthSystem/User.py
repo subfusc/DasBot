@@ -120,10 +120,10 @@ class User:
                 
                 mime['Subject'] = "Reset password for {u}".format(u = self.nick)
                 mime['From'] = BOT_EMAIL
-                mime['To'] = email
+                mime['To'] = self.email
                 
                 s = smtplib.SMTP(SMTP_SERVER)
-                s.sendmail(BOT_EMAIL, [email], mime.as_string())
+                s.sendmail(BOT_EMAIL, [self.email], mime.as_string())
                 s.close()
     
     def change_pass(self, passortoken, newpass, secret):
