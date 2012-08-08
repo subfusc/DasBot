@@ -28,7 +28,7 @@ class User:
             if DEBUG: print(self.cookie)
         
             if BOT_EMAIL != '':
-                msg = '''Hi {u},
+                text = '''Hi {u},
                 Your cookie is {c}.
                 To complete the registration use the following command:
                 /msg {i} !setpass {c} <desired password>
@@ -36,20 +36,20 @@ class User:
                 '''.format(u = nick, c = self.cookie, i = BOT_NICK)
 
                 if IRC_DEBUG:
-                    msg += """
+                    text += """
                     WARNING: The admin of this bot has debuging turned on.
                     This means he can see your password in plain text
                     while you are registering or login in, in his terminal.
                     """
                 
-                MIMEText(msg)
+                mime = MIMEText(text)
                 
-                msg['Subject'] = "Bot registration for {u}".format(u = nick)
-                msg['From'] = BOT_EMAIL
-                msg['To'] = email
+                mime['Subject'] = "Bot registration for {u}".format(u = nick)
+                mime['From'] = BOT_EMAIL
+                mime['To'] = email
                 
                 s = smtplib.SMTP(SMTP_SERVER)
-                s.sendmail(BOT_EMAIL, [email], msg.as_string())
+                s.sendmail(BOT_EMAIL, [email], mime.as_string())
                 s.close()
         else:
             self.password = password
@@ -100,25 +100,27 @@ class User:
             if DEBUG: print(self.cookie)
             
             if BOT_EMAIL != '':
-                msg = MIMEText('''Hi {u},
+                text = '''Hi {u},
                 Your cookie is {c}.
                 To change you password, use the following command:
                 /msg {b} !reset {c} <newpass> 
                 '''.format(u = nick, c = self.cookie, i = BOT_NICK))
 
                 if IRC_DEBUG:
-                    msg += """
+                    text += """
                     WARNING: The admin of this bot has debuging turned on.
                     This means he can see your password in plain text
                     while you are registering or login in, in his terminal.
                     """
                 
-                msg['Subject'] = "Bot registration for {u}".format(u = nick)
-                msg['From'] = BOT_EMAIL
-                msg['To'] = email
+                mime = MIMEText(text)    
+                
+                mime['Subject'] = "Bot registration for {u}".format(u = nick)
+                mime['From'] = BOT_EMAIL
+                mime['To'] = email
                 
                 s = smtplib.SMTP(SMTP_SERVER)
-                s.sendmail(BOT_EMAIL, [email], msg.as_string())
+                s.sendmail(BOT_EMAIL, [email], mime.as_string())
                 s.close()
     
     def change_pass(self, passortoken, newpass, secret):
