@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# Written by Sindre Wetjen <sindre dot w at gmail dot com>
+# Licensed under a GPLv3 licence
+# See LICENCE file in top dir.
 
 import LoggerBot
 from AuthSystem.AuthSys import AuthSys
@@ -99,7 +102,7 @@ class AuthBot(LoggerBot.LoggerBot):
                         self.authsys.change_level(self.nick_user_relation[nick], level,
                                                   "{u}@{h}".format(u = kwargs['from_ident'], 
                                                                    h =  kwargs['from_host_mask']))
-            elif command == 'resetpass':
+            elif command == 'resetpass' or command == 'reset':
                 if args:
                     self.authsys.resetpass(args)
 
@@ -171,7 +174,7 @@ class AuthBot(LoggerBot.LoggerBot):
         elif command == 'logout':
             self.notify(kwargs['from_nick'], '!logout')
             self.notify(kwargs['from_nick'], 'Log out from the autentication system of the bot')
-        elif command == 'resetpass':
+        elif command == 'resetpass' or command == 'reset':
             self.notify(kwargs['from_nick'], '!resetpass <user>')
             self.notify(kwargs['from_nick'], 'Sends a new cookie to the users email, so that (s)he may change')
             self.notify(kwargs['from_nick'], 'the password')
