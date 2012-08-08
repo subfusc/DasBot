@@ -22,10 +22,18 @@ class AuthSys:
         self.secret = secret
         self.userlist = {}
         self.domainlist = {}
+        self.timers = []
 
     def __del__(self):
         if DEBUG: print("AUTH SYS DELETE CALLED")
         self.db.close()
+        for t in self.timers:
+            t.cancel()
+        
+    def stop(self):
+        self.db.close()
+        for t in self.timers:
+            t.cancel()
         
     def recover_users(self): 
         for row in self.db.execute("SELECT * FROM users"):
@@ -43,7 +51,9 @@ class AuthSys:
                 x += 1
             if x == 0 and (not nick in self.userlist):
                 self.userlist[nick] = User(nick, email, level=level)
-                threading.Timer(24 * 60 * 60, timed_delete_user, [self, nick])
+                t = threading.Timer(24 * 60 * 60, timed_delete_user, [self, nick])
+                t.start()
+                self.timers.append(t)
             else:
                 if not x == 0:
                     return "That email is already registered. Please use another one."
