@@ -31,8 +31,11 @@ class User:
                 text = '''Hi {u},
                 Your cookie is {c}.
                 To complete the registration use the following command:
-                /msg {i} !setpass {c} <desired password>
+                /msg {i} !setpass {u} {c} <desired password>
                 You have 24 hours to register.
+
+                After registration, use the following command to log in:
+                /msg {i} !login {u} <password>
                 '''.format(u = nick, c = self.cookie, i = BOT_NICK)
 
                 if IRC_DEBUG:
@@ -103,7 +106,7 @@ class User:
                 text = '''Hi {u},
                 Your cookie is {c}.
                 To change you password, use the following command:
-                /msg {b} !reset {c} <newpass> 
+                /msg {b} !setpass {u} {c} <newpass> 
                 '''.format(u = nick, c = self.cookie, i = BOT_NICK)
 
                 if IRC_DEBUG:
