@@ -118,7 +118,7 @@ class User:
                 
                 mime = MIMEText(text)    
                 
-                mime['Subject'] = "Bot registration for {u}".format(u = nick)
+                mime['Subject'] = "Reset password for {u}".format(u = self.nick)
                 mime['From'] = BOT_EMAIL
                 mime['To'] = email
                 
