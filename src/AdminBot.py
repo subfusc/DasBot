@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Written by Sindre Wetjen < sindre dot w at gmail dot com >
 # License GPLv3
-# For full licence see the LICENSE file in the top directory.
+# For full licence see the LICENSE file in the top directory. 
 from CronBot import CronBot
 from GlobalConfig import *
 import sys
@@ -12,7 +12,7 @@ class AdminBot(CronBot):
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("AdminBot cmd")
         super(AdminBot, self).cmd(command, args, channel, **kwargs)
-        if DEBUG: print("Admin Bot Auth: {u} :: {l}".format(u = kwargs["auth_nick"], l = kwargs["auth_level"]))
+        #if DEBUG: print("Admin Bot Auth: {u} :: {l}".format(u = kwargs["auth_nick"], l = kwargs["auth_level"]))
         if kwargs['auth_level'] > 95:
             if command == 'quit':
                 self.exit = True
@@ -20,7 +20,6 @@ class AdminBot(CronBot):
             if command == 'op':
                 self.op(channel, args)
             elif command == 'deop':
-                print("Trying to deop {n}".format(n = args))
                 self.deop(channel, args)
             elif command == 'join':
                 if args[0] == '#':
@@ -31,4 +30,5 @@ class AdminBot(CronBot):
             if command == 'voice':
                 self.voice(channel, args)
             elif command == 'devoice':
-                self.voice(channel, args)
+                self.devoice(channel, args)
+        

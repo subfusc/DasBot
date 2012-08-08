@@ -92,6 +92,9 @@ class ChannelManagementBot(IRCbot):
     def __rm_user_from_nicks(self, nick):
         del(self.nicks[self.nicks.index(nick)])
 
+    def in_channel(self, channel):
+        return channel in self.channel
+        
     def visible_for_bot(self, nick):
         return nick in self.nicks
 

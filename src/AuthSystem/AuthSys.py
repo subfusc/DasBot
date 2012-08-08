@@ -66,13 +66,27 @@ class AuthSys:
         if domain in self.domainlist:
             return self.domainlist[domain].get_level()
 
+    def get_level(self, nick):
+        if nick in self.userlist:
+            return self.userlist[nick].get_level()
+        else: return -1
+        
     def is_online(self, nick):
         if nick in self.userlist:
             return self.userlist[nick].is_online()
 
     def list_users(self):
-        return str(self.userlist.keys())
+        return self.userlist.keys()
 
+    def get_online(self):
+        return [user.get_nick() for user in self.domainlist.values()]
+    
+    def list_all_users(self):
+        string = ["{:<15} :: Auth level".format('Account')]
+        for user in self.userlist.values():
+            string.append('{:<15} :: {:>4}'.format(user.get_nick(), user.get_level()))
+        return string
+    
     def resetpass(self, nick):
         if nick in self.userlist:
             user = self.userlist[nick]

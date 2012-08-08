@@ -137,3 +137,11 @@ class CronBot(PluginBot):
                 self.cronjob.start()
         kwargs['new_job'] = self.cronjob.new_job
         super(CronBot, self).cmd(command, args, channel, **kwargs)
+
+    def help(self, command, args, channel, **kwargs):
+        if command == 'reloadcron':
+            self.notify(kwargs['from_nick'], '!reloadcron - Forcfully reload the crontab if there was an error')
+        elif command == 'all':
+            self.notify(kwargs['from_nick'], 'CronBot: reloadcron')
+        super(CronBot, self).help(command, args, channel, **kwargs)
+        

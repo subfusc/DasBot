@@ -48,7 +48,7 @@ class User:
                 msg['From'] = BOT_EMAIL
                 msg['To'] = email
                 
-                s = smtplib.SMTP('localhost')
+                s = smtplib.SMTP(SMTP_SERVER)
                 s.sendmail(BOT_EMAIL, [email], msg.as_string())
                 s.close()
         else:
@@ -117,7 +117,7 @@ class User:
                 msg['From'] = BOT_EMAIL
                 msg['To'] = email
                 
-                s = smtplib.SMTP('localhost')
+                s = smtplib.SMTP(SMTP_SERVER)
                 s.sendmail(BOT_EMAIL, [email], msg.as_string())
                 s.close()
     

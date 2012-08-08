@@ -2,11 +2,8 @@
 #!/usr/bin/env python
 from AuthBot import AuthBot as Bot
 from GlobalConfig import *
+import IRCFonts
 import os
-from threading import Timer
-
-def delayed_say(bot, channel, msg):
-    bot.msg(channel, msg)
 
 if __name__ == '__main__':    
     if CHANGE_RUNTIME_USER:
@@ -15,19 +12,7 @@ if __name__ == '__main__':
     
     bot = Bot()
     bot.connect()
-    bot.join("#iskbot")
-    bot.msg("#iskbot", "I AM HERE!")
-    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(5, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
-    # Timer(4, delayed_say, [bot, "#iskbot", "Testing synchronization of sockets outbound thing."]).start()
+    for channel in STARTUP_CHANNELS:
+        bot.join(channel)
     bot.start()
     bot.stop()

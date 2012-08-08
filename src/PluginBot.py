@@ -16,14 +16,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from ChannelManagerBot import ChannelManagementBot
 import sys
+import IRCFonts
 from GlobalConfig import *
+from os import listdir
 
 class PluginBot(ChannelManagementBot):
 
     def __init__(self):
         super(PluginBot, self).__init__()
         self.__plugins = None
-        self.__functions = [[], [], [], [], [], []]
+        self.__functions = [[], [], [], [], [], [], []]
         if 'LOAD_PLUGINS' in locals() or 'LOAD_PLUGINS' in globals() and isinstance(LOAD_PLUGINS, list):
             for plugin in LOAD_PLUGINS:
                 self.__load_plugin(plugin)
@@ -56,6 +58,7 @@ class PluginBot(ChannelManagementBot):
             self.__functions[3].append(hasattr(plugin, 'listen'))
             self.__functions[4].append(hasattr(plugin, 'help'))
             self.__functions[5].append(hasattr(plugin, 'stop'))
+            self.__functions[6].append([])
             return True
         except Exception as e:
             print(e)
@@ -86,33 +89,120 @@ class PluginBot(ChannelManagementBot):
             del(self.__functions[3][index])
             del(self.__functions[4][index])
             del(self.__functions[5][index])
+            del(self.__functions[6][index])
             return True
         except Exception as e:
             print(e)
             return False
-            
+
+    def __blacklist_plugin(self, plugin, channel):
+        try:
+            index = self.__functions[0].index(plugin)
+            self.__functions[6][index].append(channel)
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    def __whitelist_plugin(self, plugin, channel):
+        try:
+            index = self.__functions[0].index(plugin)
+            chan_index = self.__functions[6][index].index(channel)
+            del(self.__functions[6][index][chan_index])
+            return True
+        except Exception as e:
+            print(e)
+            return False
+    def __get_blacklisted(self, channel):
+        rarr = []
+        for plugin, blacklist in zip(self.__functions[0], self.__functions[6]):
+            if channel in blacklist:
+                rarr.append(plugin)
+        return rarr
+        
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("PluginBot CMD")
-        if kwargs['auth_level'] >= 90:
-            if command == "load":
-                if self.__has_plugin(args): 
-                    self.msg(channel, "Plugin \"" + args + "\" is allready loaded!", to = kwargs['from_nick'])
-                elif self.__load_plugin(args):
-                    self.msg(channel, "Plugin \"" + args + "\" is now loaded.", to = kwargs['from_nick'])
-                else: self.msg(channel, "Plugin \"" + args + "\" could not be loaded.", to = kwargs['from_nick'])
-            elif command == "unload":
-                if self.__unload_plugin(args):
-                    self.msg(channel, "Plugin \"" + args + "\" is now unloaded.", to = kwargs['from_nick'])
-                else: self.msg(channel, "Plugin \"" + name + "\" is not loaded.", to = kwargs['from_nick'])
-            elif command == "reload":
-                if self.__unload_plugin(args) and self.__load_plugin(args):
-                    self.msg(channel, "Plugin \"" + args + "\" is now reloaded.", to = kwargs['from_nick'])
-                else:
-                    self.msg(channel, "Plugin \"" + args + "\" gave an error while reloading.", to = kwargs['from_nick'])
-        if kwargs['auth_level'] >= 95:
-            if command == "forceunload":
-                self.__system_unload(args)
+        if kwargs['auth_nick'] != None:
+            if kwargs['auth_level'] >= 90:
+                if command == "load" and args:
+                    if self.__has_plugin(args): 
+                        self.msg(channel, "Starting {p}:    [ {s} ]".format(p = args, s = IRCFonts.green(IRCFonts.bold('DONE'))))
+                    elif self.__load_plugin(args):
+                        self.msg(channel, "Starting {p}:    [ {s} ]".format(p = args, s = IRCFonts.green(IRCFonts.bold('DONE'))))
+                    else: 
+                        self.msg(channel, "Starting {p}:    [ {s} ]".format(p = args, s = IRCFonts.red(IRCFonts.bold('FAIL'))))
 
+                elif command == "unload" and args:
+                    if self.__unload_plugin(args):
+                        self.msg(channel, "Stopping {p}:    [ {s} ]".format(p = args, s = IRCFonts.green(IRCFonts.bold('DONE'))))
+                    else: 
+                        self.msg(channel, "Stopping {p}:    [ {s} ]".format(p = args, s = IRCFonts.red(IRCFonts.bold('FAIL'))))
+
+                elif command == "reload" and args:
+                    if self.__unload_plugin(args) and self.__load_plugin(args):
+                        self.msg(channel, "Reloading {p}:    [ {s} ]".format(p = args, s = IRCFonts.green(IRCFonts.bold('DONE'))))
+                    else:
+                        self.msg(channel, "Reloading {p}:    [ {s} ]".format(p = args, s = IRCFonts.red(IRCFonts.bold('FAIL'))))
+
+                elif command == "blacklist":
+                    if args:
+                        chan = None
+                        a = args.split(" ")
+                        if len(a) == 1 and a[0] != '#': 
+                            chan = channel
+                            a = a[0]
+                        elif len(a) >= 2 and a[1][0] == '#' and self.in_channel(a[1]): 
+                            chan = a[1]
+                            a = a[0]
+                        else:
+                            self.msg(channel, "You have not provided me with a correct number of arguments.", to = kwargs['from_nick'])
+
+                        print("BLACKLIST: " + a + " " + chan)
+                        if chan and self.__blacklist_plugin(a, chan):
+                            self.msg(channel, "Blacklisting {p} from {c}:    [ {s} ]".format(p = a, c = chan, s = IRCFonts.green(IRCFonts.bold('DONE'))))
+                        else:
+                            self.msg(channel, "Blacklisting {p} from {c}:    [ {s} ]".format(p = a, c = chan, s = IRCFonts.red(IRCFonts.bold('FAIL'))))
+                    else:
+                        self.msg(channel, "Blacklisted in {c}: ".format(c = channel) + str(self.__get_blacklisted(channel)), to = kwargs['from_nick'])
+                        
+                elif command == "whitelist":
+                    if args:
+                        chan = None
+                        a = args.split(" ")
+                        if len(a) == 1 and a[0] != '#': 
+                            chan = channel
+                            a = a[0]
+                        elif len(a) >= 2 and a[1][0] == '#' and self.in_channel(a[1]): 
+                            chan = a[1]
+                            a = a[0]
+                        else:
+                            self.msg(channel, "You have not provided me with a correct number of arguments.", to = kwargs['from_nick'])
+
+                        print("BLACKLIST: " + a + " " + chan)
+                        if chan and self.__whitelist_plugin(a, chan):
+                            self.msg(channel, "Whitelisting {p} from {c}:    [ {s} ]".format(p = a, c = chan, s = IRCFonts.green(IRCFonts.bold('DONE'))))
+                        else:
+                            self.msg(channel, "Whitelisting {p} from {c}:    [ {s} ]".format(p = a, c = chan, s = IRCFonts.red(IRCFonts.bold('FAIL'))))
+                            
+            if kwargs['auth_level'] >= 98:
+                if command == "forceunload":
+                    self.__system_unload(args)
+
+            if command == 'load' and args == None:
+                try:
+                    all_plugins = listdir('plugins')
+                    not_loaded = []
+                    for plugin in all_plugins:
+                        if not plugin in self.__functions[0] and not (plugin.endswith('py') or plugin.endswith('pyc')) :
+                            not_loaded.append(plugin)
+                    self.notify(kwargs['from_nick'], 'Plugins not in use: ' + ", ".join(not_loaded) + '.')
+                except Exception as e:
+                    print(e)
+                    self.notify(kwargs['from_nick'], 'Error: plugin directory not found.')
+
+            if command == 'unload' and args == None:
+                self.notify(kwargs['from_nick'], 'Plugins in use: ' + ', '.join(self.__functions[0]) + '.')
+                    
         super(PluginBot, self).cmd(command, args, channel, **kwargs)
         for name, obj, attr in zip(self.__functions[0], self.__functions[1], self.__functions[2]):
             if attr:
@@ -128,8 +218,9 @@ class PluginBot(ChannelManagementBot):
 
     def listen(self, command, msg, channel, **kwargs):
         if DEBUG: print("PluginBot Listen begin")
-        for name, obj, attr in zip(self.__functions[0], self.__functions[1], self.__functions[3]):
-            if attr: 
+        for name, obj, attr, blacklist in zip(self.__functions[0], self.__functions[1], self.__functions[3], self.__functions[6]):
+            if attr:
+                if len(blacklist) > 0 and channel in blacklist: continue 
                 try:
                     self._send_message(obj.listen(msg, channel, **kwargs))
                 except Exception as e:
@@ -143,6 +234,22 @@ class PluginBot(ChannelManagementBot):
 
     def help(self, command, args, channel, **kwargs):
         if DEBUG: print("PluginBot Help begin")
+
+        if command == 'all':
+            self.notify(kwargs['from_nick'], 'PluginBot: load, unload, reload, forceunload, blacklist')
+        elif command == 'load':
+            self.notify(kwargs['from_nick'], '!load [name]')
+            self.notify(kwargs['from_nick'], 'Will load plugin with [name], else it will show a list of plugins not loaded.')
+        elif command == 'unload':
+            self.notify(kwargs['from_nick'], '!unload [name]')
+            self.notify(kwargs['from_nick'], 'Will unload plugin with [name], else it will show a list of plugins loaded.')
+        elif command == 'reload':
+            self.notify(kwargs['from_nick'], '!reload name')
+            self.notify(kwargs['from_nick'], 'Reload plugin with name. Plugin must be loaded for this to work')
+        elif command == 'forceunload':
+            self.notify(kwargs['from_nick'], '!forceunload name')
+            self.notify(kwargs['from_nick'], 'Will purge a plugin from the system. Only available to admins with level 98 and up.')
+            
         for name, obj, attr in zip(self.__functions[0], self.__functions[1], self.__functions[4]):
             if attr: 
                 try:
