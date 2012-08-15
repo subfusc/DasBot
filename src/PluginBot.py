@@ -14,13 +14,13 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from ChannelManagerBot import ChannelManagementBot
+from IRCbot import IRCbot
 import sys
 import IRCFonts
 from GlobalConfig import *
 from os import listdir
 
-class PluginBot(ChannelManagementBot):
+class PluginBot(IRCbot):
 
     def __init__(self):
         super(PluginBot, self).__init__()

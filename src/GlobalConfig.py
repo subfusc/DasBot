@@ -31,7 +31,7 @@ LOG_FILE = 'data/irc.log'
 LOG_BUFFER_SIZE = 1
 
 # Plugin Bot config
-LOAD_PLUGINS = ["Spotify", "Karma"]
+LOAD_PLUGINS = ["Useless", "Spotify", "Karma"]
 
 # CRON JOB BOT config
 START_CRON_BOT = True

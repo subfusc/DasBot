@@ -14,11 +14,11 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from IRCbot import IRCbot
+from CronBot import CronBot
 from threading import Timer
 from GlobalConfig import *
 
-class ChannelManagementBot(IRCbot):
+class ChannelManagementBot(CronBot):
 
     def __init__(self):
         super(ChannelManagementBot, self).__init__()

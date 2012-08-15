@@ -3,11 +3,11 @@
 # Written by Sindre Wetjen < sindre dot w at gmail dot com >
 # License GPLv3
 # For full licence see the LICENSE file in the top directory. 
-from CronBot import CronBot
+from ChannelManagerBot import ChannelManagementBot
 from GlobalConfig import *
 import sys
 
-class AdminBot(CronBot):
+class AdminBot(ChannelManagementBot):
 
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("AdminBot cmd")
