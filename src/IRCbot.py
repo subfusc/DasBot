@@ -175,7 +175,7 @@ class IRCbot(object):
                 match = self.message_re.match(l)
 
                 if not match:
-                    print(":ERROR: \'" + l + "\' doesn't match the regex.")
+                    print(":ERROR: '" + str(l) + "' doesn't match the regex.")
                     continue
 
                 if IRC_DEBUG:
