@@ -13,8 +13,8 @@ class Plugin(object):
     def help(self, command, argc, channel, **kwargs):
         if command == 'karma':
             return [(1, kwargs['from_nick'], "!karma [top]"),
-                    (1, kwargs['from_nick'], "Shows your karma or the top karma users. Use !+1 <nick>")
-                    (1, kwargs['from_nick'], "!-1 <nick> to give a user karma. The user has to have an account")
+                    (1, kwargs['from_nick'], "Shows your karma or the top karma users. Use !+1 <nick>"),
+                    (1, kwargs['from_nick'], "!-1 <nick> to give a user karma. The user has to have an account"),
                     (1, kwargs['from_nick'], "in the bots system to give/receive karma. See '?register'")]
         
     def cmd(self, command, args, channel, **kwargs):
