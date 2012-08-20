@@ -16,7 +16,7 @@ class AdminBot(ChannelManagementBot):
         if kwargs['auth_level'] > 95:
             if command == 'quit':
                 self.exit = True
-        if kwargs['auth_level'] >= 80:
+        if kwargs['auth_level'] >= 60:
             if command == 'op':
                 self.op(channel, args)
             elif command == 'deop':
@@ -26,7 +26,7 @@ class AdminBot(ChannelManagementBot):
                     self.join(args)
             elif command == 'part':
                 self.part(channel)
-        if kwargs['auth_level'] >= 50:
+        if kwargs['auth_level'] >= 30:
             if command == 'voice':
                 self.voice(channel, args)
             elif command == 'devoice':

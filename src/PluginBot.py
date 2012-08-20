@@ -81,7 +81,7 @@ class PluginBot(IRCbot):
         try:
             index = self.__functions[0].index(name)
             if self.__functions[5][index]:
-                self.__functions[1].stop()
+                self.__functions[1][index].stop()
             self.__system_unload(name)
             del(self.__functions[0][index])
             del(self.__functions[1][index])
