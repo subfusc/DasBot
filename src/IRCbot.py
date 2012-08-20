@@ -188,7 +188,7 @@ class IRCbot(object):
                 if match.group('uscmd') == 'PRIVMSG':
                     try:
                         channel = match.group('args').strip()
-                        if channel = match.group('nick') if channel == NICK else channel
+                        channel = match.group('nick') if channel == NICK else channel
                         if match.group('msg')[0] == COMMAND_CHAR:
                             first_space = match.group('msg').find(" ")
                             self.cmd(match.group('msg')[1:first_space] if first_space != -1 else match.group('msg')[1:],
