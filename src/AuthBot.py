@@ -54,8 +54,8 @@ class AuthBot(LoggerBot.LoggerBot):
                 if IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
                 if len(args) == 3:
                     result = self.authsys.setpass(args[0], args[1], args[2])
-                    if result: self.msg(channel, "Password updated", to=kwargs['from_nick'])
-                    else: self.msg(channel, "Cookie not correct!", to=kwargs['from_nick'])
+                    if result: self.notify(kwargs['from_nick'], "Password updated")
+                    else: self.notify(kwargs['from_nick'], "Cookie not correct!")
 
             elif command == 'login':
                 args = args.split()

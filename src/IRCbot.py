@@ -187,11 +187,13 @@ class IRCbot(object):
 
                 if match.group('uscmd') == 'PRIVMSG':
                     try:
+                        channel = match.group('args').strip()
+                        if channel = match.group('nick') if channel == NICK else channel
                         if match.group('msg')[0] == COMMAND_CHAR:
                             first_space = match.group('msg').find(" ")
                             self.cmd(match.group('msg')[1:first_space] if first_space != -1 else match.group('msg')[1:],
 								match.group('msg')[first_space + 1:].strip() if first_space != -1 else None,
-								match.group('args').strip(),
+								channel,
 								from_nick=match.group('nick'),
 								from_ident=match.group('ident'),
 								from_host_mask=match.group('hostmask'))
@@ -199,12 +201,12 @@ class IRCbot(object):
                             first_space = match.group('msg').find(" ", 2)
                             self.help(match.group('msg')[1:first_space].strip() if first_space != -1 else match.group('msg')[1:].strip(),
 								match.group('msg')[first_space + 1:].strip() if first_space != -1 else None,
-								match.group('args').strip(),
+                                channel,
 								from_nick=match.group('nick'),
 								from_ident=match.group('ident'),
 								from_host_mask=match.group('hostmask'))
                         else:
-                            self.listen(match.group('uscmd'), match.group('msg'), match.group('args').strip(),
+                            self.listen(match.group('uscmd'), match.group('msg'), channel,
 								from_nick=match.group('nick'),
 								from_ident=match.group('ident'),
 								from_host_mask=match.group('hostmask'))
