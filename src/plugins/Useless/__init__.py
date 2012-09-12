@@ -19,3 +19,6 @@ class Plugin(object):
         if command == 'help':
             return [(1, kwargs['from_nick'], "To get help for a given command use ? instead of !."),
                     (1, kwargs['from_nick'], "To get help about help, use ? only.")]
+        if command == 'say' and args != None:
+            alist = args.split()
+            return [(0, alist[0], " ".join(alist[1:]))]
