@@ -123,7 +123,7 @@ class EntityList(object):
 class UserList(object):
 
     def __init__(self):
-        self.are = re.compile("^\S+\s+([^.]+).*")
+        self.are = re.compile("^\S+\s+(ifi-)?(?P<adress>[^-.]+).*")
         if UIO_SERVERNAME != 'localhost':
             self.UIO_LOGIN = ['ssh', UIO_USERNAME + '@' + UIO_SERVERNAME ]
         else:
@@ -135,7 +135,7 @@ class UserList(object):
     def strip_computer_adress(self, line):
         match = self.are.match(line)
         if match:
-            return match.group(1)
+            return match.group('adress')
         else:
             None
         
