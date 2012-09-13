@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # General Config Options
-VERBOSE = True
-DEBUG = True
+VERBOSE = False
+DEBUG = False
 IRC_DEBUG = False
 VERSION = 0.2
 NAME = "StupidBot"
