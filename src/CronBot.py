@@ -97,7 +97,7 @@ class CronJob(threading.Thread):
     def run(self):
         print("Starting CronJob Daemon")
         while not self.exit:
-            print("==::LOOP::==")
+            if DEBUG: print("==::LOOP::==")
             self.__aquire_both_locks()
             if len(self.crontab) > 0:
                 self.timer = threading.Timer(self.crontab.peek_job()[0] - time.time(), 
