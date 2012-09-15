@@ -32,6 +32,7 @@ LOG_BUFFER_SIZE = 1
 
 # Plugin Bot config
 LOAD_PLUGINS = ["Useless", "Spotify", "Karma"]
+SHOW_ENABLED = True
 
 # CRON JOB BOT config
 START_CRON_BOT = True
