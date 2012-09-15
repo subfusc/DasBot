@@ -33,6 +33,8 @@ class ChannelManagementBot(CronBot):
             self.msg(channel, "[" + ", ".join(self.channel[channel]) + "]", to = kwargs['from_nick'])
         
     def management_cmd(self, command, args, **kwargs):
+        super(ChannelManagementBot, self).management_cmd(command, args, **kwargs)
+        if DEBUG: print(":CHANNEL MANAGEMENT: MANAGEMENT_CMD")
         if command == "JOIN":
             self.channel[kwargs["msg"]].append(kwargs["from_nick"])
             self.nicks.append(kwargs["from_nick"])
@@ -78,7 +80,7 @@ class ChannelManagementBot(CronBot):
         if nick in channel: del(channel[channel.index(nick)])
 
     def __change_nick(self, from_nick, to_nick): 
-        self.__rm_user_from_nick(from_nick)
+        self.__rm_user_from_nicks(from_nick)
         self.nicks.append(to_nick)
         self.__change_nick_all_channels(from_nick, to_nick)
 
