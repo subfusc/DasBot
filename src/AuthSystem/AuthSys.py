@@ -8,7 +8,7 @@ import threading
 
 def timed_delete_user(system, user_nick):
     if not system.registered_user(user_nick):
-        system.delete_user(user_nick)
+        system.delete_non_registered_user(user_nick)
 
 class AuthSys:
 
@@ -31,6 +31,7 @@ class AuthSys:
             t.cancel()
         
     def stop(self):
+        print("AuthSys STOP")
         self.db.close()
         for t in self.timers:
             t.cancel()
@@ -130,6 +131,10 @@ class AuthSys:
             return result
         return False
 
+    def delete_non_registered_user(self, nick):
+        if nick in self.userlist:
+            del(self.userlist[nick])
+    
     def delete_user(self, nick):
         self.db.execute("DELETE FROM users WHERE nick = ?", [nick])
         self.db.commit()

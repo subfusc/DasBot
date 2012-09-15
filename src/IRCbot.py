@@ -191,7 +191,7 @@ class IRCbot(object):
                     try:
                         channel = match.group('args').strip()
                         channel = match.group('nick') if channel == NICK else channel
-                        print "CHANNEL: " + channel
+                        if DEBUG: print "CHANNEL: " + channel
                         if match.group('msg')[0] == COMMAND_CHAR:
                             first_space = match.group('msg').find(" ")
                             self.cmd(match.group('msg')[1:first_space] if first_space != -1 else match.group('msg')[1:],
