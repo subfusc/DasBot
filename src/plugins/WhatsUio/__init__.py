@@ -37,7 +37,7 @@ class Plugin(object):
             return [(0, channel, kwargs['from_nick'], "{m} er i {r}".format(m = arg.encode('utf-8'), r = self.db.computers.where_is_computer(arg)))] 
         elif self.db.rooms.is_room(arg):
             return [(0, channel, kwargs['from_nick'], "{r} er i {b}".format(r = arg.encode('utf-8'), 
-                                                                             b = Plugin.number_to_reply(self.db.rooms.room_location(arg))))]
+                                                                            b = Plugin.number_to_reply(self.db.rooms.room_location(arg))))]
         elif self.db.entities.is_entity(arg):
             return [(0, channel, kwargs['from_nick'], "{e} er i {b}".format(e = arg.encode('utf-8'), b = self.db.entities.locate_entity(arg)))]
         
