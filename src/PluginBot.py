@@ -123,14 +123,6 @@ class PluginBot(IRCbot):
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("PluginBot CMD")
         if kwargs['auth_nick'] != None:
-            if kwargs['auth_level'] >= 99:
-                if command == 'show' and args != None and SHOW_ENABLED: # It shouldn't be unless you know what you are doing
-                    try:
-                        exec('self.notify(["from_nick"], " Execution: " + ' + args + ')')
-                    except Exception as e:
-                        self.msg(channel, kwargs['from_nick'], "Please don't do that. :)")
-                        self.notify(kwargs['from_nick'], "Error: " + e)
-    
             if kwargs['auth_level'] >= 90:
                 if command == "load" and args:
                     if self.__has_plugin(args): 
