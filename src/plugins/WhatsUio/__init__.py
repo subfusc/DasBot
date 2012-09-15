@@ -27,6 +27,7 @@ class Plugin(object):
             return number
 
     def make_response(self, arg, channel, **kwargs):
+        if arg in kwargs['nick_to_user']: arg = kwargs['nick_to_user'][arg]
         if self.db.users.is_user(arg):
             room = self.db.where_is_user(arg)
             if room:
@@ -69,11 +70,9 @@ class Plugin(object):
                         er = i
 
                 arg = None
-                if (er - hvor) == 1:
+                if (er - hvor) == 1 and (er + 1) < len(line):
                     arg = line[er + 1]
-                elif (er - hvor) == 2:
-                    arg = line[hvor + 1]
-                elif er == 0:
+                elif (hvor + 1) < len(line)
                     arg = line[hvor + 1]
                 # print("LINE: {l} :: ARG: {a} :: HVOR: {h} :: ER: {e}".format(l = line, a = arg.encode('utf-8'), h = hvor, e = er))
                 if arg:
