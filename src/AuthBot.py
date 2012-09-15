@@ -165,6 +165,12 @@ class AuthBot(LoggerBot.LoggerBot):
             super(AuthBot, self).cmd(command, args, channel, **kwargs)
                 
     def listen(self, command, msg, channel, **kwargs):
+        if AUTHENTICATION:
+            kwargs['auth_nick'], kwargs['auth_level'] = self.authsys.online_info("{u}@{h}".format(u = kwargs['from_ident'], h =  kwargs['from_host_mask']))
+            kwargs['nick_to_user'] = self.nick_user_relation
+            kwargs['user_to_nick'] = self.user_nick_relation
+        else:
+            kwargs['auth_nick'], kwargs['auth_level'] = (None, 0)
         super(AuthBot, self).listen(command, msg, channel, **kwargs)
 
     def help(self, command, args, channel, **kwargs):

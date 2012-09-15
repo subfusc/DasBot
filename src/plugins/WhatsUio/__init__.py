@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from WhatsUio import WhatsUio, UIO_CSVFILE
-import chardet
 
 class Plugin(object):
 
@@ -27,7 +26,10 @@ class Plugin(object):
             return number
 
     def make_response(self, arg, channel, **kwargs):
+        print(arg)
+        print kwargs
         if arg in kwargs['nick_to_user']: arg = kwargs['nick_to_user'][arg]
+        print(arg)
         if self.db.users.is_user(arg):
             room = self.db.where_is_user(arg)
             if room:
@@ -54,17 +56,17 @@ class Plugin(object):
 
     def listen(self, line, channel, **kwargs):
         try:
+            line = line.decode('utf-8')
             line = line.replace('?', '')
             line = line.replace('!', '')
             line = line.replace('.', '')
             line = line.replace(',', '')
-            line = line.decode('utf-8')
             line = line.split()
-            if "hvor" in line:
+            if "Hvor" in line or 'hvor' in line:
                 er = 0
                 hvor = 0
                 for i, word in enumerate(line):
-                    if word == "hvor":
+                    if word == "hvor" or word == "Hvor":
                         hvor = i
                     elif word == "er":
                         er = i

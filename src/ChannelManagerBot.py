@@ -31,7 +31,11 @@ class ChannelManagementBot(CronBot):
         super(ChannelManagementBot, self).cmd(command, args, channel, **kwargs)
         if command == "here":
             self.msg(channel, "[" + ", ".join(self.channel[channel]) + "]", to = kwargs['from_nick'])
-        
+
+    def listen(self, command, line, channel, **kwargs):
+        kwargs["channel_users"] = self.channel[channel] if channel in self.channel else [kwargs['from_nick']]
+        super(ChannelManagementBot, self).listen(command, line, channel, **kwargs)
+            
     def management_cmd(self, command, args, **kwargs):
         super(ChannelManagementBot, self).management_cmd(command, args, **kwargs)
         if DEBUG: print(":CHANNEL MANAGEMENT: MANAGEMENT_CMD")
