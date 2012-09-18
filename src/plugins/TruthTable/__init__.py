@@ -70,19 +70,59 @@ class Plugin(object):
             for zeroes in range(0, (numberOfLines / 2) / varNumber):
                 varValue.append(0)
 
-#while len(varValue) != numberOfLines:
-                varValue.append( varValue )
+            while len(varValue) != numberOfLines:
+                varValue += varValue
             
             totalValues.append(varValue)
 
-        return [(0, user, repr(totalValues))]
-
         for lineNumber in range(0, numberOfLines):
+
             line = ""
+
             for varNumber in range(0, len(vars)):
                 line += "    " + str(totalValues[varNumber][lineNumber])
+
+            result = 0
+
+            #result = self.parseFormula(line,args) 
+
+            line += " | " + str(result)
+
             table.append( (0, user, line) )
 
-        table.append( (0, user, str(totalValues)) )
+            
+        return [(0,user, self.parseFormula(vars, "    1    1    1", args))]
+#return table
 
-        return table
+    def parseFormula(self, vars, line, args):
+        
+        values = line.replace(" ", "")
+
+        i = 0
+        varWithValue = { }
+
+        for var in vars:
+            varWithValue[var] = values[i]
+            i += 1
+
+        
+        
+        return str(varWithValue)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
