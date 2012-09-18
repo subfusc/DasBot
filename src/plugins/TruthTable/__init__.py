@@ -96,7 +96,8 @@ class Plugin(object):
 
     def parseFormula(self, vars, line, args):
         
-        values = line.replace(" ", "")
+        values = line.replace(" ", "")  
+        formula = args.replace(" ", "")
 
         i = 0
         varWithValue = { }
@@ -107,7 +108,8 @@ class Plugin(object):
 
         
         
-        return str(varWithValue)
+        
+        return formula
 
 
 
