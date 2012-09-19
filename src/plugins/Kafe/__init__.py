@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from Kafe import Kafe
 #from GlobalConfig import *
-import chardet
 
 class Plugin(object):
 

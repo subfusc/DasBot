@@ -7,7 +7,7 @@ import json
 class Kafe(object):
     
     def __init__(self, cafename):
-        self.cafename = cafename
+        self.cafename = cafename.lower()
         self.url = 'http://dagensmiddag.net/index.json'
         self.update_offers()
         #        for cafe in self.middager['cafes']:
@@ -25,7 +25,7 @@ class Kafe(object):
         for cafe in middager['cafes']:
             name = cafe['name'].lower()
             kafeer[name] = {'open':self.__parse_time(cafe['open']),
-                                    'menu':cafe['menu']}
+                            'menu':cafe['menu']}
             
     def __parse_time(self, tider):
         rarr = []
@@ -40,7 +40,6 @@ class Kafe(object):
         return ((int(tid[0:2]),int(tid[3:5])), (int(tid[6:8]), int(tid[9:11])))
 
     def __compare_times(self, tid, db_tid):
-        print(tid)
         tid = (int(tid[0:2]), int(tid[2:4]))
         if tid[0] == db_tid[0][0]:
             return tid[1] > db_tid[0][1]
@@ -49,10 +48,10 @@ class Kafe(object):
         return (db_tid[0][0] < tid[0]) and (db_tid[1][0] > tid[0])
             
     def __stengt(self, tid, tb_tid):
-        if type(tid) == str:
+        if type(tb_tid) == str:
             return True
         else:
-            return self.__compare_times(tid, db_tid)
+            return self.__compare_times(tid, tb_tid)
                 
     def todaysDinner(self, kafe, check_closing=True):
         if not self.db[0] == self.week and self.weekday == int(time.strftime('%w')):
@@ -65,9 +64,9 @@ class Kafe(object):
                     break;
             else:
                 return (kafe, None)
-                    
+
         if kafe in self.db[1]: 
-            if check_closing and self.__stengt(time.strftime('%H%M'), self.db[1][kafe]['open'][self.weekday - 1]):
+            if check_closing and not self.__stengt(time.strftime('%H%M'), self.db[1][kafe]['open'][self.weekday - 1]):
                 return (kafe, "Stengt")
             else:
                 return (kafe, self.make_response(self.db[1][kafe]['menu'][self.weekday - 1]))
@@ -90,5 +89,5 @@ if __name__ == "__main__":
     test = Kafe('Informatikkafeen')
     print test.todaysDinner(None)
     print test.todaysDinner(None, False)
-    print test.todaysDinner('SV-kafeen', False)
+    print test.todaysDinner('sv', False)
     #print test.db
