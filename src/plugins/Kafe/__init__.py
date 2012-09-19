@@ -5,7 +5,7 @@ from Kafe import Kafe
 class Plugin(object):
 
     def __init__(self):
-        self.middag = Kafe('Informatikkafeen')
+        self.middag = Kafe('inf')
         
     def cmd(self, command, args, channel, **kwargs):
         if command == 'middag':

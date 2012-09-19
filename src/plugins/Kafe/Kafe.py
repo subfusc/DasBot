@@ -83,13 +83,12 @@ class Kafe(object):
         if not self.db[0] == self.week and self.weekday == int(time.strftime('%w')):
             self.update_offers()
         if kafe == None: kafe = self.cafename
+        for key in self.db[1]:
+            if key.startswith(kafe):
+                kafe = key
+                break;
         else:
-            for key in self.db[1]:
-                if key.startswith(kafe):
-                    kafe = key
-                    break;
-            else:
-                return (kafe, None)
+            return (kafe, None)
 
         if kafe in self.db[1]: 
             if check_closing and not self.__stengt(time.strftime('%H%M'), self.db[1][kafe]['open'][self.weekday - 1]):
@@ -104,7 +103,7 @@ class Kafe(object):
         return rarr
 
 if __name__ == "__main__":
-    test = Kafe('Informatikkafeen')
+    test = Kafe('inf')
     print test.todaysDinner(None)
     print test.todaysDinner(None, False)
     print test.todaysDinner('sv', False)
