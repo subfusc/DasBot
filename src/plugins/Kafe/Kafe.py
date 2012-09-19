@@ -10,10 +10,6 @@ class Kafe(object):
         self.cafename = cafename.lower()
         self.url = 'http://dagensmiddag.net/index.json'
         self.update_offers()
-        #        for cafe in self.middager['cafes']:
-        #    if cafe['name'] == self.cafename:
-        #        self.menu = cafe['menu']
-        #        self.opening_hours = cafe['open']
 
     def update_offers(self):
         response = urllib2.urlopen(self.url)
@@ -25,8 +21,38 @@ class Kafe(object):
         for cafe in middager['cafes']:
             name = cafe['name'].lower()
             kafeer[name] = {'open':self.__parse_time(cafe['open']),
-                            'menu':cafe['menu']}
+                            'menu':self.__parse_menu(cafe['menu'], cafe['name'])}
+
+    def __parse_theology(self, menu):
+        tmparr = []
+        for day in menu:
+            for value in day.values():
+                tmparr += value
+
+        actualarr = []
+        x = 0
+        while x < len(tmparr):
+            actualarr.append([('Dagens', tmparr[x + 0].replace('Dagens:     ', '')), 
+                              ('Vegetar', tmparr[x + 1].replace('Dagens:     ', ''))])
+            x += 3
             
+        return actualarr
+            
+    def __parse_menu(self, menu, kafe):
+        rarr = []
+        if kafe.startswith('Kaf'):
+            rarr = self.__parse_theology(menu)
+        else:
+            for day in menu:
+                dayrarr = []
+                for key in day:
+                    if type(day[key]) == list:
+                        dayrarr.append((key, " || ".join(day[key])))
+                    else:
+                        dayrarr.append((key, day[key]))
+                rarr.append(dayrarr)
+        return rarr
+        
     def __parse_time(self, tider):
         rarr = []
         for tid in tider:
@@ -69,25 +95,19 @@ class Kafe(object):
             if check_closing and not self.__stengt(time.strftime('%H%M'), self.db[1][kafe]['open'][self.weekday - 1]):
                 return (kafe, "Stengt")
             else:
-                return (kafe, self.make_response(self.db[1][kafe]['menu'][self.weekday - 1]))
+                return (kafe, self.db[1][kafe]['menu'][self.weekday - 1])
 
     def make_response(self, dictionary):
         rarr = []
         for t in dictionary:
             rarr.append((t, dictionary[t][0]))
         return rarr
-            
-        # else:
-        #     tmp = list()
-        #     for dt in self.menu[self.weekday]:
-        #         for j in self.menu[self.weekday][dt]:
-        #             tmpstr = j.replace("     ", " ").strip(",").encode('utf-8')
-        #             tmp.append(tmpstr)
-        #     return tmp
 
 if __name__ == "__main__":
     test = Kafe('Informatikkafeen')
     print test.todaysDinner(None)
     print test.todaysDinner(None, False)
     print test.todaysDinner('sv', False)
+    print test.todaysDinner('fr', False)
+    print test.todaysDinner('ka', False)
     #print test.db
