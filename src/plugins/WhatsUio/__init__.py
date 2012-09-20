@@ -42,7 +42,7 @@ class Plugin(object):
             return [(0, channel, kwargs['from_nick'], "{e} er i {b}".format(e = arg.encode('utf-8'), b = self.db.entities.locate_entity(arg)))]
         
     def cmd(self, cmd, args, channel, **kwargs):
-        if cmd == 'hvorer' and args != None:
+        if cmd == 'hvorer' and args != None and kwargs['auth_nick'] != None:
             try:
                 args = args.decode('utf-8')
                 arg_list = args.split()
@@ -52,33 +52,32 @@ class Plugin(object):
                 print e
 
     def listen(self, line, channel, **kwargs):
-        try:
-            line = line.decode('utf-8')
-            line = line.replace('?', '')
-            line = line.replace('!', '')
-            line = line.replace('.', '')
-            line = line.replace(',', '')
-            line = line.split()
-            if "Hvor" in line or 'hvor' in line:
-                er = 0
-                hvor = 0
-                for i, word in enumerate(line):
-                    if word == "hvor" or word == "Hvor":
-                        hvor = i
-                    elif word == "er":
-                        er = i
+        if kwargs['auth_nick'] != None:
+            try:
+                line = line.decode('utf-8')
+                line = line.replace('?', '')
+                line = line.replace('!', '')
+                line = line.replace('.', '')
+                line = line.replace(',', '')
+                line = line.split()
+                if "Hvor" in line or 'hvor' in line:
+                    er = 0
+                    hvor = 0
+                    for i, word in enumerate(line):
+                        if word == "hvor" or word == "Hvor":
+                            hvor = i
+                        elif word == "er":
+                            er = i
 
-                arg = None
-                if (er - hvor) == 1 and (er + 1) < len(line):
-                    arg = line[er + 1]
-                elif (hvor + 1) < len(line):
-                    arg = line[hvor + 1]
-                # print("LINE: {l} :: ARG: {a} :: HVOR: {h} :: ER: {e}".format(l = line, a = arg.encode('utf-8'), h = hvor, e = er))
-                if arg:
-                    return self.make_response(arg, channel, **kwargs)
-            return None
+                    arg = None
+                    if (er - hvor) == 1 and (er + 1) < len(line):
+                        arg = line[er + 1]
+                    elif (hvor + 1) < len(line):
+                        arg = line[hvor + 1]
+                    # print("LINE: {l} :: ARG: {a} :: HVOR: {h} :: ER: {e}".format(l = line, a = arg.encode('utf-8'), h = hvor, e = er))
+                    if arg:
+                        return self.make_response(arg, channel, **kwargs)
         
-        except Exception as e:
-            print("got an error in WhatsUio, probably an encoding error")
-            print(e)
-            return None
+            except Exception as e:
+                print("got an error in WhatsUio, probably an encoding error")
+                print(e)
