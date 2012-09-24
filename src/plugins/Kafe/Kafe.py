@@ -40,17 +40,17 @@ class Kafe(object):
             
     def __parse_menu(self, menu, kafe):
         rarr = []
-        if kafe.startswith('Kaf'):
-            rarr = self.__parse_theology(menu)
-        else:
-            for day in menu:
-                dayrarr = []
-                for key in day:
-                    if type(day[key]) == list:
-                        dayrarr.append((key, " || ".join(day[key])))
-                    else:
-                        dayrarr.append((key, day[key]))
-                rarr.append(dayrarr)
+        # if kafe.startswith('Kaf'):
+        #     rarr = self.__parse_theology(menu)
+        # else:
+        for day in menu:
+            dayrarr = []
+            for key in day:
+                if type(day[key]) == list:
+                    dayrarr.append((key, " || ".join(day[key])))
+                else:
+                    dayrarr.append((key, day[key]))
+            rarr.append(dayrarr)
         return rarr
         
     def __parse_time(self, tider):
