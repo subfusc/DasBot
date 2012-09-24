@@ -36,7 +36,7 @@ class PluginBot(IRCbot):
             if attr:
                 obj.stop()
 
-    def _sanitize_messages(message_array):
+    def _sanitize_messages(self, message_array):
         for msg in message_array:
             if type(msg) == unicode:
                 return True
@@ -46,6 +46,7 @@ class PluginBot(IRCbot):
 
         if self._sanitize_messages(message_array): 
             self.msg("Warning, I found a undecoded unicode string", message[2])
+            sys.err.write("Warning, I found a undecoded unicode string\n")
             return
         
         for message in message_array: 
@@ -234,7 +235,7 @@ class PluginBot(IRCbot):
                 try:
                     self._send_message(obj.listen(msg, channel, **kwargs))
                 except Exception as e:
-                    print("Plugin {p} gave error {ex}".format(p=name, ex = e))
+                    print(err, "Plugin {p} gave error {ex}\n".format(p=name, ex = e))
                     self.__unload_plugin(name)
                     self.msg(channel, "Plugin {p} gave an error and has been unloaded.".format(p = name),
                              to=kwargs['from_nick'])
@@ -265,7 +266,7 @@ class PluginBot(IRCbot):
                 try:
                     self._send_message(obj.help(command, args, channel, **kwargs))
                 except Exception as e:
-                    print("Plugin {p} gave error {ex}".format(p=name, ex = e))
+                    sys.stderr.write("Plugin {p} gave error {ex}".format(p=name, ex = e))
                     self.__unload_plugin(name)
                     self.msg(channel, "Plugin {p} gave an error and has been unloaded.".format(p = name),
                              to=kwargs['from_nick'])
