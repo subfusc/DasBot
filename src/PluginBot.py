@@ -35,9 +35,19 @@ class PluginBot(IRCbot):
         for obj, attr in zip(self.__functions[1], self.__functions[5]):
             if attr:
                 obj.stop()
+
+    def _sanitize_messages(message_array):
+        for msg in message_array:
+            if type(msg) == unicode:
+                return True
                 
     def _send_message(self, message_array):
         if message_array == None: return
+
+        if self._sanitize_messages(message_array): 
+            self.msg("Warning, I found a undecoded unicode string", message[2])
+            return
+        
         for message in message_array: 
             if message[0] == 0:
                 if len(message) == 4:
