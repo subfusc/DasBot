@@ -80,7 +80,7 @@ class Kafe(object):
             return self.__compare_times(tid, tb_tid)
                 
     def todaysDinner(self, kafe, check_closing=True):
-        if not self.db[0] == self.week and self.weekday == int(time.strftime('%w')):
+        if self.db[0] != self.week or self.weekday != int(time.strftime('%w')):
             self.update_offers()
         if kafe == None: kafe = self.cafename
         for key in self.db[1]:
