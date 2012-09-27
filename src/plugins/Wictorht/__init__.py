@@ -56,9 +56,6 @@ class Plugin(object):
             url_s = url_match.group()
             t = self.urltitle(url_s)
             return [(0, channel, t)] if t else None
-        elif talk_match:
-            return [(0, channel, kwargs['from_nick'], "Yes, my liege?")]
-
 
     def gram(self, args):
         argv = args.split()
