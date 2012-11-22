@@ -1,5 +1,23 @@
 # -*- coding: utf-8 -*- 
-from GlobalConfig import *
+# 
+# Logger: a simple logger plugin for logging channel messages.
+#
+# Copyright (C) 2012 Herman Torjussen
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://gnu.org/licenses/gpl.html>.
+
+
 from time import strftime
 from os import makedirs
 from os import path
@@ -39,7 +57,7 @@ class Plugin(object):
         try:
             chanlog = open(logfile, "a", LOG_BUFFER_SIZE)
         except IOError as e:
-            print e
+            print "Logger: {}".format(e)
             return None
         return chanlog
         
@@ -72,7 +90,6 @@ class Plugin(object):
                                     cmd = msg[0],
                                     a = msg[1],
                                     hc = HELP_CHAR))
-
             self.logclose(chanlog)
 
     def logclose(self, log):
