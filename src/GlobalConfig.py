@@ -42,5 +42,5 @@ SMTP_SERVER = 'localhost' # Must be changed. smtp.uio.no i believe for hosting o
 BOT_NICK = NAME
 DOMAIN_RESTRICTION = '.*' # For email, if you e.g want only *uio.no domains, you write .*uio\\.no instead of ''
                         # '' is no restrictions. The domain restriction follow python regular expression rules.
-EMAIL_REGISTRATION = True # Allow users to use the same username that they have on their email
+EMAIL_REGISTRATION = False # Allow users to use the same username that they have on their email
 FORCE_EMAIL_REGISTRATION = False # If you only want email nicks, this should be true
