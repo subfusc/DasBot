@@ -27,8 +27,10 @@ STARTUP_CHANNELS = ['#iskbot']
 #PING_DELAY = 10 * 60
 
 # LOGGER BOT config
+
 LOG_FILE = 'data/irc.log'
-LOG_BUFFER_SIZE = 500
+LOG_CHANNELS = True
+LOG_BUFFER_SIZE = 1
 
 # Plugin Bot config
 LOAD_PLUGINS = ["Useless" ]
