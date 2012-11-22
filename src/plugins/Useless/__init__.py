@@ -5,16 +5,21 @@ from random import randint
 
 SHADAP_RE = r'[^s]*sh[ua][td][^ua]*[ua]p'
 DICE_CMD_RE = r'^(?P<number>[0-5]?\d?)[dD](?P<size>[1-9]|\d{2,3})$'
+UNIVERSE_RE = r'^.*natur.*univers'
 
 class Plugin(object):
 
     def __init__(self):
         self.shadap = re.compile(SHADAP_RE, re.I)
         self.dicere = re.compile(DICE_CMD_RE, re.U)
+        self.universe = re.compile(UNIVERSE_RE, re.I)
         
     def listen(self, msg, channel, **kwargs):
         if msg.find(NICK) != -1 and self.shadap.search(msg):
             return [(0, channel, kwargs['from_nick'], 'Fuck you! I\'m only doing what I\'m being told to do.')]
+
+        if msg.find(NICK) != -1 and self.universe.search(msg):
+            return [(0, channel, kwargs['from_nick'], 'The universe is a spheroid region, 705 meters in diameter.')]
 
     def cmd(self, command, args, channel, **kwargs):
         if command == 'losers':

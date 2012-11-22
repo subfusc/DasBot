@@ -4,8 +4,8 @@ import subprocess
 import re
 import codecs
 
-UIO_USERNAME='sindrewe'
-UIO_SERVERNAME='login.ifi.uio.no'
+UIO_USERNAME=''
+UIO_SERVERNAME='localhost'
 UIO_CSVFILE= 'data/ojd.csv'
 
 class ComputerList(object):
