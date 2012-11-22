@@ -4,6 +4,7 @@
 # See LICENCE file in top dir.
 
 import LoggerBot
+import re
 from AuthSystem.AuthSys import AuthSys
 from GlobalConfig import *
 
@@ -30,6 +31,7 @@ class AuthBot(LoggerBot.LoggerBot):
             self.user_nick_relation = {}
             if RECOVER_USERS:
                 self.authsys.recover_users()
+            self.email_re = re.compile("(?P<user>[^@]+)@" + (DOMAIN_RESTRICTION if DOMAIN_RESTRICTION != '' else "\S+"))
         super(AuthBot, self).__init__()
 
     def stop(self):
@@ -41,13 +43,23 @@ class AuthBot(LoggerBot.LoggerBot):
         if DEBUG: print("Authentication Bot Command")
         if AUTHENTICATION:
             kwargs['auth_nick'], kwargs['auth_level'] = self.authsys.online_info("{u}@{h}".format(u = kwargs['from_ident'], h =  kwargs['from_host_mask']))
-            if command == 'register':
-                args = args.split()
+            if command == 'register' and args != None:
+                if args.find(' ') != -1: args = args.split()
                 if IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
-                if len(args) == 2:
-                    result = self.authsys.add(args[0], args[1])
-                    if result: self.notify(kwargs['from_nick'], result)
-                    else: self.notify(kwargs['from_nick'], "Email sendt to {u}.".format(u = args[1]))
+
+                if len(args) == 2 and not FORCE_EMAIL_REGISTRATION:
+                    if self.email_re.match(args[1]):
+                        result = self.authsys.add(args[0], args[1])
+                        if result: self.notify(kwargs['from_nick'], result)
+                        else: self.notify(kwargs['from_nick'], "Email sendt to {u}.".format(u = args[1]))
+                elif (EMAIL_REGISTRATION or FORCE_EMAIL_REGISTRATION):
+                    match = self.email_re.match(args)
+                    if match:
+                        result = self.authsys.add(match.group('user'), args)
+                        if result: self.notify(kwargs['from_nick'], result)
+                        else: self.notify(kwargs['from_nick'], "Email sendt to {u}.".format(u = args))
+                    else:
+                        self.notify(kwargs['from_nick'], "Sorry, you do not match the domain criteria: " + DOMAIN_RESTRICTION)
 
             elif command == 'setpass':
                 args = args.split()
@@ -73,8 +85,9 @@ class AuthBot(LoggerBot.LoggerBot):
 
             elif command == 'logout':
                 self.authsys.logout("{i}@{h}".format(i = kwargs['from_ident'], h = kwargs['from_host_mask']))
+                if self.nick_user_relation[kwargs['from_nick']] in self.user_nick_relation: del(self.user_nick_relation[self.nick_user_relation[kwargs['from_nick']]])
                 if kwargs['from_nick'] in self.nick_user_relation: del(self.nick_user_relation[kwargs['from_nick']])
-                if kwargs['from_nick'] in self.user_nick_relation: del(self.user_nick_relation[kwargs['from_nick']])
+                    
 
             elif command == 'online':
                 result = None
@@ -152,15 +165,33 @@ class AuthBot(LoggerBot.LoggerBot):
             super(AuthBot, self).cmd(command, args, channel, **kwargs)
                 
     def listen(self, command, msg, channel, **kwargs):
+        if AUTHENTICATION:
+            kwargs['auth_nick'], kwargs['auth_level'] = self.authsys.online_info("{u}@{h}".format(u = kwargs['from_ident'], h =  kwargs['from_host_mask']))
+            kwargs['nick_to_user'] = self.nick_user_relation
+            kwargs['user_to_nick'] = self.user_nick_relation
+        else:
+            kwargs['auth_nick'], kwargs['auth_level'] = (None, 0)
         super(AuthBot, self).listen(command, msg, channel, **kwargs)
 
     def help(self, command, args, channel, **kwargs):
         super(AuthBot, self).help(command, args, channel, **kwargs)
         if command == 'register':
-            self.notify(kwargs['from_nick'], "!register <nick> <email>")
-            self.notify(kwargs['from_nick'], "This will register a nick with an email in the bots user")
-            self.notify(kwargs['from_nick'], "database. Please follow the email instructions to set a ")
-            self.notify(kwargs['from_nick'], "password.")
+            if FORCE_EMAIL_REGISTRATION:
+                self.notify(kwargs['from_nick'], "!register <email>")
+                self.notify(kwargs['from_nick'], "This will register an email in the bots user")
+                self.notify(kwargs['from_nick'], "database. Please follow the email instructions to set a ")
+                self.notify(kwargs['from_nick'], "password. The email (before @) will be the username")
+            elif EMAIL_REGISTRATION:
+                self.notify(kwargs['from_nick'], "!register [nick] <email>")
+                self.notify(kwargs['from_nick'], "This will register a nick with an email in the bots user")
+                self.notify(kwargs['from_nick'], "database. Please follow the email instructions to set a ")
+                self.notify(kwargs['from_nick'], "password. If nick is not provided, the email (before @) ")
+                self.notify(kwargs['from_nick'], "will be the username.")
+            else:
+                self.notify(kwargs['from_nick'], "!register <nick> <email>")
+                self.notify(kwargs['from_nick'], "This will register a nick with an email in the bots user")
+                self.notify(kwargs['from_nick'], "database. Please follow the email instructions to set a ")
+                self.notify(kwargs['from_nick'], "password.")
         elif command == 'login':
             self.notify(kwargs['from_nick'], "!login <nick> <password>")
             self.notify(kwargs['from_nick'], "Log in to an account using your registered nick and password")
@@ -196,19 +227,22 @@ class AuthBot(LoggerBot.LoggerBot):
         
     def management_cmd(self, command, args, **kwargs):
         super(AuthBot, self).management_cmd(command, args, **kwargs)
+        if DEBUG: print(":AUTH BOT: MANAGE COMMAND")
+        account_name = self.nick_user_relation[kwargs['from_nick']]
         if command == "QUIT":
             self.authsys.logout("{i}@{h}".format(i = kwargs['from_ident'], h = kwargs['from_host_mask']))
             if kwargs['from_nick'] in self.nick_user_relation: del(self.nick_user_relation[kwargs['from_nick']])
-            if kwargs['from_nick'] in self.user_nick_relation: del(self.user_nick_relation[kwargs['from_nick']])
+            if account_name in self.user_nick_relation: del(self.user_nick_relation[account_name])
         if command == "PART" and not self.visible_for_bot(kwargs['from_nick']):
             self.authsys.logout("{i}@{h}".format(i = kwargs['from_ident'], h = kwargs['from_host_mask']))
             if kwargs['from_nick'] in self.nick_user_relation: del(self.nick_user_relation[kwargs['from_nick']])
-            if kwargs['from_nick'] in self.user_nick_relation: del(self.user_nick_relation[kwargs['from_nick']])
+            if account_name in self.user_nick_relation: del(self.user_nick_relation[account_name])
         if command == "NICK":
             if kwargs['from_nick'] in self.nick_user_relation:
                 self.nick_user_relation[kwargs['msg']] = self.nick_user_relation[kwargs['from_nick']]
                 del(self.nick_user_relation[kwargs['from_nick']])
-            if kwargs['from_nick'] in self.user_nick_relation:
-                self.user_nick_relation[kwargs['msg']] = self.user_nick_relation[kwargs['from_nick']]
-                del(self.user_nick_relation[kwargs['from_nick']])
+            if account_name in self.user_nick_relation:
+                del(self.user_nick_relation[account_name])
+                self.user_nick_relation[account_name] = kwargs['msg']
+
    
