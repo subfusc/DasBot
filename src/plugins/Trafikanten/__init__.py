@@ -23,6 +23,8 @@ class Plugin():
 
     def cmd(self, command, args, channel, **kwargs):
         if command == 't':
+            if args == None:
+                args = 'sentrum'
             svar = self.trafikanten_k(args)
             print "SVAR: ", svar
             if len(svar) < 2:
