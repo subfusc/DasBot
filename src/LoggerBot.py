@@ -15,7 +15,7 @@ class LoggerBot(AdminBot):
         self.dateformat = "[%F %R]"
         self.file = open(LOG_FILE, 'a', LOG_BUFFER_SIZE)
         self.file.write("{d} {n} started\n".format(n = self.botname, d = strftime(self.dateformat)))
-        
+
     def __del__(self):
         super(LoggerBot, self).__del__()
         self.file.write("{d} {n} stopped\n".format(n = self.botname, d = strftime(self.dateformat)))
