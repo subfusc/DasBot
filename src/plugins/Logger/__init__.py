@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://gnu.org/licenses/gpl.html>.
 
-
+from GlobalConfig import *
 from time import strftime
 from os import makedirs
 from os import path
@@ -34,16 +34,13 @@ class Plugin(object):
         self.ext = ".log"
         
     def listen(self, msg, channel, **kwargs):
-        if LOG_CHANNELS:
-            self.logchan(channel, self.stdformat, msg, **kwargs)
+        self.logchan(channel, self.stdformat, msg, **kwargs)
 
     def cmd(self, command, args, channel, **kwargs):
-        if LOG_CHANNELS:
-            self.logchan(channel, self.cmdformat, [ command, args ], **kwargs)
+        self.logchan(channel, self.cmdformat, [ command, args ], **kwargs)
 
     def help(self, command, args, channel, **kwargs):
-        if LOG_CHANNELS:
-            self.logchan(channel, self.hlpformat, [ command , args ], **kwargs)
+        self.logchan(channel, self.hlpformat, [ command , args ], **kwargs)
     
     
     def logopen(self, chan):
