@@ -8,6 +8,7 @@ The bot will search for plugins.<name> and try to instanciate a class of type `P
 - `cmd` (for IRC commands like `!kick`)
 - `listen` (to get everything said in a channel)
 - `help` (so you can inform people of your commands) Syntax of help is: `?<cmd>`. The command `?all` lists all of the available commands provided by a plugin.
+- `stop` (if your plugin needs cleaning or syncing or similar before shutdown, this is the function you have to make)
 
 Information available in kwargs
 ---------
