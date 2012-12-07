@@ -22,6 +22,8 @@ import string
 import re
 import traceback
 import time
+import ssl
+
 from threading import Lock
 from GlobalConfig import *
 
@@ -43,8 +45,11 @@ class IRCbot(object):
         self._nick = NICK #: The nick the bot is going to use
         self.ident = IDENT #: Identity of the bot
         self.realname = REAL_NAME #: The "realname" of the bot
-        self.s = socket.socket() #: Create a socket for the I/O to the server
+        self.ssl = True
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #: Create a socket for the I/O to the server
         self.s.settimeout(600)
+        if self.ssl:
+            self.s = ssl.wrap_socket(self.s, ca_certs="/etc/ssl/certs/ca-bundle.crt", cert_reqs=ssl.CERT_REQUIRED)
         self.ident_re = re.compile(IDENT_RE) 
         self.channel_join_re = re.compile(CHANNEL_JOIN_RE) 
         self.message_re = re.compile(MESSAGE_RE)
@@ -55,12 +60,13 @@ class IRCbot(object):
         self.s.close()
 
     def connect(self):
+        
         self.s.connect((self.host, self.port)) #Connect to server 
         self.send_sync('NICK ' + self._nick + '\n') #Send the nick to server 
         self.send_sync('USER ' + self.ident + ' ' + self.host + ' SB: ' + self.realname + '\n') #Identify to server
 
         while 1: # Join loop 
-            line = self.s.recv(1024) #recieve server messages 
+            line = self.s.read(1024) if self.ssl else self.s.recv(1024) #recieve server messages 
             if not line: break
             if DEBUG: print line #server message is output 
             line = line.rstrip() #remove trailing 'rn' 
@@ -81,7 +87,7 @@ class IRCbot(object):
 
             exit = False
             while not exit:
-                line = self.s.recv(2048)
+                line = self.s.read(1024) if self.ssl else self.s.recv(1024)
                 if not line: break
                 for l in line.split('\n'):
                     if DEBUG: print "IN FOR: ", l
@@ -153,7 +159,7 @@ class IRCbot(object):
         
     def send_sync(self, msg):
         self.send_lock.acquire()
-        self.s.send(msg)
+        self.s.write(msg) if self.ssl else self.s.send(msg)
         self.send_lock.release()
         
     def user_in_channel(self, channel, nick):
@@ -256,7 +262,7 @@ class IRCbot(object):
     def start(self):
         try:
             while not self.exit: # Main Loop
-                line = self.s.recv(1024) #recieve server messages
+                line = self.s.read(1024) if self.ssl else self.s.recv(1024) #recieve server messages
                 if not line: break
                 if IRC_DEBUG: print line #server message is output
                 line = self._parse_raw_input(line)
