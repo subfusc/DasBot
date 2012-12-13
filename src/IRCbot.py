@@ -25,12 +25,33 @@ import time
 from threading import Lock
 from GlobalConfig import *
 
-IDENT_RE = r'(?P<nick>[^!]+)![~^](?P<ident>[^@]+)@(?P<hostmask>\S+)'
-ADRESS_RE = r'[^!@]+(\.[^!@.\s]+)+'
-CHANNEL_JOIN_RE = r'\s*:[^3]+353[^:]+:(?P<nicks>[^\r\n]+)\s*'
-MESSAGE_RE = r'^(?P<svcmd>[^!@\s]+)\s+:(?P<adress>[^!@]+(.[^!@\r\n])+)\s*$|^:(' + \
-    IDENT_RE + r'|(?P<adr>' + ADRESS_RE + \
-    r'))\s+(?P<uscmd>\S+)\s+(?P<args>[^:\r\n]*)\s*(:(?P<msg>[^\r\n]+))?\s*$'
+"""
+IRC SPESIFICATION
+<message> ::=
+    [':' <prefix> <SPACE> ] <command> <params> <crlf>
+<prefix> ::=
+    <servername> | <nick> [ '!' <user> ] [ '@' <host> ]
+<command> ::=
+    <letter> { <letter> } | <number> <number> <number>
+<SPACE> ::=
+    ' ' { ' ' }
+<params> ::=
+    <SPACE> [ ':' <trailing> | <middle> <params> ]
+<middle> ::=
+    <Any *non-empty* sequence of octets not including SPACE or NUL or CR or LF, the first of which may not be ':'>
+<trailing> ::=
+    <Any, possibly *empty*, sequence of octets not including NUL or CR or LF>
+<crlf> ::=
+    CR LF 
+"""
+
+CRLF_RE = r'$' # This is not CRLF but its stripped before the RE is used, so it will be correct in our case
+PARAMS_RE = r'((\s+(?P<middle>(\S|(\s(?!:)))+))?(\s+:(?P<params>[^\r\n]*))?)'
+COMMAND_RE = r'(?P<command>\S+|\d\d\d)'
+PREFIX_RE = r'((?P<servername>[^.!@\s]+(\.[^.!@\s]+)+)|(?P<nick>[^.\s!]+)(!(?P<ident>[^@\s]+))?(@(?P<host>[^:\s]+))?)'
+MESSAGE_RE = r'^(:(?P<prefix>' + PREFIX_RE + r')\s+)?' + COMMAND_RE + PARAMS_RE + CRLF_RE
+
+class BadIRCCommandException(Exception): pass
 
 class IRCbot(object):
 
@@ -45,53 +66,128 @@ class IRCbot(object):
         self.realname = REAL_NAME #: The "realname" of the bot
         self.s = socket.socket() #: Create a socket for the I/O to the server
         self.s.settimeout(600)
-        self.ident_re = re.compile(IDENT_RE) 
-        self.channel_join_re = re.compile(CHANNEL_JOIN_RE) 
         self.message_re = re.compile(MESSAGE_RE)
         self.send_lock = Lock()
         self.exit = False
+        self.rest_line = ""
         
     def __del__(self):
         self.s.close()
 
+    def _parse_command(self, cmd):
+        first_space = cmd.find(" ")
+        if first_space == -1:
+            return (cmd[1:], None)
+        else:
+            return (cmd[1:first_space], cmd[first_space + 1:])
+        
+    def __lineParser(self, raw):
+        lines = raw.split('\r\n')
+        if self.rest_line != "":
+            lines[0] = self.rest_line + lines[0]
+        self.rest_line = lines.pop()
+
+        for line in lines:
+            try:
+                match = self.message_re.match(line)
+                if IRC_DEBUG: 
+                    sys.stderr.write(":BEFORE HANDLING:" + line + "\n")
+                    sys.stderr.write(str(match.groups()) + "\n")
+                
+                if not match.group('prefix'):
+                    self._server_command(match.group('command'), 
+                                        (match.group('middle'), match.group('params')))
+                else:
+                    if match.group('command') == 'PRIVMSG':
+                        if not match.group('middle'): 
+                            raise BadIRCCommandException('A badly formated PRIVMSG appeared.')
+                        msg = match.group('params')
+                        channel = match.group('middle').strip()
+                        arg_dict = {"from_nick":match.group('nick'),
+                                    "from_ident":match.group('ident'),
+                                    "from_host_mask":match.group('host')}
+
+                        if msg[0] == COMMAND_CHAR:
+                            full_cmd = self._parse_command(msg)
+                            self.cmd(full_cmd[0], full_cmd[1], channel, **arg_dict)
+                        elif msg[0] == HELP_CHAR:
+                            full_cmd = self._parse_command(msg)
+                            self.help(full_cmd[0], full_cmd[1], channel, **arg_dict)
+                        else:
+                            self.listen(match.group('command'), msg, channel, **arg_dict)
+                    else:
+                        if match.group('nick'):
+                            self.management_cmd(match.group('command'), 
+                                                match.group('middle').strip() if match.group('middle') else None,
+                                                msg=match.group('params'),
+                                                from_nick=match.group('nick'),
+                                                from_ident=match.group('ident'),
+                                                from_host_mask=match.group('host'))
+                        else:
+                            self.management_cmd(match.group('command'),
+                                                match.group('middle').strip() if match.group('middle') else None,
+                                                msg=match.group('params'),
+                                                server_adr=match.group('servername'))
+            except KeyboardInterrupt:
+                raise
+            except Exception as e:
+                sys.stderr.write(":ERROR: " + str(e) + "\n")
+                sys.stderr.write(":LINE : " + line + "\n")
+        
     def connect(self):
         self.s.connect((self.host, self.port)) #Connect to server 
         self.send_sync('NICK ' + self._nick + '\n') #Send the nick to server 
         self.send_sync('USER ' + self.ident + ' ' + self.host + ' SB: ' + self.realname + '\n') #Identify to server
 
-        while 1: # Join loop 
-            line = self.s.recv(1024) #recieve server messages 
-            if not line: break
-            if DEBUG: print line #server message is output 
-            line = line.rstrip() #remove trailing 'rn' 
-            line = line.split()
+        exit = False
+        while not exit: # Join loop 
+            raw = self.s.recv(1024) #recieve server messages 
+            if not raw: break
+            
+            lines = raw.split('\r\n')
+            if self.rest_line != "":
+                lines[0] = self.rest_line + lines[0]
+                self.rest_line = lines.pop()
 
-            if '376' in line:
-                if VERBOSE: print(":CONNECT: MOTD FOUND!, CONNECTED")
-                break
+            if DEBUG:
+                sys.stderr.write(":RESTLINE: " + self.rest_line + "\n")
+                
+            for line in lines:
+                if DEBUG: 
+                    sys.stderr.write(line + "\n") #server message is output.
+                match = self.message_re.match(line)
+                if match.group('command') == '376':
+                    if VERBOSE: print(":CONNECT: MOTD FOUND!, CONNECTED")
+                    exit = True
+                    break
 
-            if len(line) > 1 and line[0] == 'PING': #If server pings then pong 
-                self.send_sync('PONG ' + line[1] + '\n')  
+                if match.group('command') == 'PING': #If server pings then pong 
+                    self.send_sync('PONG ' + match.group('params') + '\n')  
 
         return True
 
     def join(self, name):
         if not name in self.channel:
             self.send_sync('JOIN ' + name + '\n');
-
             exit = False
+            
             while not exit:
-                line = self.s.recv(2048)
-                if not line: break
-                for l in line.split('\n'):
+                raw = self.s.recv(1048)
+                if not raw: break
+                
+                lines = raw.split('\r\n')
+                if self.rest_line != "":
+                    lines[0] = self.rest_line + lines[0]
+                self.rest_line = lines.pop()
+                
+                for l in lines:
                     if DEBUG: print "IN FOR: ", l
-                        
-                    match = self.channel_join_re.match(l)
-                    if match:
+                    match = self.message_re.match(l)
+                    if match.group('command') == '353':
                         if DEBUG: print match.groups()
-                        self.manage_users_during_join(name, match.group('nicks'))
+                        self.manage_users_during_join(name, match.group('params'))
 
-                    if l.find(' 366 ') != -1: 
+                    elif match.group('command') == '366': 
                         exit = True
                         break
             return True
@@ -169,97 +265,12 @@ class IRCbot(object):
         else:
             return None 
 
-    def _parse_raw_input(self, line):
-        try:
-            line = line.split('\n')
-            if IRC_DEBUG: print line
-            for l in line[:-1]:
-                match = self.message_re.match(l)
-
-                if not match:
-                    print(":ERROR: '" + str(l) + "' doesn't match the regex.")
-                    continue
-
-                if IRC_DEBUG:
-                    print(match.groups())
-
-                if match.group('svcmd'):
-                    self._server_command(match.group('svcmd'), match.group('adress'))
-                    continue
-
-                if match.group('uscmd') == 'PRIVMSG':
-                    try:
-                        channel = match.group('args').strip()
-                        channel = match.group('nick') if channel == NICK else channel
-                        if DEBUG: print "CHANNEL: " + channel
-                        if match.group('msg')[0] == COMMAND_CHAR:
-                            first_space = match.group('msg').find(" ")
-                            self.cmd(match.group('msg')[1:first_space] if first_space != -1 else match.group('msg')[1:],
-								match.group('msg')[first_space + 1:].strip() if first_space != -1 else None,
-								channel,
-								from_nick=match.group('nick'),
-								from_ident=match.group('ident'),
-								from_host_mask=match.group('hostmask'))
-                        elif match.group('msg')[0] == HELP_CHAR:
-                            first_space = match.group('msg').find(" ", 2)
-                            self.help(match.group('msg')[1:first_space].strip() if first_space != -1 else match.group('msg')[1:].strip(),
-								match.group('msg')[first_space + 1:].strip() if first_space != -1 else None,
-                                channel,
-								from_nick=match.group('nick'),
-								from_ident=match.group('ident'),
-								from_host_mask=match.group('hostmask'))
-                        else:
-                            self.listen(match.group('uscmd'), match.group('msg'), channel,
-								from_nick=match.group('nick'),
-								from_ident=match.group('ident'),
-								from_host_mask=match.group('hostmask'))
-                    except KeyboardInterrupt:
-                        self.exit = True
-                    except Exception as e:
-                        print "I got an error here: %s" % e
-                        traceback.print_tb(sys.exc_info()[2], limit=1, file=sys.stdout)
-                else:
-                    #TODO parse for management
-                    if DEBUG: print(":IRC COMMAND: %s" % str(match.groups()))
-                    if match.group('nick'):
-                        self.management_cmd(match.group('uscmd'), 
-							match.group('args').strip(),
-							msg=match.group('msg'), 
-							from_nick=match.group('nick'),
-							from_ident=match.group('ident'),
-							from_host_mask=match.group('hostmask'))
-                    else:
-                        self.management_cmd(match.group('uscmd'), 
-							match.group('args').strip(),
-							msg=match.group('msg'), 
-							server_adr=match.group('adr'))
-        except KeyboardInterrupt:
-            self.exit = True
-        except Exception as e:
-            if IRC_DEBUG:
-                print("ERROR: %s" % e)
-                if not match:
-                    print("******************** WARNING :::: LINE DISCARDED IN _PARSE_RAW_INPUT")
-                    print(line)
-                    newline = False
-                    for char in line: 
-                        if re.match('\\s', char): 
-                            print(ord(char)),
-                            newline = True
-                        else:
-                            if newline:
-                                print("")
-                                newline = False 
-                    print("")
-                    print("******************** END WARNING ::::")
-
     def start(self):
         try:
             while not self.exit: # Main Loop
                 line = self.s.recv(1024) #recieve server messages
                 if not line: break
-                if IRC_DEBUG: print line #server message is output
-                line = self._parse_raw_input(line)
+                line = self.__lineParser(line)
         except KeyboardInterrupt:
             return
 
@@ -274,8 +285,11 @@ class IRCbot(object):
         if VERBOSE:
             print(":SERVER: Command: %s, Server: %s" % (command, server))
 
+        if IRC_DEBUG:
+            sys.stderr.write('PONG ' + ":" + server[1] + '\n')
+            
         if command == 'PING':
-            self.send_sync('PONG ' + ":" + server + '\n')
+            self.send_sync('PONG ' + ":" + server[1] + '\n')
 
     def cmd(self, command, args, channel, **kwargs):
         """

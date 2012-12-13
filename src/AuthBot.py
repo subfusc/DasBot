@@ -36,8 +36,9 @@ class AuthBot(LoggerBot.LoggerBot):
 
     def stop(self):
         super(AuthBot, self).stop()
-        self.authsys.stop()
-        del(self.authsys)
+        if AUTHENTICATION:
+            self.authsys.stop()
+            del(self.authsys)
         
     def cmd(self, command, args, channel, **kwargs):
         if DEBUG: print("Authentication Bot Command")

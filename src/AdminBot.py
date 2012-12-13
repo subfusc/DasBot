@@ -25,7 +25,10 @@ class AdminBot(ChannelManagementBot):
                 if args[0] == '#':
                     self.join(args)
             elif command == 'part':
-                self.part(channel)
+                if args == None:
+                    self.part(channel)
+                elif args[0] == '#':
+                    self.part(args.strip())
         if kwargs['auth_level'] >= 30:
             if command == 'voice':
                 self.voice(channel, args)
