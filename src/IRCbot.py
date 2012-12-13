@@ -280,7 +280,7 @@ class IRCbot(object):
         This command is for the network layer to respond to diffrent server
         requests, like ping.
         """
-        if VERBOSE:
+        if DEBUG:
             print(":SERVER: Command: %s, Server: %s" % (command, server))
 
         if IRC_DEBUG:
