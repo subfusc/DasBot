@@ -182,7 +182,7 @@ class IRCbot(object):
                     if DEBUG: sys.stderr.write(":LINE (join): " + l + "\n")
                     match = self.message_re.match(l)
                     if match.group('command') == '353':
-                        if DEBUG: sys.stderr.write(match.groups() + "\n")
+                        if DEBUG: sys.stderr.write(str(match.groups()) + "\n")
                         self.manage_users_during_join(name, match.group('params'))
 
                     elif match.group('command') == '366': 
