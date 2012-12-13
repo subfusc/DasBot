@@ -19,6 +19,7 @@ import sys
 import IRCFonts
 from GlobalConfig import *
 from os import listdir
+from sys import stderr
 
 class PluginBot(IRCbot):
 
@@ -72,7 +73,7 @@ class PluginBot(IRCbot):
             self.__functions[6].append([])
             return True
         except Exception as e:
-            print(e)
+            stderr.write(str(e) + "\n")
             return False
 
     def __system_unload(self, name):
@@ -103,7 +104,7 @@ class PluginBot(IRCbot):
             del(self.__functions[6][index])
             return True
         except Exception as e:
-            print(e)
+            stderr.write(str(e) + "\n")
             return False
 
     def __blacklist_plugin(self, plugin, channel):
@@ -112,7 +113,7 @@ class PluginBot(IRCbot):
             self.__functions[6][index].append(channel)
             return True
         except Exception as e:
-            print(e)
+            stderr.write(str(e) + "\n")
             return False
 
     def __whitelist_plugin(self, plugin, channel):
@@ -122,7 +123,7 @@ class PluginBot(IRCbot):
             del(self.__functions[6][index][chan_index])
             return True
         except Exception as e:
-            print(e)
+            stderr.write(str(e) + "\n")
             return False
     def __get_blacklisted(self, channel):
         rarr = []
@@ -132,7 +133,7 @@ class PluginBot(IRCbot):
         return rarr
         
     def cmd(self, command, args, channel, **kwargs):
-        if DEBUG: print("PluginBot CMD")
+        if DEBUG: stderr.write("PluginBot CMD\n")
         if kwargs['auth_nick'] != None:
             if kwargs['auth_level'] >= 90:
                 if command == "load" and args:
@@ -208,7 +209,7 @@ class PluginBot(IRCbot):
                             not_loaded.append(plugin)
                     self.notify(kwargs['from_nick'], 'Plugins not in use: ' + ", ".join(not_loaded) + '.')
                 except Exception as e:
-                    print(e)
+                    stderr.write(str(e) + "\n")
                     self.notify(kwargs['from_nick'], 'Error: plugin directory not found.')
 
             if command == 'unload' and args == None:
@@ -220,31 +221,31 @@ class PluginBot(IRCbot):
                 try:
                     self._send_message(obj.cmd(command, args, channel, **kwargs))
                 except Exception as e:
-                    print("Plugin {p} gave error {ex}".format(p=name, ex = e))
+                    stderr.write("Plugin {p} gave error {ex}\n".format(p=name, ex = e))
                     self.__unload_plugin(name)
                     self.msg(channel, "Plugin {p} gave an error and has been unloaded.".format(p = name),
                              to=kwargs['from_nick'])
                 
-        if DEBUG: print("PluginBot CMD")
+        if DEBUG: stderr.write("PluginBot CMD\n")
 
     def listen(self, command, msg, channel, **kwargs):
-        if DEBUG: print("PluginBot Listen begin")
+        if DEBUG: stderr.write("PluginBot Listen begin\n")
         for name, obj, attr, blacklist in zip(self.__functions[0], self.__functions[1], self.__functions[3], self.__functions[6]):
             if attr:
                 if len(blacklist) > 0 and channel in blacklist: continue 
                 try:
                     self._send_message(obj.listen(msg, channel, **kwargs))
                 except Exception as e:
-                    print(err, "Plugin {p} gave error {ex}\n".format(p=name, ex = e))
+                    stderr.write(err, "Plugin {p} gave error {ex}\n".format(p=name, ex = e))
                     self.__unload_plugin(name)
                     self.msg(channel, "Plugin {p} gave an error and has been unloaded.".format(p = name),
                              to=kwargs['from_nick'])
                     
         super(PluginBot, self).listen(command, msg, channel, **kwargs)
-        if DEBUG: print("PluginBot Listen end")
+        if DEBUG: stderr.write("PluginBot Listen end\n")
 
     def help(self, command, args, channel, **kwargs):
-        if DEBUG: print("PluginBot Help begin")
+        if DEBUG: stderr.write("PluginBot Help begin\n")
 
         if command == 'all':
             self.notify(kwargs['from_nick'], 'PluginBot: load, unload, reload, forceunload, blacklist')
@@ -266,10 +267,10 @@ class PluginBot(IRCbot):
                 try:
                     self._send_message(obj.help(command, args, channel, **kwargs))
                 except Exception as e:
-                    sys.stderr.write("Plugin {p} gave error {ex}".format(p=name, ex = e))
+                    sys.stderr.write("Plugin {p} gave error {ex}\n".format(p=name, ex = e))
                     self.__unload_plugin(name)
                     self.msg(channel, "Plugin {p} gave an error and has been unloaded.".format(p = name),
                              to=kwargs['from_nick'])
                     
         super(PluginBot, self).help(command, args, channel, **kwargs)
-        if DEBUG: print("PluginBot Help end")
+        if DEBUG: stderr.write("PluginBot Help end\n")

@@ -7,6 +7,7 @@ import LoggerBot
 import re
 from AuthSystem.AuthSys import AuthSys
 from GlobalConfig import *
+from sys import stdout
 
 class AuthBot(LoggerBot.LoggerBot):
     """
@@ -25,7 +26,9 @@ class AuthBot(LoggerBot.LoggerBot):
                 is not recommended for any other use other
                 than debugging!""")
 
-            secret = raw_input('SECRET:')
+            print("SECRET:"),
+            stdout.flush()
+            secret = raw_input('')
             self.authsys = AuthSys(secret)
             self.nick_user_relation = {}
             self.user_nick_relation = {}

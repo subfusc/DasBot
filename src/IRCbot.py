@@ -46,8 +46,8 @@ IRC SPESIFICATION
 """
 
 CRLF_RE = r'$' # This is not CRLF but its stripped before the RE is used, so it will be correct in our case
-PARAMS_RE = r'((\s+(?P<middle>(\S|(\s(?!:)))+))?(\s+:(?P<params>[^\r\n]*))?)'
-COMMAND_RE = r'(?P<command>\S+|\d\d\d)'
+PARAMS_RE = r'((\s+(?P<middle>[^:](\S|(\s(?!:)))+))?(\s+:(?P<params>[^\r\n]*))?)'
+COMMAND_RE = r'(?P<command>\S+)'
 PREFIX_RE = r'((?P<servername>[^.!@\s]+(\.[^.!@\s]+)+)|(?P<nick>[^.\s!]+)(!(?P<ident>[^@\s]+))?(@(?P<host>[^:\s]+))?)'
 MESSAGE_RE = r'^(:(?P<prefix>' + PREFIX_RE + r')\s+)?' + COMMAND_RE + PARAMS_RE + CRLF_RE
 
@@ -91,7 +91,7 @@ class IRCbot(object):
             try:
                 match = self.message_re.match(line)
                 if IRC_DEBUG: 
-                    sys.stderr.write(":BEFORE HANDLING:" + line + "\n")
+                    sys.stderr.write(":BEFORE HANDLING: " + line + "\n")
                     sys.stderr.write(str(match.groups()) + "\n")
                 
                 if not match.group('prefix'):
@@ -132,7 +132,7 @@ class IRCbot(object):
                 raise
             except Exception as e:
                 sys.stderr.write(":ERROR: " + str(e) + "\n")
-                sys.stderr.write(":LINE : " + line + "\n")
+                sys.stderr.write(":LINE : \"" + line + "\"\n")
         
     def connect(self):
         self.s.connect((self.host, self.port)) #Connect to server 
@@ -147,15 +147,13 @@ class IRCbot(object):
             lines = raw.split('\r\n')
             if self.rest_line != "":
                 lines[0] = self.rest_line + lines[0]
-                self.rest_line = lines.pop()
-
-            if DEBUG:
-                sys.stderr.write(":RESTLINE: " + self.rest_line + "\n")
+            self.rest_line = lines.pop()
                 
             for line in lines:
                 if DEBUG: 
-                    sys.stderr.write(line + "\n") #server message is output.
+                    sys.stderr.write(":LINE (connect): " + line + "\n") #server message is output.
                 match = self.message_re.match(line)
+                if not match: sys.exit(1)
                 if match.group('command') == '376':
                     if VERBOSE: print(":CONNECT: MOTD FOUND!, CONNECTED")
                     exit = True
@@ -181,10 +179,10 @@ class IRCbot(object):
                 self.rest_line = lines.pop()
                 
                 for l in lines:
-                    if DEBUG: print "IN FOR: ", l
+                    if DEBUG: sys.stderr.write(":LINE (join): " + l + "\n")
                     match = self.message_re.match(l)
                     if match.group('command') == '353':
-                        if DEBUG: print match.groups()
+                        if DEBUG: sys.stderr.write(match.groups() + "\n")
                         self.manage_users_during_join(name, match.group('params'))
 
                     elif match.group('command') == '366': 
