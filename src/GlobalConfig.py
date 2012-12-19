@@ -5,7 +5,7 @@ VERBOSE = True
 DEBUG = True
 IRC_DEBUG = False
 VERSION = 0.2
-NAME = "StupidBot"
+NAME = "StupidBot2"
 COMMAND_CHAR = "!"
 HELP_CHAR = '?'
 
@@ -16,7 +16,7 @@ GID = 1000
 HOST = "irc.ifi.uio.no"
 PORT = 6667
 NICK = NAME
-IDENT = "StupidBot"
+IDENT = "StupidBot2"
 REAL_NAME = NAME
 OWNER = "Owner"
 STARTUP_CHANNELS = ['#iskbot']

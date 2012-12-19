@@ -45,30 +45,33 @@ class LoggerBot(AdminBot):
         super(LoggerBot, self).management_cmd(command, args, **kwargs)
         
     def cmd(self, command, args, channel, **kwargs):
-        self.channel_file.write("{d} {n}!{i}@{h} {c} {cmd_char}{cmd} {a}\n".format(d = strftime(self.dateformat),
-                                                                            n = kwargs['from_nick'],
-                                                                            i = kwargs['from_ident'],
-                                                                            h = kwargs['from_host_mask'],
-                                                                            c = channel,
-                                                                            cmd = command, a = args,
-                                                                            cmd_char = COMMAND_CHAR))
+        if LOG_CHANNELS:
+            self.channel_file.write("{d} {n}!{i}@{h} {c} {cmd_char}{cmd} {a}\n".format(d = strftime(self.dateformat),
+                                                                                       n = kwargs['from_nick'],
+                                                                                       i = kwargs['from_ident'],
+                                                                                       h = kwargs['from_host_mask'],
+                                                                                       c = channel,
+                                                                                       cmd = command, a = args,
+                                                                                       cmd_char = COMMAND_CHAR))
         super(LoggerBot, self).cmd(command, args, channel, **kwargs)
 
     def listen(self, command, msg, channel, **kwargs):
-        self.channel_file.write("{d} {n}!{i}@{h} {c} {m}\n".format(d = strftime(self.dateformat),
-                                                            c = channel,
-                                                            n = kwargs['from_nick'],
-                                                            i = kwargs['from_ident'],
-                                                            h = kwargs['from_host_mask'],
-                                                            m = msg))
+        if LOG_CHANNELS:
+            self.channel_file.write("{d} {n}!{i}@{h} {c} {m}\n".format(d = strftime(self.dateformat),
+                                                                       c = channel,
+                                                                       n = kwargs['from_nick'],
+                                                                       i = kwargs['from_ident'],
+                                                                       h = kwargs['from_host_mask'],
+                                                                       m = msg))
         super(LoggerBot, self).listen(command, msg, channel, **kwargs)
 
     def help(self, command, args, channel, **kwargs):
-        self.channel_file.write("{d} {n}!{i}@{h} {c} {hc}{cmd} {a}\n".format(d = strftime(self.dateformat),
-                                                                      c = channel,
-                                                                      n = kwargs['from_nick'],
-                                                                      i = kwargs['from_ident'],
-                                                                      h = kwargs['from_host_mask'],
-                                                                      hc = HELP_CHAR,
-                                                                      cmd = command, a = args))
+        if LOG_CHANNELS:
+            self.channel_file.write("{d} {n}!{i}@{h} {c} {hc}{cmd} {a}\n".format(d = strftime(self.dateformat),
+                                                                                 c = channel,
+                                                                                 n = kwargs['from_nick'],
+                                                                                 i = kwargs['from_ident'],
+                                                                                 h = kwargs['from_host_mask'],
+                                                                                 hc = HELP_CHAR,
+                                                                                 cmd = command, a = args))
         super(LoggerBot, self).help(command, args, channel, **kwargs)
