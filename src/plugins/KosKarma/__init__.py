@@ -5,7 +5,7 @@ from KosBackend import KosBackend
 class Plugin(object): 
 
     def __init__(self):
-        self.be = KosBackend("test", 60, True)
+        self.be = KosBackend("test", 90, True)
         self.reg = re.compile(r"(\w+\+\+|\w+--|\+\+\w+|--\w+)", re.UNICODE)
 
     def help(self, command, args, channel, **kwargs):
@@ -36,7 +36,7 @@ class Plugin(object):
 
         if command == "karma":
             if args:
-                ret = "{e} has karma: {k}".format(e = args, k = int(self.be.getKarma(args)))
+                ret = "{e} has karma: {k:.3f}".format(e = args, k = self.be.getKarma(args))
                 return [(1, channel, ret)]
             else:
                 return self.help(command, args, channel, **kwargs)
