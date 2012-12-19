@@ -32,6 +32,11 @@ class Plugin(object):
         self.dateformat = "[%F %R]"
         self.prefix = "data/log/"
         self.ext = ".log"
+        self.log = None
+
+    def stop(self):
+        if self.log:
+            self.log.close()
         
     def listen(self, msg, channel, **kwargs):
         self.logchan(channel, self.stdformat, msg, **kwargs)
@@ -49,28 +54,25 @@ class Plugin(object):
         if not path.exists(self.prefix):
             makedirs(self.prefix)
         
-        logfile = path.join(self.prefix, chan.strip("#") + self.ext)
-
+        logpath = path.join(self.prefix, chan.strip("#") + self.ext)
         try:
-            chanlog = open(logfile, "a", LOG_BUFFER_SIZE)
+            self.log = open(logpath, "a", LOG_BUFFER_SIZE)
         except IOError as e:
             print "Logger: {}".format(e)
-            return None
-        return chanlog
         
         
     def logchan(self, chan, lformat, msg, **kwargs):
-        chanlog = self.logopen(chan)
-        if chanlog:
+        self.logopen(chan)
+        if self.log:
             if lformat == self.stdformat:
-                chanlog.write(lformat.format(
+                self.log.write(lformat.format(
                                     d = strftime(self.dateformat),
                                     n = kwargs['from_nick'],
                                     i = kwargs['from_ident'],
                                     h = kwargs['from_host_mask'],
                                     m = msg))
             if lformat == self.cmdformat:
-                chanlog.write(lformat.format(
+                self.log.write(lformat.format(
                                     d = strftime(self.dateformat),
                                     n = kwargs['from_nick'],
                                     i = kwargs['from_ident'],
@@ -79,7 +81,7 @@ class Plugin(object):
                                     a = msg[1],
                                     cc = COMMAND_CHAR))
             if lformat == self.hlpformat:
-                chanlog.write(lformat.format(
+                self.log.write(lformat.format(
                                     d = strftime(self.dateformat),
                                     n = kwargs['from_nick'],
                                     i = kwargs['from_ident'],
@@ -87,8 +89,5 @@ class Plugin(object):
                                     cmd = msg[0],
                                     a = msg[1],
                                     hc = HELP_CHAR))
-            self.logclose(chanlog)
 
-    def logclose(self, log):
-        if log:
-            log.close()
+
