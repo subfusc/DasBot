@@ -110,6 +110,8 @@ class KosBackend(object):
 
         @type database_name: string
         @param database_name: Path to the database.
+
+        @rtype: None
         """
         if (database_name):
             self.sql_db = sqlite3.connect(database_name) if database_name else None
@@ -124,6 +126,8 @@ class KosBackend(object):
         """
         Clean up and Disconnect from the database. Call this before exiting to ensure
         that all changes are commited.
+
+        @rtype: None
         """
         if self.db_open:
             self.sql_db.close()
@@ -135,6 +139,8 @@ class KosBackend(object):
 
         @type entity: string
         @param entity: the entity that you want to give +1 to.
+
+        @rtype: None
         """
         self._addKarma(1, entity)
 
@@ -144,6 +150,8 @@ class KosBackend(object):
 
         @type entity: string
         @param entity: the entity that you want to give +1 to.
+
+        @rtype: None
         """
         self._addKarma(0, entity)
 
@@ -170,7 +178,10 @@ class KosBackend(object):
         @param entity: The entity you want to calculate current karma for
         @type t: integer
         @param t: the refference time. Now if none is given.
-
+        @type doNotDelete: boolean
+        @param doNotDelete: If you don't want stuff to be deleted when checking for a
+        special time, set this to true!
+        
         @rtype: number
         @return: the karma of an entity
         """
@@ -199,7 +210,7 @@ class KosBackend(object):
         @type n: integer
         @param n: The number of entities you want back
         @type t: integer
-        @type t: The date you want calculated (unixtime)
+        @param t: The date you want calculated (unixtime)
 
         @rtype: list
         @return: A list of the N entities with the best karma.
@@ -231,7 +242,7 @@ class KosBackend(object):
         @type n: integer
         @param n: The number of entities you want back
         @type t: integer
-        @type t: The date you want calculated (unixtime)
+        @param t: The date you want calculated (unixtime)
 
         @rtype: list
         @return: A list of the N entities with the worst karma.
