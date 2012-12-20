@@ -46,10 +46,9 @@ class Plugin(object):
     def help(self, command, args, channel, **kwargs):
         self.logchan(channel, self.hlpformat, [ command , args ], **kwargs)
     
-    
     def logopen(self, chan):
         if not chan.startswith("#"):
-            return None
+            return
         if not path.exists(self.prefix):
             makedirs(self.prefix)
         
@@ -61,7 +60,9 @@ class Plugin(object):
         
         
     def logchan(self, chan, lformat, msg, **kwargs):
-        self.logopen(chan)
+        if not self.log:
+            self.logopen(chan)
+
         if self.log:
             if lformat == self.stdformat:
                 self.log.write(lformat.format(
@@ -88,5 +89,3 @@ class Plugin(object):
                                     cmd = msg[0],
                                     a = msg[1],
                                     hc = HELP_CHAR))
-
-
