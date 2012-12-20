@@ -20,6 +20,8 @@ from math import cos, pi
 from time import time, sleep
 from sys import stderr
 
+DEBUG = False
+
 class DatabaseIsNotOpenError(Exception): pass
 
 class KosBackend(object):
@@ -52,7 +54,7 @@ class KosBackend(object):
 
 
     def __exe(self, string, values=None):
-        stderr.write((string + " " + str(values) if values else string + " --") + "\n")
+        if DEBUG: stderr.write((string + " " + str(values) if values else string + " --") + "\n")
         if values:
             return self.sql_db.execute(string, values)
         else:
@@ -63,8 +65,8 @@ class KosBackend(object):
 
     def _cosCalculate(self, x, t = None):
         if t == None: t = int(time())
-        stderr.write("X: {x} T: {t} COSCALC: {c}\n".format(x = x, t = t,
-                                                           c = cos((pi * (t - x)) / (2 * self.decay_time))))
+        # stderr.write("X: {x} T: {t} COSCALC: {c}\n".format(x = x, t = t,
+        # c = cos((pi * (t - x)) / (2 * self.decay_time))))
         return cos((pi * (t - x)) / (2 * self.decay_time)) 
         
     def _addKarma(self, positive, entity):
@@ -79,7 +81,7 @@ class KosBackend(object):
         if self.lowercase: entity.lower()
         r = self.__exe("SELECT * FROM {table} WHERE entity = ? ;".format(table = self.utable),
                        (entity.lower() if self.lowercase else entity, )).fetchone()
-        stderr.write(str(r) + "\n")
+        # stderr.write(str(r) + "\n")
         return r[0] if r else False
         
     def _conditionalCreateOverview(self):
@@ -157,7 +159,7 @@ class KosBackend(object):
         except Exception:
             return []
         
-    def getKarma(self, entity, t = None):
+    def getKarma(self, entity, t = None, doNotDelete=False):
         """
         Calculate the karma of an entity at time t. If time is not given, the function will assume "now".
 
@@ -172,16 +174,16 @@ class KosBackend(object):
         @rtype: number
         @return: the karma of an entity
         """
-        if t == None: t = int(time())
+        if t == None: t = time()
         if not self.db_open: raise DatabaseIsNotOpenError('The database is not opened')
         user = self._userExists(entity)
         if user: 
             self.__com()
-            self.__exe("DELETE FROM {table} WHERE date <= ?".format(table = ("user" + str(user))), 
-                       (int(time()) - self.decay_time, ))
+            if not doNotDelete: 
+                self.__exe("DELETE FROM {table} WHERE date <= ?".format(table = ("user" + str(user))), 
+                           (int(time()) - self.decay_time, ))
             karma = 0
             for row in self.__exe("SELECT * FROM {table}".format(table = "user" + str(user))):
-                print(row)
                 if row[0] == 1:
                     karma += self._cosCalculate(row[1], t = t)
                 else:
@@ -189,8 +191,74 @@ class KosBackend(object):
             return karma
         return 0
 
+    def getNBestList(self, n=5, t=None):
+        """
+        Calculate the top N entities with karma for a given time T. T is default
+        "now"
+
+        @type n: integer
+        @param n: The number of entities you want back
+        @type t: integer
+        @type t: The date you want calculated (unixtime)
+
+        @rtype: list
+        @return: A list of the N entities with the best karma.
+        """
+        rlist = []
+        if not t: t = time()
+        for entity in self.getAllEntities():
+            karma = self.getKarma(entity)
+            
+            if len(rlist) < n:
+                for large_entity, x in zip(rlist, range(0, len(rlist) + 1)):
+                    if large_entity[1] <= karma:
+                        rlist.insert(x, (entity, karma))
+                        break
+                else: rlist.append((entity, karma))
+            else:
+                for large_entity, x in zip(rlist, range(0, len(rlist) + 1)):
+                    if large_entity[1] <= karma:
+                        rlist.insert(x, (entity, karma))
+                        rlist.pop()
+                        break
+        return rlist
+                
+    def getNWorstList(self, n=5, t=None):
+        """
+        Calculate the bottom N entities with karma for a given time T. T is default
+        "now"
+
+        @type n: integer
+        @param n: The number of entities you want back
+        @type t: integer
+        @type t: The date you want calculated (unixtime)
+
+        @rtype: list
+        @return: A list of the N entities with the worst karma.
+        """
+        
+        rlist = []
+        if not t: t = time()
+        for entity in self.getAllEntities():
+            karma = self.getKarma(entity)
+            
+            if len(rlist) < n:
+                for large_entity, x in zip(rlist, range(0, len(rlist) + 1)):
+                    if large_entity[1] >= karma:
+                        rlist.insert(x, (entity, karma))
+                        break
+                else: rlist.append((entity, karma))
+            else:
+                for large_entity, x in zip(rlist, range(0, len(rlist) + 1)):
+                    if large_entity[1] >= karma:
+                        rlist.insert(x, (entity, karma))
+                        rlist.pop()
+                        break
+        return rlist
+    
+        
 if __name__ == '__main__':
-    db = KosBackend(':memory:', decay_time=0.1, lowercase=True)
+    db = KosBackend(':memory:', decay_time=0.01, lowercase=True)
     db.positiveKarma('Line')
     db.positiveKarma('Sindre')
     print("Line has: {k}".format(k = db.getKarma('Line')))
@@ -201,6 +269,16 @@ if __name__ == '__main__':
     print("Line has: {k}".format(k = db.getKarma('Line')))
     db.negativeKarma('Sindre')
     print("Sindre has: {k}".format(k = db.getKarma('Sindre')))
+    print("NBest: {l}".format(l = db.getNBestList()))
+    db.positiveKarma("Hermann")
+    db.positiveKarma("Hermann")
+    db.positiveKarma("Trond")
+    db.negativeKarma("Sindre")
+    print("NBest: {l}".format(l = db.getNBestList(n=3)))
+    print("NWorst: {l}".format(l = db.getNWorstList()))
+    sleep(60)
+    print("NBest: {l}".format(l = db.getNBestList(n=3)))
+    print("NWorst: {l}".format(l = db.getNWorstList()))
     db.disconnect()
     try:
         db.positiveKarma('Line')
