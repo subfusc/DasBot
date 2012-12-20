@@ -20,6 +20,7 @@ from GlobalConfig import *
 from time import strftime
 from os import makedirs
 from os import path
+from os import sep
 
 class Plugin(object):
 
@@ -29,10 +30,13 @@ class Plugin(object):
         self.hlpformat = "{d} {n}!{i}@{h} {hc}{cmd} {a}\n"
         self.cmdformat = "{d} {n}!{i}@{h} {cc}{cmd} {a}\n"
         self.dateformat = "[%F %R]"
-        self.prefix = "data/log/"
-        self.ext = ".log"
+        self.prefix = "data" + sep + "log"
+        self.suffix = ".log"
         self.log = None
 
+        if not path.isdir(self.prefix):
+            makedirs(self.prefix)
+        
     def stop(self):
         if self.log:
             self.log.close()
@@ -46,47 +50,42 @@ class Plugin(object):
     def help(self, command, args, channel, **kwargs):
         self.logchan(channel, self.hlpformat, [ command , args ], **kwargs)
     
-    
-    def logopen(self, chan):
-        if not chan.startswith("#"):
-            return None
-        if not path.exists(self.prefix):
-            makedirs(self.prefix)
-        
-        logpath = path.join(self.prefix, chan.strip("#") + self.ext)
-        try:
-            self.log = open(logpath, "a", LOG_BUFFER_SIZE)
-        except IOError as e:
-            print "Logger: {}".format(e)
-        
         
     def logchan(self, chan, lformat, msg, **kwargs):
-        self.logopen(chan)
-        if self.log:
-            if lformat == self.stdformat:
-                self.log.write(lformat.format(
+        if not chan.startswith("#"):
+            return
+
+        logfile = path.join(self.prefix, chan.strip("#") + self.suffix)
+
+        if not self.log or self.log.name != logfile:
+            try:
+                self.log = open(logfile, "a", LOG_BUFFER_SIZE)
+            except IOError as e:
+                print "Logger: {}".format(e)
+                return
+
+        if lformat == self.stdformat:
+            self.log.write(lformat.format(
                                     d = strftime(self.dateformat),
-                                    n = kwargs['from_nick'],
-                                    i = kwargs['from_ident'],
-                                    h = kwargs['from_host_mask'],
+                                    n = kwargs["from_nick"],
+                                    i = kwargs["from_ident"],
+                                    h = kwargs["from_host_mask"],
                                     m = msg))
-            if lformat == self.cmdformat:
-                self.log.write(lformat.format(
+        if lformat == self.cmdformat:
+            self.log.write(lformat.format(
                                     d = strftime(self.dateformat),
-                                    n = kwargs['from_nick'],
-                                    i = kwargs['from_ident'],
-                                    h = kwargs['from_host_mask'],
+                                    n = kwargs["from_nick"],
+                                    i = kwargs["from_ident"],
+                                    h = kwargs["from_host_mask"],
                                     cmd = msg[0],
                                     a = msg[1],
                                     cc = COMMAND_CHAR))
-            if lformat == self.hlpformat:
-                self.log.write(lformat.format(
+        if lformat == self.hlpformat:
+            self.log.write(lformat.format(
                                     d = strftime(self.dateformat),
-                                    n = kwargs['from_nick'],
-                                    i = kwargs['from_ident'],
-                                    h = kwargs['from_host_mask'],
+                                    n = kwargs["from_nick"],
+                                    i = kwargs["from_ident"],
+                                    h = kwargs["from_host_mask"],
                                     cmd = msg[0],
                                     a = msg[1],
                                     hc = HELP_CHAR))
-
-
