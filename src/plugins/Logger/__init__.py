@@ -50,7 +50,6 @@ class Plugin(object):
     def help(self, command, args, channel, **kwargs):
         self.logchan(channel, self.hlpformat, [ command , args ], **kwargs)
     
-        
     def logchan(self, chan, lformat, msg, **kwargs):
         if not chan.startswith("#"):
             return
@@ -64,6 +63,7 @@ class Plugin(object):
                 print "Logger: {}".format(e)
                 return
 
+        
         if lformat == self.stdformat:
             self.log.write(lformat.format(
                                     d = strftime(self.dateformat),
