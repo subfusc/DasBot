@@ -58,7 +58,7 @@ class Plugin(object):
             logfile = path.join(self.prefix, chan.strip("#") + self.suffix)
             try:
                 log = open(logfile, "a", conf.LOG_BUFFER_SIZE)
-                self.logs[chan] = log
+                self.logs[chan] = log # using dict to handle open fd's
             except IOError as e:
                 print "Logger: {}".format(e)
                 return
