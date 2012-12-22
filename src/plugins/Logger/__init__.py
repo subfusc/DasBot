@@ -32,14 +32,10 @@ class Plugin(object):
         self.dateformat = "[%F %R]"
         self.prefix = "data" + sep + "log"
         self.suffix = ".log"
-        self.log = None
+        self.logs = dict()
 
         if not path.isdir(self.prefix):
             makedirs(self.prefix)
-        
-    def stop(self):
-        if self.log:
-            self.log.close()
         
     def listen(self, msg, channel, **kwargs):
         self.logchan(channel, self.stdformat, msg, **kwargs)
@@ -49,30 +45,35 @@ class Plugin(object):
 
     def help(self, command, args, channel, **kwargs):
         self.logchan(channel, self.hlpformat, [ command , args ], **kwargs)
+
+    def stop(self):
+        for log in self.logs.values():
+            log.close()
     
     def logchan(self, chan, lformat, msg, **kwargs):
         if not chan.startswith("#"):
             return
 
-        logfile = path.join(self.prefix, chan.strip("#") + self.suffix)
-
-        if not self.log or self.log.name != logfile:
+        if chan not in self.logs:
+            logfile = path.join(self.prefix, chan.strip("#") + self.suffix)
             try:
-                self.log = open(logfile, "a", LOG_BUFFER_SIZE)
+                log = open(logfile, "a", LOG_BUFFER_SIZE)
+                self.logs[chan] = log
             except IOError as e:
                 print "Logger: {}".format(e)
                 return
 
-        
+        log = self.logs[chan]
+
         if lformat == self.stdformat:
-            self.log.write(lformat.format(
+            log.write(lformat.format(
                                     d = strftime(self.dateformat),
                                     n = kwargs["from_nick"],
                                     i = kwargs["from_ident"],
                                     h = kwargs["from_host_mask"],
                                     m = msg))
         if lformat == self.cmdformat:
-            self.log.write(lformat.format(
+            log.write(lformat.format(
                                     d = strftime(self.dateformat),
                                     n = kwargs["from_nick"],
                                     i = kwargs["from_ident"],
@@ -81,7 +82,7 @@ class Plugin(object):
                                     a = msg[1],
                                     cc = COMMAND_CHAR))
         if lformat == self.hlpformat:
-            self.log.write(lformat.format(
+            log.write(lformat.format(
                                     d = strftime(self.dateformat),
                                     n = kwargs["from_nick"],
                                     i = kwargs["from_ident"],
