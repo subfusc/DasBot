@@ -4,12 +4,15 @@ import re
 import time
 from TinyUrl import tinyurl
 
-title_re = r'<h1 id="title">\s*<a id="title" href=".*?">([^<]*)</a>\s*</h1>'
-artist_re = r'''<div\s*id="artist">\s*
-<div\s*class="[^"]*">[^<]*</div>\s*
-<p\s*class="meta-info">\s*<a\s*href="[^"]*">(.*?)</a>\s*
-</p>\s*
-</div>'''
+# title_re = r'<h1 id="title">\s*<a id="title" href=".*?">([^<]*)</a>\s*</h1>'
+# artist_re = r'''<div\s*id="artist">\s*
+# <div\s*class="[^"]*">[^<]*</div>\s*
+# <p\s*class="meta-info">\s*<a\s*href="[^"]*">(.*?)</a>\s*
+# </p>\s*
+# </div>'''
+
+title_re = r'<h1\s+itemprop="name">([^<]+)</h1>'
+artist_re = r'<h2>\s+by\s+<a href="[^"]+">([^<]+)</a></h2>'   
 
 spotify_adr = r'\s*(http://open.spotify.com/[^/]*\S*)\s*'
 spotify_thing = r'\s*spotify:([^:]+):(\S*)\s*'
@@ -42,7 +45,7 @@ class SpotifyExtract:
 
     def __init__(self):
         self.tre = re.compile(title_re)
-        self.are = re.compile(artist_re, re.X)
+        self.are = re.compile(artist_re)
 
     def rewrite_and_parse(self, t, desc):
         return self.parse_spotify("http://open.spotify.com/%s/%s" % (t, desc))
