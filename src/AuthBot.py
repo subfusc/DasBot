@@ -8,6 +8,7 @@ import re
 from AuthSystem.AuthSys import AuthSys
 from GlobalConfig import *
 from sys import stdout
+from sys import stderr
 
 class AuthBot(LoggerBot.LoggerBot):
     """
@@ -231,22 +232,24 @@ class AuthBot(LoggerBot.LoggerBot):
         
     def management_cmd(self, command, args, **kwargs):
         super(AuthBot, self).management_cmd(command, args, **kwargs)
-        if DEBUG: print(":AUTH BOT: MANAGE COMMAND")
-        account_name = self.nick_user_relation[kwargs['from_nick']]
-        if command == "QUIT":
-            self.authsys.logout("{i}@{h}".format(i = kwargs['from_ident'], h = kwargs['from_host_mask']))
-            if kwargs['from_nick'] in self.nick_user_relation: del(self.nick_user_relation[kwargs['from_nick']])
-            if account_name in self.user_nick_relation: del(self.user_nick_relation[account_name])
-        if command == "PART" and not self.visible_for_bot(kwargs['from_nick']):
-            self.authsys.logout("{i}@{h}".format(i = kwargs['from_ident'], h = kwargs['from_host_mask']))
-            if kwargs['from_nick'] in self.nick_user_relation: del(self.nick_user_relation[kwargs['from_nick']])
-            if account_name in self.user_nick_relation: del(self.user_nick_relation[account_name])
-        if command == "NICK":
-            if kwargs['from_nick'] in self.nick_user_relation:
-                self.nick_user_relation[kwargs['msg']] = self.nick_user_relation[kwargs['from_nick']]
-                del(self.nick_user_relation[kwargs['from_nick']])
-            if account_name in self.user_nick_relation:
-                del(self.user_nick_relation[account_name])
-                self.user_nick_relation[account_name] = kwargs['msg']
+        if IRC_DEBUG: stderr.write(":AUTH BOT: MANAGE COMMAND\n")
+        if AUTHENTICATION and kwargs['from_nick'] in self.nick_user_relation:
+            account_name = self.nick_user_relation[kwargs['from_nick']]
+            if command == "QUIT":
+                self.authsys.logout("{i}@{h}".format(i = kwargs['from_ident'], h = kwargs['from_host_mask']))
+                if kwargs['from_nick'] in self.nick_user_relation: del(self.nick_user_relation[kwargs['from_nick']])
+                if account_name in self.user_nick_relation: del(self.user_nick_relation[account_name])
+            if command == "PART" and not self.visible_for_bot(kwargs['from_nick']):
+                self.authsys.logout("{i}@{h}".format(i = kwargs['from_ident'], h = kwargs['from_host_mask']))
+                if kwargs['from_nick'] in self.nick_user_relation: del(self.nick_user_relation[kwargs['from_nick']])
+                if account_name in self.user_nick_relation: del(self.user_nick_relation[account_name])
+            if command == "NICK":
+                if kwargs['from_nick'] in self.nick_user_relation:
+                    self.nick_user_relation[kwargs['msg']] = self.nick_user_relation[kwargs['from_nick']]
+                    del(self.nick_user_relation[kwargs['from_nick']])
+                if account_name in self.user_nick_relation:
+                    del(self.user_nick_relation[account_name])
+                    self.user_nick_relation[account_name] = kwargs['msg']
+        if IRC_DEBUG: stderr.write(":AUTH BOT: MANAGE COMMAND DONE\n")
 
    

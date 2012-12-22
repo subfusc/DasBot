@@ -92,7 +92,7 @@ class IRCbot(object):
                 match = self.message_re.match(line)
                 if IRC_DEBUG: 
                     sys.stderr.write(":BEFORE HANDLING: " + line + "\n")
-                    sys.stderr.write(str(match.groups()) + "\n")
+                    sys.stderr.write(str(match.groupdict()) + "\n")
                 
                 if not match.group('prefix'):
                     self._server_command(match.group('command'), 

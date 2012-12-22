@@ -17,6 +17,7 @@
 from CronBot import CronBot
 from threading import Timer
 from GlobalConfig import *
+from sys import stderr
 
 class ChannelManagementBot(CronBot):
 
@@ -38,7 +39,7 @@ class ChannelManagementBot(CronBot):
             
     def management_cmd(self, command, args, **kwargs):
         super(ChannelManagementBot, self).management_cmd(command, args, **kwargs)
-        if DEBUG: print(":CHANNEL MANAGEMENT: MANAGEMENT_CMD")
+        if IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD : {d}\n".format(d=command))
         if command == "JOIN":
             self.channel[kwargs["msg"]].append(kwargs["from_nick"])
             self.nicks.append(kwargs["from_nick"])
@@ -57,6 +58,7 @@ class ChannelManagementBot(CronBot):
                 self.__rm_user_from_nicks(args[1])
         elif command == "NICK":
             self.__change_nick(kwargs["from_nick"], kwargs["msg"])
+        if IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD_DONE\n".format())
                 
     def manage_users_during_join(self, name, args):
         if not name in self.channel: 
