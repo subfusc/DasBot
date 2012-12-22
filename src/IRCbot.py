@@ -131,7 +131,7 @@ class IRCbot(object):
             except KeyboardInterrupt:
                 raise
             except Exception as e:
-                sys.stderr.write(":ERROR: " + str(e) + "\n")
+                sys.stderr.write(":ERROR: " + repr(e) + "\n")
                 sys.stderr.write(":LINE : \"" + line + "\"\n")
         
     def connect(self):
