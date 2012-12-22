@@ -250,4 +250,4 @@ class AuthBot(LoggerBot.LoggerBot):
                 if account_name in self.user_nick_relation:
                     del(self.user_nick_relation[account_name])
                     self.user_nick_relation[account_name] = kwargs['msg']
-            if conf.IRC_DEBUG: stderr.write(":AUTH BOT: MANAGE COMMAND DONE\n")
+        if conf.IRC_DEBUG: stderr.write(":AUTH BOT: MANAGE COMMAND DONE\n")

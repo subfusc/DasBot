@@ -18,6 +18,10 @@
 import GlobalConfig as conf
 from CronBot import CronBot
 from threading import Timer
+<<<<<<< HEAD
+=======
+from GlobalConfig import *
+>>>>>>> Fixing some bugs related to management cmd and AuthBot
 from sys import stderr
 
 class ChannelManagementBot(CronBot):
