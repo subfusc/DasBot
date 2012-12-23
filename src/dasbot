@@ -1,0 +1,119 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2012 Herman Torjussen
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://gnu.org/licenses/>.
+#
+#
+# NOTE: this is a draft
+#
+
+import re
+import os
+import sys
+import getopt
+import IRCFonts
+import GlobalConfig as conf
+from AuthBot import AuthBot as Bot
+
+def usage():
+    return "usage: {} OPTIONS".format(sys.argv[0])
+
+def die(msg):
+    print >> sys.stderr, str(msg)
+    sys.exit(1)
+
+if __name__ == '__main__':
+
+    longopts = ["--verbose", "--debug", "--help", "--chan=", "--port", "--serv", "--nick", "--plugin=", "--auth", "--log"]
+    shortopts = ["-v", "-d" "-h", "-c", "-p", "-s", "-n", "-u", "-a", "-l"]
+    argdelim = ","
+    validhost = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+
+    if sys.argv[1:]:
+        try:
+            options, args = getopt.getopt(sys.argv[1:], ":vdhc:p:s:n:u:al:", [o.strip("--") for o in longopts])
+        except getopt.GetoptError as err:
+            print(str(err))
+            die(usage())
+        
+        for opt, arg in options:
+            if opt == "-v":
+                conf.VERBOSE = True 
+            elif opt == "-d":
+                conf. DEBUG = True
+            elif opt in ("-h", "--help"):
+                print(usage())
+                sys.exit(0)
+            elif opt in ("-c" , "--chan"):
+                if arg == "": #or arg in longopts or arg in shortopts:
+                    die("option {} takes at least one argument".format(opt))
+                chans = list()
+                for chan in arg.split(argdelim):
+                    if chan != "":
+                        if not chan.startswith("#"):
+                            chan = "#" + chan
+                        chans.append(chan)
+                conf.STARTUP_CHANNELS = chans
+                print("chan: ", conf.STARTUP_CHANNELS)
+            elif opt in ("-p", "--port"):
+                if not arg.isdigit():
+                    die("bad port number value")
+                arg = int(arg)
+                if not arg in range(6660,6670):
+                    die("port number should be in range 6660-6670")
+                print("port: ", arg)
+                conf.PORT = int(arg)
+            elif opt in ("-s", "--serv"):
+                if arg == "":
+                    die("--serv needs one argument")
+                if not re.match(validhost, arg):
+                    die("malformed host address")
+                conf.HOST = arg 
+            elif opt in ("-n", "--nick"):
+                if arg == "":
+                    die("--nick need at least one argument")
+                # do some malformed-string-checking
+                conf.NICK = arg
+            elif opt in ("-u", "--plugin"):
+                if arg == "":
+                    die("--plugin need at least one argument")
+                plugs = list()
+                for plug in arg.split(argdelim):
+                    if plug != "":
+                        plugs.append(plug.title())
+                print("plugins: ", plugs)
+                conf.LOAD_PLUGINS = plugs
+            elif opt in ("-a", "--auth"):
+                conf.AUTHENTICATION = True
+            elif opt in ("-l", "--log"):
+                if arg == "":
+                    die("--log need at least one argument")
+                print("logfile: ", arg)
+                conf.LOG_FILE = arg
+            else:
+                assert False, "unhandled option"
+                die(usage())
+
+    if conf.CHANGE_RUNTIME_USER:
+        os.setgid(conf.GID)
+        os.setuid(conf.UID)
+    
+    bot = Bot()
+    bot.connect()
+    for channel in conf.STARTUP_CHANNELS:
+        bot.join(channel)
+    bot.start()
+    bot.stop()
