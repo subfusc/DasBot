@@ -73,7 +73,7 @@ class PluginBot(IRCbot):
             self.__functions[6].append([])
             return True
         except Exception as e:
-            stderr.write(str(e) + "\n")
+            stderr.write(repr(e) + "\n")
             return False
 
     def __system_unload(self, name):
@@ -104,7 +104,7 @@ class PluginBot(IRCbot):
             del(self.__functions[6][index])
             return True
         except Exception as e:
-            stderr.write(str(e) + "\n")
+            stderr.write(repr(e) + "\n")
             return False
 
     def __blacklist_plugin(self, plugin, channel):
@@ -113,7 +113,7 @@ class PluginBot(IRCbot):
             self.__functions[6][index].append(channel)
             return True
         except Exception as e:
-            stderr.write(str(e) + "\n")
+            stderr.write(repr(e) + "\n")
             return False
 
     def __whitelist_plugin(self, plugin, channel):
@@ -123,7 +123,7 @@ class PluginBot(IRCbot):
             del(self.__functions[6][index][chan_index])
             return True
         except Exception as e:
-            stderr.write(str(e) + "\n")
+            stderr.write(repr(e) + "\n")
             return False
     def __get_blacklisted(self, channel):
         rarr = []
@@ -209,7 +209,7 @@ class PluginBot(IRCbot):
                             not_loaded.append(plugin)
                     self.notify(kwargs['from_nick'], 'Plugins not in use: ' + ", ".join(not_loaded) + '.')
                 except Exception as e:
-                    stderr.write(str(e) + "\n")
+                    stderr.write(repr(e) + "\n")
                     self.notify(kwargs['from_nick'], 'Error: plugin directory not found.')
 
             if command == 'unload' and args == None:
