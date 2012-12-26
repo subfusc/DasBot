@@ -15,10 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://gnu.org/licenses/>.
-#
-#
-# NOTE: this is a draft
-#
 
 import re
 import os
@@ -28,38 +24,71 @@ import IRCFonts
 import GlobalConfig as conf
 from AuthBot import AuthBot as Bot
 
-def usage():
-    return "usage: {} OPTIONS".format(sys.argv[0])
-
 def die(msg):
-    print >> sys.stderr, str(msg)
+    sys.stderr.write(str(msg) + "\n")
     sys.exit(1)
+
+def ckarg(opt, arg):
+    if arg == "" or arg in longopts or arg in shortopts:
+        die("error: option {} needs at least one argument".format(opt))
+
+def using(opt, arg):
+    print "using option: {} with args {}".format(opt, arg)
+
+def usage():
+    return (
+    "usage: {prog} OPTION\n"
+    "   -v, --verbose           display verbose messages\n"
+    "   -d, --debug             display debugging messages\n"
+    "   -h, --help              show this help message\n"
+    "   -a, --auth              use authentication\n"
+    "   -c, --chan <channels>   connect to startup channels\n"
+    "   -p, --port <port>       use host port number\n"
+    "   -s, --serv <host>       use host server\n"
+    "   -n, --nick <nick>       use channel nick\n"
+    "   -u, --plugin <plug>     load plugins (not implemented)\n"
+    "   -l, --log <file>        log to specified file\n"
+
+    "examples:\n"
+    "   {prog} --verbose --auth --chan iskbot,fubot --nick r0b0tNicK\n"
+    "   {prog} -vac iskbot,fubot -n r0b0tNicK").format(prog = sys.argv[0])
+
 
 if __name__ == '__main__':
 
-    longopts = ["--verbose", "--debug", "--help", "--chan=", "--port", "--serv", "--nick", "--plugin=", "--auth", "--log"]
-    shortopts = ["-v", "-d" "-h", "-c", "-p", "-s", "-n", "-u", "-a", "-l"]
-    argdelim = ","
-    validhost = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
-
     if sys.argv[1:]:
+
+        validhost = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+        validnick = r"^[a-zA-Z_\-\[\]\\^{}|`][a-zA-Z0-9_\-\[\]\\^{}|`]*$"
+
+        longopts = ["--verbose", "--debug", "--help", "--chan=", "--port=", "--serv=", "--nick=", "--plugin=", "--auth", "--log=", "--cron"]
+        shortopts = ["-v", "-d" "-h", "-c", "-p", "-s", "-n", "-u", "-a", "-l", "-o"]
+        optstring = ":vdhaoc:p:s:n:u:l:"
+        argdelim = ","
+
         try:
-            options, args = getopt.getopt(sys.argv[1:], ":vdhc:p:s:n:u:al:", [o.strip("--") for o in longopts])
+            options, args = getopt.getopt(sys.argv[1:], optstring, [o.strip("--") for o in longopts])
         except getopt.GetoptError as err:
             print(str(err))
-            die(usage())
+            die("see {} --help for usage".format(sys.argv[0]))
         
         for opt, arg in options:
-            if opt == "-v":
-                conf.VERBOSE = True 
-            elif opt == "-d":
-                conf. DEBUG = True
+            if opt in ("-v", "--verbose"):
+                #using(opt, arg)
+                conf.VERBOSE = True
+            elif opt in ("-d", "--debug"):
+                #using(opt, arg)
+                conf.DEBUG = True
             elif opt in ("-h", "--help"):
+                #using(opt, arg)
                 print(usage())
                 sys.exit(0)
+            elif opt in ("-a", "--auth"):
+                #using(opt, arg)
+                conf.AUTHENTICATION = True
             elif opt in ("-c" , "--chan"):
-                if arg == "": #or arg in longopts or arg in shortopts:
-                    die("option {} takes at least one argument".format(opt))
+                #using(opt, arg)
+                ckarg(opt, arg)
                 chans = list()
                 for chan in arg.split(argdelim):
                     if chan != "":
@@ -67,45 +96,45 @@ if __name__ == '__main__':
                             chan = "#" + chan
                         chans.append(chan)
                 conf.STARTUP_CHANNELS = chans
-                print("chan: ", conf.STARTUP_CHANNELS)
             elif opt in ("-p", "--port"):
+                #using(opt, arg)
+                ckarg(opt, arg)
                 if not arg.isdigit():
                     die("bad port number value")
                 arg = int(arg)
                 if not arg in range(6660,6670):
                     die("port number should be in range 6660-6670")
-                print("port: ", arg)
                 conf.PORT = int(arg)
             elif opt in ("-s", "--serv"):
-                if arg == "":
-                    die("--serv needs one argument")
+                #using(opt, arg)
+                ckarg(opt, arg)
                 if not re.match(validhost, arg):
                     die("malformed host address")
                 conf.HOST = arg 
             elif opt in ("-n", "--nick"):
-                if arg == "":
-                    die("--nick need at least one argument")
-                # do some malformed-string-checking
+                #using(opt, arg)
+                ckarg(opt, arg)
+                if not re.match(validnick, arg):
+                    die("malformed irc nick")
                 conf.NICK = arg
             elif opt in ("-u", "--plugin"):
-                if arg == "":
-                    die("--plugin need at least one argument")
+                #using(opt, arg)
+                ckarg(opt, arg)
                 plugs = list()
                 for plug in arg.split(argdelim):
                     if plug != "":
                         plugs.append(plug.title())
-                print("plugins: ", plugs)
                 conf.LOAD_PLUGINS = plugs
-            elif opt in ("-a", "--auth"):
-                conf.AUTHENTICATION = True
             elif opt in ("-l", "--log"):
-                if arg == "":
-                    die("--log need at least one argument")
-                print("logfile: ", arg)
+                #using(opt, arg)
+                ckarg(opt, arg)
                 conf.LOG_FILE = arg
+            elif opt in ("-o", "--cron"):
+                #using(opt, arg)
+                conf.START_CRON_BOT = True
             else:
                 assert False, "unhandled option"
-                die(usage())
+                die("see {} --help for usage".format(sys.argv[0]))
 
     if conf.CHANGE_RUNTIME_USER:
         os.setgid(conf.GID)
