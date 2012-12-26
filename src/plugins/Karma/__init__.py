@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from Karma import Karma
-from GlobalConfig import *
+import GlobalConfig as conf
 
 class Plugin(object):
 
@@ -18,7 +18,7 @@ class Plugin(object):
                     (1, kwargs['from_nick'], "in the bots system to give/receive karma. See '?register'")]
         
     def cmd(self, command, args, channel, **kwargs):
-        if DEBUG: print("COMMAND KarmaBot")
+        if conf.DEBUG: print("COMMAND KarmaBot")
         if kwargs['auth_nick'] != None:
             if command == '+1':
                 to = args.strip()

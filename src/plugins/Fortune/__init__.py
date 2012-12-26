@@ -16,7 +16,6 @@
 # along with this program. If not, see <http://gnu.org/licenses/>.
 
 
-from GlobalConfig import *
 from random import randint
 
 MAXLINEWIDTH = 79
