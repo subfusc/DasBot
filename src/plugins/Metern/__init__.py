@@ -1,12 +1,12 @@
 # -*- coding:utf-8 -*-
 import os
 import re
-from GlobalConfig import *
+import GlobalConfig as conf
 
 class Plugin(object):
 
     def cmd(self, command, args, channel, **kwargs):
-        if DEBUG: print "COMMAND Meteren!"
+        if conf.DEBUG: print "COMMAND Meteren!"
         if command == 'metern':
             return [(0, channel, kwargs['from_nick'], self.metern())]
 

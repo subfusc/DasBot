@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://gnu.org/licenses/>.
 
 
-from GlobalConfig import *
+import GlobalConfig as conf
 from time import strftime
 from os import makedirs
 from os import path
@@ -25,7 +25,7 @@ from os import sep
 class Plugin(object):
 
     def __init__(self):
-        self.botname = "{n}@{h}".format(n = NAME, h = HOST)
+        self.botname = "{n}@{h}".format(n = conf.NAME, h = conf.HOST)
         self.stdformat = "{d} {n}!{i}@{h} {m}\n"
         self.hlpformat = "{d} {n}!{i}@{h} {hc}{cmd} {a}\n"
         self.cmdformat = "{d} {n}!{i}@{h} {cc}{cmd} {a}\n"
@@ -57,7 +57,7 @@ class Plugin(object):
         if chan not in self.logs:
             logfile = path.join(self.prefix, chan.strip("#") + self.suffix)
             try:
-                log = open(logfile, "a", LOG_BUFFER_SIZE)
+                log = open(logfile, "a", conf.LOG_BUFFER_SIZE)
                 self.logs[chan] = log
             except IOError as e:
                 print "Logger: {}".format(e)
@@ -80,7 +80,7 @@ class Plugin(object):
                                     h = kwargs["from_host_mask"],
                                     cmd = msg[0],
                                     a = msg[1],
-                                    cc = COMMAND_CHAR))
+                                    cc = conf.COMMAND_CHAR))
         if lformat == self.hlpformat:
             log.write(lformat.format(
                                     d = strftime(self.dateformat),
@@ -89,4 +89,4 @@ class Plugin(object):
                                     h = kwargs["from_host_mask"],
                                     cmd = msg[0],
                                     a = msg[1],
-                                    hc = HELP_CHAR))
+                                    hc = conf.HELP_CHAR))
