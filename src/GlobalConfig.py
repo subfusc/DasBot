@@ -3,10 +3,10 @@
 
 # General Config Options
 VERBOSE = False
-DEBUG = True
+DEBUG = False
 IRC_DEBUG = False
 VERSION = 0.2
-NAME = "trondth__"
+NAME = "dasbot"
 COMMAND_CHAR = "!"
 HELP_CHAR = '?'
 
@@ -21,7 +21,7 @@ NICK = "computer"
 IDENT = "trondth"
 REAL_NAME = NAME
 OWNER = "trondth (pisk.ifi.uio.no)"
-STARTUP_CHANNELS = ['#iskbot,#isk,#bordtennis,#civ,#proßez']
+STARTUP_CHANNELS = ["#iskbot"]
 
 # ChannelManagerBot Config
 # Not in use ATM
@@ -34,13 +34,13 @@ LOG_CHANNELS = True
 LOG_BUFFER_SIZE = 1
 
 # Plugin Bot config
-LOAD_PLUGINS = ["Kafe","Synser","Dict","Metern","Logger","UrlTitle","Wiki","Spotify","Trafikanten","WhatsUio","KosKarma"]
+LOAD_PLUGINS = ["Useless"]
 
 # CRON JOB BOT config
 START_CRON_BOT = False
 
 # Authentication System Config
-AUTHENTICATION = True
+AUTHENTICATION = False
 RECOVER_USERS = True
 DATABASE_NAME = 'data/user_database-ny.sql'
 HASH_ROUNDS = 200
