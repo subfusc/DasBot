@@ -25,26 +25,28 @@ class Plugin(object):
 
     def help(self, command, args, channel, **kwargs):
         if command == "+1":
-            return [(1, kwargs["from_nick"], "!+1 [entity] gives karma to [entity]")]
+            return [(1, kwargs["from_nick"], "!+1 [thing] gives karma to [thing]")]
         if command == "-1":
-            return [(1, kwargs["from_nick"], "!-1 [entity] takes karma from [entity]")]
+            return [(1, kwargs["from_nick"], "!-1 [thing] takes karma from [thing]")]
         if command == "karma":
-            return [(1, kwargs["from_nick"], "!karma [entity] gives karma for [entity]")]
+            return [(1, kwargs["from_nick"], "!karma [thing] gives karma for [thing]")]
         if command == "lskarma":
-            return [(1, kwargs["from_nick"], "!lskarma lists all karma entities")]
+            return [(1, kwargs["from_nick"], "!lskarma lists all karma things")]
+        if command == "hikarma":
+            return [(1, kwargs["from_nick"], "!hikarma [n] lists n best things")]
+        if command == "lokarma":
+            return [(1, kwargs["from_nick"], "!lokarma [n] lists n worst things")]
     
     def cmd(self, command, args, channel, **kwargs):
         if command == "+1":
             if args:
                 self.backend(channel).positiveKarma(args)
-                return [(1, channel, "gave 1 karma to " + args)]
             else:
                 return self.help(command, args, channel,**kwargs)
 
         if command == "-1":
             if args:
                 self.backend(channel).negativeKarma(args)
-                return [(1, channel, "took 1 karma from " + args)]
             else:
                 return self.help(command, args, channel,**kwargs)
 
@@ -57,9 +59,27 @@ class Plugin(object):
 
         if command == "lskarma":
             karmalist = string.join(self.backend(channel).getAllEntities(), ", ")
-            ret = "things that have karma: {}".format(karmalist)
-            return [(1, channel, ret)]
+            return [(1, channel, "karma things: {}".format(karmalist))]
 
+        if command == "hikarma":
+            if args:
+                if not args.isdigit():
+                    return self.help(command, args, channel, **kwargs)
+                best = self.backend(channel).getNBestList(int(args))
+            else:
+                best = self.backend(channel).getNBestList()
+            best = string.join(["{}: {:.3f}".format(e, k) for e,k in best])
+            return [(1, channel, "good karma things in {} - {}".format(channel, best))]
+                
+        if command == "lokarma":
+            if args:
+                if not args.isdigit():
+                    return self.help(command, args, channel, **kwargs)
+                worst = self.backend(channel).getNWorstList(int(args))
+            else:
+                worst = self.backend(channel).getNWorstList()
+            worst = string.join(["{}: {:.3f}".format(e, k) for e,k in worst])
+            return [(1, channel, "bad karma things in {} - {}".format(channel, worst))]
 
     def listen(self, msg, channel, **kwargs):
         for karmatoken in self.reg.findall(msg):
