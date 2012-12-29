@@ -40,7 +40,8 @@ class Plugin(object):
     def cmd(self, command, args, channel, **kwargs):
         if command == "+1":
             if args:
-                self.backend(channel).positiveKarma(args)
+                if args != kwargs['from_nick']:
+                    self.backend(channel).positiveKarma(args)
             else:
                 return self.help(command, args, channel,**kwargs)
 
@@ -84,7 +85,8 @@ class Plugin(object):
     def listen(self, msg, channel, **kwargs):
         for karmatoken in self.reg.findall(msg):
             if karmatoken.startswith("++") or karmatoken.endswith("++"):
-                self.backend(channel).positiveKarma(karmatoken.strip("++"))
+                if karmatoken.strip("++") != kwargs['from_nick']:
+                    self.backend(channel).positiveKarma(karmatoken.strip("++"))
                 
             if karmatoken.startswith("--") or karmatoken.endswith("--"):
                 self.backend(channel).negativeKarma(karmatoken.strip("--"))
