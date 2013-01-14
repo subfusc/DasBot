@@ -1,5 +1,6 @@
 import re
 import string
+from kitchen.text.converters import to_bytes, to_unicode
 from os import sep
 from os import path
 from os import makedirs
@@ -7,11 +8,11 @@ from KosBackend import KosBackend
 
 class Plugin(object): 
 
-    def __init__(self):
+    def __init__(self, *args):
         self.backends = dict()
         self.prefix = "data" + sep + "karma"
         self.suffix = ".karma"
-        self.reg = re.compile(r"(\w+\+\+|\w+--|\+\+\w+|--\w+)")
+        self.reg = re.compile(r"(\S+\+\+|\S+--|\+\+\S+|--\S+)", re.U)
 
         if not path.isdir(self.prefix):
             makedirs(self.prefix)
@@ -41,25 +42,25 @@ class Plugin(object):
         if command == "+1":
             if args:
                 if args != kwargs['from_nick']:
-                    self.backend(channel).positiveKarma(args)
+                    self.backend(channel).positiveKarma(to_unicode(args))
             else:
                 return self.help(command, args, channel,**kwargs)
 
         if command == "-1":
             if args:
-                self.backend(channel).negativeKarma(args)
+                self.backend(channel).negativeKarma(to_unicode(args))
             else:
                 return self.help(command, args, channel,**kwargs)
 
         if command == "karma":
             if args:
-                ret = "{e} has karma: {k:.3f}".format(e = args, k = self.backend(channel).getKarma(args))
+                ret = "{e} has karma: {k:.3f}".format(e = args, k = self.backend(channel).getKarma(to_unicode(args)))
                 return [(1, channel, ret)]
             else:
                 return self.help(command, args, channel, **kwargs)
 
         if command == "lskarma":
-            karmalist = string.join(self.backend(channel).getAllEntities(), ", ")
+            karmalist = string.join([to_bytes(e) for e in self.backend(channel).getAllEntities()], ", ")
             return [(1, channel, "karma things: {}".format(karmalist))]
 
         if command == "hikarma":
@@ -69,7 +70,7 @@ class Plugin(object):
                 best = self.backend(channel).getNBestList(int(args))
             else:
                 best = self.backend(channel).getNBestList()
-            best = string.join(["{}: {:.3f}".format(e, k) for e,k in best])
+            best = string.join(["{}: {:.3f}".format(to_bytes(e), k) for e,k in best])
             return [(1, channel, "good karma things in {} - {}".format(channel, best))]
                 
         if command == "lokarma":
@@ -79,17 +80,17 @@ class Plugin(object):
                 worst = self.backend(channel).getNWorstList(int(args))
             else:
                 worst = self.backend(channel).getNWorstList()
-            worst = string.join(["{}: {:.3f}".format(e, k) for e,k in worst])
+            worst = string.join(["{}: {:.3f}".format(to_bytes(e), k) for e,k in worst])
             return [(1, channel, "bad karma things in {} - {}".format(channel, worst))]
 
     def listen(self, msg, channel, **kwargs):
         for karmatoken in self.reg.findall(msg):
             if karmatoken.startswith("++") or karmatoken.endswith("++"):
                 if karmatoken.strip("++") != kwargs['from_nick']:
-                    self.backend(channel).positiveKarma(karmatoken.strip("++"))
+                    self.backend(channel).positiveKarma(to_unicode(karmatoken.strip("++")))
                 
             if karmatoken.startswith("--") or karmatoken.endswith("--"):
-                self.backend(channel).negativeKarma(karmatoken.strip("--"))
+                self.backend(channel).negativeKarma(to_unicode(karmatoken.strip("--")))
 
     def stop(self):
         for be in self.backends.values():

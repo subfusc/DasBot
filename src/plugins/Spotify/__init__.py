@@ -26,9 +26,7 @@ class Plugin:
 
     def check_and_msg(self, channel, result):
         if result[0] != None and result[1] != None:
-            messages = [(0, channel, "Check out: %s - %s" % (result[1], result[0]))]
-            messages.append((0, channel, "Grooveshark link: %s" % (tinyurl.create_one(self.spe.grooveshark_search(result[1], result[0])))))
-            return messages
+            return [(0, channel, "{a} by {b}, {c} ".format(a = result[1], b = result[0], c = tinyurl.create_one(self.spe.grooveshark_search(result[1], result[0]))))]
         else:
             return [(0, channel, "Spotify Timed out??")]
         

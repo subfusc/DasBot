@@ -283,7 +283,7 @@ if __name__ == '__main__':
     print("NBest: {l}".format(l = db.getNBestList()))
     db.positiveKarma("Hermann")
     db.positiveKarma("Hermann")
-    db.positiveKarma("Trond")
+    db.positiveKarma(u"Trønd")
     db.negativeKarma("Sindre")
     print("NBest: {l}".format(l = db.getNBestList(n=3)))
     print("NWorst: {l}".format(l = db.getNWorstList()))

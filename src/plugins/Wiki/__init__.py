@@ -1,4 +1,4 @@
-Bimport simplemediawiki as wiki
+import simplemediawiki as wiki
 from kitchen.text.converters import to_bytes
 from sys import stderr
 
@@ -6,7 +6,7 @@ class Plugin(object):
 
     def __init__(self, *args):
         self.listeners = {}
-0;115;0c
+        
     def cmd(self, cmd, args, channel, **kwargs):
         # stderr.write("Call: " + cmd + " :: " + args + " :: " + channel + " " + str(kwargs) + "\n")
         if cmd == 'wiki':

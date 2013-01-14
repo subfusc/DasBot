@@ -102,7 +102,7 @@ class IRCbot(object):
                         if not match.group('middle'): 
                             raise BadIRCCommandException('A badly formated PRIVMSG appeared.')
                         msg = match.group('params')
-                        channel = match.group('middle').strip()
+                        channel = match.group('middle').strip() if match.group('middle').strip() != NICK else match.group('nick')
                         arg_dict = {"from_nick":match.group('nick'),
                                     "from_ident":match.group('ident'),
                                     "from_host_mask":match.group('host')}
