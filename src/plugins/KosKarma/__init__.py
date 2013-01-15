@@ -33,10 +33,14 @@ class Plugin(object):
             return [(1, kwargs["from_nick"], "!karma [thing] gives karma for [thing]")]
         if command == "lskarma":
             return [(1, kwargs["from_nick"], "!lskarma lists all karma things")]
-        if command == "hikarma":
+        if command == "highkarma":
             return [(1, kwargs["from_nick"], "!hikarma [n] lists n best things")]
+        if command == "high":
+            return [(1, kwargs["from_nick"], "!high [n] lists n best things")]
         if command == "lokarma":
             return [(1, kwargs["from_nick"], "!lokarma [n] lists n worst things")]
+        if  command == "low":
+            return [(1, kwargs["from_nick"], "!low [n] lists n worst things")]
     
     def cmd(self, command, args, channel, **kwargs):
         if command == "+1":
@@ -63,7 +67,7 @@ class Plugin(object):
             karmalist = string.join([to_bytes(e) for e in self.backend(channel).getAllEntities()], ", ")
             return [(1, channel, "karma things: {}".format(karmalist))]
 
-        if command == "hikarma":
+        if command == "hikarma" or command == "high":
             if args:
                 if not args.isdigit():
                     return self.help(command, args, channel, **kwargs)

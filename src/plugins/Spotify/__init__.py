@@ -2,7 +2,7 @@
 from urllib import urlopen
 import re
 import time
-from TinyUrl import tinyurl
+import tinyurl
 
 # title_re = r'<h1 id="title">\s*<a id="title" href=".*?">([^<]*)</a>\s*</h1>'
 # artist_re = r'''<div\s*id="artist">\s*

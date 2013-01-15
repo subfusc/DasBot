@@ -154,7 +154,9 @@ class IRCbot(object):
                     sys.stderr.write(":LINE (connect): " + line + "\n") #server message is output.
                 match = self.message_re.match(line)
                 if not match: sys.exit(1)
-                if match.group('command') == '376':
+                if match.group('command') == '353':
+                    manage_users_during_join(match.group('middle'), match.group('params'))
+                elif match.group('command') == '376':
                     if VERBOSE: print(":CONNECT: MOTD FOUND!, CONNECTED")
                     exit = True
                     break
