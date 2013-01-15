@@ -154,9 +154,7 @@ class IRCbot(object):
                     sys.stderr.write(":LINE (connect): " + line + "\n") #server message is output.
                 match = self.message_re.match(line)
                 if not match: sys.exit(1)
-                if match.group('command') == '353':
-                    manage_users_during_join(match.group('middle'), match.group('params'))
-                elif match.group('command') == '376':
+                if match.group('command') == '376':
                     if VERBOSE: print(":CONNECT: MOTD FOUND!, CONNECTED")
                     exit = True
                     break
@@ -165,6 +163,8 @@ class IRCbot(object):
                     self.send_sync('PONG ' + match.group('params') + '\n')  
 
         return True
+
+    def manage_users_during_join(self, name, args): pass
 
     def join(self, name):
         if not name in self.channel:
@@ -184,17 +184,16 @@ class IRCbot(object):
                     if DEBUG: sys.stderr.write(":LINE (join): " + l + "\n")
                     match = self.message_re.match(l)
                     if match.group('command') == '353':
-                        if DEBUG: sys.stderr.write(str(match.groups()) + "\n")
-                        self.manage_users_during_join(name, match.group('params'))
-
+                        self.manage_users_during_join(match.group('middle').split("=")[1].strip(),
+                                                      match.group('params'))
+                        # if DEBUG: sys.stderr.write(str(match.groups()) + "\n")
+                        
                     elif match.group('command') == '366': 
                         exit = True
                         break
             return True
         else:
             return True
-
-    def manage_users_during_join(self, name, args): pass
         
     def part(self, name):
         if name in self.channel:

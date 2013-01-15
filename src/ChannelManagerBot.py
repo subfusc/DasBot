@@ -61,6 +61,7 @@ class ChannelManagementBot(CronBot):
         if IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD_DONE\n".format())
                 
     def manage_users_during_join(self, name, args):
+        if VERBOSE: print(":JOIN CHANNEL: Channel: " + name + " Args: " + args + "\n")
         if not name in self.channel: 
             self.channel[name] = []
 
