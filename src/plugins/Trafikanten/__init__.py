@@ -17,6 +17,7 @@ class Plugin():
             msg = [(1, kwargs['from_nick'], "Sanntidsinfo fra trafikanten:")]
             msg.append((1, kwargs['from_nick'], "!t hvor [min [ant]]"))
             msg.append((1, kwargs['from_nick'], "«hvor» kan blant annet være følgende: sognsvann, ullevål, ringen, sentrum og trikk"))
+            msg.append((1, kwargs['from_nick'], "NB! Etter rutetidsendringer har ting blitt hacket og lappet sammen. Pluginen bør skrives på nytt"))
             return msg
         if command == 'all':
             return [(1, kwargs['from_nick'], "TrafikantenBot: t")]
@@ -74,7 +75,9 @@ class Plugin():
                 'trikken': 'trikk', 
                 'adamstuen': 'trikk', 
                 'sognsvann': 'Sognsvann',
-                'ringen': 'Ringen',
+                'ringen': 'Ringenseks',
+                'golia': 'Mortensrud',
+                'godlia': 'Mortensrud',
                 'byn': '1',
                 'byen': '1',
                 'jernbanetorget': '1',
@@ -86,7 +89,10 @@ class Plugin():
         k = msg.split()
         print ""
         datere = re.compile('^\/Date\(([^+]*)\+.*$')
-        hvor = steder[k[0].lower()]
+        hvor = k[0]
+        if k[0].lower() in steder:
+            hvor = steder[k[0].lower()] 
+
         if len(msg) == 0:
             hvor = 1
         nar = -1
@@ -114,9 +120,15 @@ class Plugin():
             print "::::::::::::::::::::::::::::\n", hvor
             print avgang['DestinationName']
             print tmp
-            if avgang['DestinationName'] == hvor and tid > nar:
+            if avgang['DirectionName'] == '1' and hvor != 'Ringenseks' and avgang['DestinationName'].lower() == k[0].lower() and tid > nar:
                 count += 1
                 tmp.append(str(tid) + ' min')
+            elif hvor == 'Ringenseks' and avgang['DirectionName'] == '2' and 'Ringen' == avgang['DestinationName'] and tid > nar:
+                count += 1
+                tmp.append(str(tid) + ' min')
+            elif hvor == avgang['DestinationName'] and tid > nar:
+                count += 1
+                tmp.append(str(tid) + ' min ('+ avgang['DestinationName'] + ')')
             elif hvor == '1' and avgang['DirectionName'] == '1' and tid > nar:
                 count += 1
                 tmp.append(str(tid) + ' min ('+ avgang['DestinationName'] + ')')
@@ -158,6 +170,21 @@ class Plugin():
             hvor = "sentrum"
             for avgang in avganger:
                 if avgang['DirectionName'] == '1':
+                    tid = (int(datere.match(avgang['ExpectedDepartureTime']).group(1)) - nu+15)/60000
+                    if tmp != "":
+                        tmp = tmp.format(hvor, tid)
+                        return tmp
+                    elif tid == 0:
+                        tmp = random.choice(setninger_nu)
+                    else:
+                        tmp = random.choice(setninger_normal).format(hvor, tid)
+                        return tmp
+        
+        if kommando == 'ullevaal':
+            tmp = ""
+            hvor = "Sognsvann"
+            for avgang in avganger:
+                if avgang['DirectionName'] == '2':
                     tid = (int(datere.match(avgang['ExpectedDepartureTime']).group(1)) - nu+15)/60000
                     if tmp != "":
                         tmp = tmp.format(hvor, tid)
@@ -212,3 +239,18 @@ class Plugin():
                     else:
                         tmp = random.choice(setninger_normal_tr).format(hvor, tid)
                         return tmp
+
+        else:
+            tmp = ""
+            for avgang in avganger:
+                if avgang['DirectionName'] == '1' and avgang['DestinationName'] == kommando:
+                    tid = (int(datere.match(avgang['ExpectedDepartureTime']).group(1)) - nu+15)/60000
+                    if tmp != "":
+                        tmp = tmp.format(hvor, tid)
+                        return tmp
+                    elif tid == 0:
+                        tmp = random.choice(setninger_nu)
+                    else:
+                        tmp = random.choice(setninger_normal).format(hvor, tid)
+                        return tmp
+

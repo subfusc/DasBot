@@ -31,6 +31,11 @@ class Plugin(object):
             alist = args.split()
             return [(0, alist[0], " ".join(alist[1:]))]
         match = self.dicere.match(command)
+        if command == 'coin' or command == 'toss' or command == 'cointoss':
+            if randint(1, 2) == 1:
+                return [(0, channel, kwargs['from_nick'], "Head")]
+            else:
+                return [(0, channel, kwargs['from_nick'], "Tail")]
         if match:
             if match.group('number') != '':
                 answ = [randint(1, int(match.group('size'))) for x in range(0, int(match.group('number')))]

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 import string
 from kitchen.text.converters import to_bytes, to_unicode
@@ -12,7 +13,7 @@ class Plugin(object):
         self.backends = dict()
         self.prefix = "data" + sep + "karma"
         self.suffix = ".karma"
-        self.reg = re.compile(r"(\S+\+\+|\S+--|\+\+\S+|--\S+)", re.U)
+        self.reg = re.compile(r"(\S+\+\+)|(\S+--)|(--\S+)|(\+\+\S+)", re.U)
 
         if not path.isdir(self.prefix):
             makedirs(self.prefix)
@@ -31,6 +32,8 @@ class Plugin(object):
             return [(1, kwargs["from_nick"], "!-1 [thing] takes karma from [thing]")]
         if command == "karma":
             return [(1, kwargs["from_nick"], "!karma [thing] gives karma for [thing]")]
+        if command == "karmaprec":
+            return [(1, kwargs["from_nick"], "!karmaprec [thing] gives karma for [thing] with more precision")]
         if command == "lskarma":
             return [(1, kwargs["from_nick"], "!lskarma lists all karma things")]
         if command == "highkarma":
@@ -46,19 +49,36 @@ class Plugin(object):
         if command == "+1":
             if args:
                 if args != kwargs['from_nick']:
-                    self.backend(channel).positiveKarma(to_unicode(args))
+                    self.backend(channel).positiveKarma(to_unicode(args.strip()))
             else:
                 return self.help(command, args, channel,**kwargs)
 
         if command == "-1":
             if args:
-                self.backend(channel).negativeKarma(to_unicode(args))
+                self.backend(channel).negativeKarma(to_unicode(args.strip()))
             else:
                 return self.help(command, args, channel,**kwargs)
 
+        if command == "karma_en":
+            if args:
+                karma = self.backend(channel).getKarma(to_unicode(args.strip()))
+                ret = "{e} has karma: {k:.2f} with a total of {p} positive and {n} negative.".format(e = args, k = karma[0], p = karma[1], n = karma[2])
+                return [(1, channel, ret)]
+            else:
+                return self.help(command, args, channel, **kwargs)
+
         if command == "karma":
             if args:
-                ret = "{e} has karma: {k:.3f}".format(e = args, k = self.backend(channel).getKarma(to_unicode(args)))
+                karma = self.backend(channel).getKarma(to_unicode(args.strip()))
+                ret = "{e} har karma: {k:.2f} og har fått {p} positive og {n} negative.".format(e = args, k = karma[0], p = karma[1], n = karma[2])
+                return [(1, channel, ret)]
+            else:
+                return self.help(command, args, channel, **kwargs)
+
+        if command == "karmaprec":
+            if args:
+                karma = self.backend(channel).getKarma(to_unicode(args.strip()))
+                ret = "{e} has karma {k:.5f} with a total of {p} positive and {n} negative.".format(e = args, k = karma[0], p = karma[1], n = karma[2])
                 return [(1, channel, ret)]
             else:
                 return self.help(command, args, channel, **kwargs)
@@ -74,27 +94,48 @@ class Plugin(object):
                 best = self.backend(channel).getNBestList(int(args))
             else:
                 best = self.backend(channel).getNBestList()
-            best = string.join(["{}: {:.3f}".format(to_bytes(e), k) for e,k in best])
+            best = string.join(["{}: {:.2f}".format(to_bytes(e), k[0]) for e,k in best])
             return [(1, channel, "good karma things in {} - {}".format(channel, best))]
-                
-        if command == "lokarma":
+
+        if command == "høy" or command == "snill":
+            if args:
+                if not args.isdigit():
+                    return self.help(command, args, channel, **kwargs)
+                best = self.backend(channel).getNBestList(int(args))
+            else:
+                best = self.backend(channel).getNBestList()
+            best = string.join(["{}: {:.2f}".format(to_bytes(e), k[0]) for e,k in best])
+            return [(1, channel, "Bra karma i {}: {}".format(channel, best))]
+
+        if command == "lav" or command == "slem":
             if args:
                 if not args.isdigit():
                     return self.help(command, args, channel, **kwargs)
                 worst = self.backend(channel).getNWorstList(int(args))
             else:
                 worst = self.backend(channel).getNWorstList()
-            worst = string.join(["{}: {:.3f}".format(to_bytes(e), k) for e,k in worst])
+            worst = string.join(["{}: {:.2f}".format(to_bytes(e), k[0]) for e,k in worst])
+            return [(1, channel, "Dårlig karma i {}: {}".format(channel, worst))]
+
+        if command == "lokarma" or command == "low":
+            if args:
+                if not args.isdigit():
+                    return self.help(command, args, channel, **kwargs)
+                worst = self.backend(channel).getNWorstList(int(args))
+            else:
+                worst = self.backend(channel).getNWorstList()
+            worst = string.join(["{}: {:.2f}".format(to_bytes(e), k[0]) for e,k in worst])
             return [(1, channel, "bad karma things in {} - {}".format(channel, worst))]
 
     def listen(self, msg, channel, **kwargs):
         for karmatoken in self.reg.findall(msg):
-            if karmatoken.startswith("++") or karmatoken.endswith("++"):
-                if karmatoken.strip("++") != kwargs['from_nick']:
-                    self.backend(channel).positiveKarma(to_unicode(karmatoken.strip("++")))
+            match = [x for x in karmatoken if x != ""][0]
+            if match.startswith("++") or match.endswith("++"):
+                if match.strip("++") != kwargs['from_nick']:
+                    self.backend(channel).positiveKarma(to_unicode(match.strip("++")))
                 
-            if karmatoken.startswith("--") or karmatoken.endswith("--"):
-                self.backend(channel).negativeKarma(to_unicode(karmatoken.strip("--")))
+            if match.startswith("--") or match.endswith("--"):
+                self.backend(channel).negativeKarma(to_unicode(match.strip("--")))
 
     def stop(self):
         for be in self.backends.values():

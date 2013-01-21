@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
-from math import cos, pi
+from math import cos, sin, pi
 from time import time, sleep
 from sys import stderr
 
@@ -63,11 +63,33 @@ class KosBackend(object):
     def __com(self):
         self.sql_db.commit()
 
+    def _calculate(self, x, t = None):
+        return self._opTan(x, t)
+
+    def _opSimple(self, x, t = None):
+        if t == None: t = int(time())
+        return 1 / (((t - x) + self.decay_time)/self.decay_time)
+
     def _cosCalculate(self, x, t = None):
         if t == None: t = int(time())
         # stderr.write("X: {x} T: {t} COSCALC: {c}\n".format(x = x, t = t,
         # c = cos((pi * (t - x)) / (2 * self.decay_time))))
         return cos((pi * (t - x)) / (2 * self.decay_time)) 
+
+    def _opPropotional(self, x, t = None):
+        if t == None: t = int(time())
+        #3600/(x-(1/(3600*x))+3600))))
+        return self.decay_time / ((t - x) - (1 / (((t - x)* self.decay_time)*((t - x)* self.decay_time)) ) + self.decay_time)
+
+    def _opTan(self, x, t = None):
+        if t == None: t = int(time())
+        #((sin(-1.8/300*x*pi-10)/(cos(-1.8/300*x*pi-10)+1))+6)/10
+        #((sin(-1.7/3000*x*pi+2.72)/(cos(-1.7/3000*x*pi+2.72)+1))+5)/10
+        return ((sin(-1.7/self.decay_time*((t-x)*pi)+2.72)/(cos(-1.7/self.decay_time*((t-x)*pi)+2.72)+1))+5)/10
+
+    def _opPropotionalAlt(self, x, t = None):
+        if t == None: t = int(time())
+        return 1/((t-x)-((t-x)/2)+2) # Mangler decay time
         
     def _addKarma(self, positive, entity):
         if self.db_open:
@@ -98,11 +120,19 @@ class KosBackend(object):
         if not user:
             self.__exe("INSERT INTO {table} (id, entity) VALUES (?, ?);".format(table = self.utable),
                        (None, entity.lower() if self.lowercase else entity))
+            self.__com()
             user = self._userExists(entity)
             self.__exe("CREATE TABLE {table} (positive INTEGER, date INTEGER NOT NULL)".format(table = "user" + 
                                                                                                str(user)))
         return user
-            
+
+    def _delEntity(self, entity):
+        user = self._userExists(entity)
+        if user:
+            self.__exe("DELETE FROM {table} WHERE id = ?;".format(table = self.utable), (user, ))
+            self.__exe("DROP TABLE {table};".format(table = "user" + str(user)))
+            self.__com()
+        
     def connect(self, database_name=None):
         """
         Connect to a karma database. Note: Its not necessary to call this function
@@ -182,8 +212,8 @@ class KosBackend(object):
         @param doNotDelete: If you don't want stuff to be deleted when checking for a
         special time, set this to true!
         
-        @rtype: number
-        @return: the karma of an entity
+        @rtype: touple
+        @return: the karma of an entity, the number of positive and the number of negative.
         """
         if t == None: t = time()
         if not self.db_open: raise DatabaseIsNotOpenError('The database is not opened')
@@ -192,15 +222,20 @@ class KosBackend(object):
             self.__com()
             if not doNotDelete: 
                 self.__exe("DELETE FROM {table} WHERE date <= ?".format(table = ("user" + str(user))), 
-                           (int(time()) - self.decay_time, ))
+                           (t - self.decay_time, ))
             karma = 0
+            pos = 0
+            neg = 0
             for row in self.__exe("SELECT * FROM {table}".format(table = "user" + str(user))):
+                print(row[1])
                 if row[0] == 1:
-                    karma += self._cosCalculate(row[1], t = t)
+                    karma += self._calculate(row[1], t = t)
+                    pos += 1
                 else:
-                    karma -= self._cosCalculate(row[1], t = t)
-            return karma
-        return 0
+                    karma -= self._calculate(row[1], t = t)
+                    neg += 1
+            return (karma, pos, neg)
+        return (0, 0, 0)
 
     def getNBestList(self, n=5, t=None):
         """
@@ -213,22 +248,26 @@ class KosBackend(object):
         @param t: The date you want calculated (unixtime)
 
         @rtype: list
-        @return: A list of the N entities with the best karma.
+        @return: A list of the N entities with the best karma inkl n/positive karma and n/negative karma.
         """
         rlist = []
         if not t: t = time()
+        print(t, t - self.decay_time)
         for entity in self.getAllEntities():
-            karma = self.getKarma(entity)
+            karma = self.getKarma(entity, t=t)
+            if karma[1] == 0 and karma [2] == 0: 
+                self._delEntity(entity)
+                continue
             
             if len(rlist) < n:
                 for large_entity, x in zip(rlist, range(0, len(rlist) + 1)):
-                    if large_entity[1] <= karma:
+                    if large_entity[1][0] <= karma[0]:
                         rlist.insert(x, (entity, karma))
                         break
                 else: rlist.append((entity, karma))
             else:
                 for large_entity, x in zip(rlist, range(0, len(rlist) + 1)):
-                    if large_entity[1] <= karma:
+                    if large_entity[1][0] <= karma[0]:
                         rlist.insert(x, (entity, karma))
                         rlist.pop()
                         break
@@ -245,23 +284,26 @@ class KosBackend(object):
         @param t: The date you want calculated (unixtime)
 
         @rtype: list
-        @return: A list of the N entities with the worst karma.
+        @return: A list of the N entities with the worst karma inkl n/positive karma and n/negative karma.
         """
         
         rlist = []
         if not t: t = time()
         for entity in self.getAllEntities():
-            karma = self.getKarma(entity)
-            
+            karma = self.getKarma(entity,t=t)
+            if karma[1] == 0 and karma[2] == 0: 
+                self._delEntity(entity)
+                continue
+                
             if len(rlist) < n:
                 for large_entity, x in zip(rlist, range(0, len(rlist) + 1)):
-                    if large_entity[1] >= karma:
+                    if large_entity[1][0] >= karma[0]:
                         rlist.insert(x, (entity, karma))
                         break
                 else: rlist.append((entity, karma))
             else:
                 for large_entity, x in zip(rlist, range(0, len(rlist) + 1)):
-                    if large_entity[1] >= karma:
+                    if large_entity[1][0] >= karma[0]:
                         rlist.insert(x, (entity, karma))
                         rlist.pop()
                         break
@@ -287,8 +329,8 @@ if __name__ == '__main__':
     db.negativeKarma("Sindre")
     print("NBest: {l}".format(l = db.getNBestList(n=3)))
     print("NWorst: {l}".format(l = db.getNWorstList()))
-    sleep(60)
-    print("NBest: {l}".format(l = db.getNBestList(n=3)))
+    #sleep(60)
+    print("NBest: {l}".format(l = db.getNBestList(n=3, t=(time() + 60 + (0.01 * 24 * 60 * 60)))))
     print("NWorst: {l}".format(l = db.getNWorstList()))
     db.disconnect()
     try:
