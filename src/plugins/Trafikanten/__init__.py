@@ -51,8 +51,8 @@ class Plugin():
             return [(0, channel, self.trafikanten('sentrum'))]
         elif re.search(r"\bsentrum\b", msg.lower()):
             return [(0, channel, self.trafikanten('sentrum'))]
-        if re.search(r"\bringen\b", msg.lower()):
-            return [(0, channel, self.trafikanten('ringen'))]
+#        if re.search(r"\bringen\b", msg.lower()):
+#            return [(0, channel, self.trafikanten('ringen'))]
         if re.search(r"\bsognsvann\b", msg.lower()):
             return [(0, channel, self.trafikanten('sognsvann'))]
 
@@ -76,6 +76,7 @@ class Plugin():
                 'adamstuen': 'trikk', 
                 'sognsvann': 'Sognsvann',
                 'ringen': 'Ringenseks',
+                'r': 'Ringenseks',
                 'golia': 'Mortensrud',
                 'godlia': 'Mortensrud',
                 'byn': '1',
