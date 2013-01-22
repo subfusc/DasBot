@@ -70,7 +70,7 @@ class Plugin(object):
         if command == "karma":
             if args:
                 karma = self.backend(channel).getKarma(to_unicode(args.strip()))
-                ret = "{e} har karma: {k:.2f} og har fått {p} positive og {n} negative.".format(e = args, k = karma[0], p = karma[1], n = karma[2])
+                ret = "{e} har karma: {k:.1f} og har fått {p} positive og {n} negative.".format(e = args, k = karma[0], p = karma[1], n = karma[2])
                 return [(1, channel, ret)]
             else:
                 return self.help(command, args, channel, **kwargs)
@@ -104,7 +104,7 @@ class Plugin(object):
                 best = self.backend(channel).getNBestList(int(args))
             else:
                 best = self.backend(channel).getNBestList()
-            best = string.join(["{}: {:.2f}".format(to_bytes(e), k[0]) for e,k in best])
+            best = string.join(["{}: {:.1f}".format(to_bytes(e), k[0]) for e,k in best])
             return [(1, channel, "Bra karma i {}: {}".format(channel, best))]
 
         if command == "lav" or command == "slem":
@@ -114,7 +114,7 @@ class Plugin(object):
                 worst = self.backend(channel).getNWorstList(int(args))
             else:
                 worst = self.backend(channel).getNWorstList()
-            worst = string.join(["{}: {:.2f}".format(to_bytes(e), k[0]) for e,k in worst])
+            worst = string.join(["{}: {:.1f}".format(to_bytes(e), k[0]) for e,k in worst])
             return [(1, channel, "Dårlig karma i {}: {}".format(channel, worst))]
 
         if command == "lokarma" or command == "low":
