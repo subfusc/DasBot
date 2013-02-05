@@ -27,6 +27,12 @@ class Plugin(object):
 
     def make_response(self, arg, channel, **kwargs):
         if arg in kwargs['nick_to_user']: arg = kwargs['nick_to_user'][arg]
+        if arg == 'jeg':
+            room = self.db.where_is_user(kwargs['from_nick'])
+            if room:
+                return [(0, channel, kwargs['from_nick'], "Du er på {r}".format(r = room))] 
+            else:
+                return [(0, channel, kwargs['from_nick'], "Du er ikke pålogget på ifi.")]
         if self.db.users.is_user(arg):
             room = self.db.where_is_user(arg)
             if room:

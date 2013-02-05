@@ -75,8 +75,8 @@ class Plugin():
                 'trikken': 'trikk', 
                 'adamstuen': 'trikk', 
                 'sognsvann': 'Sognsvann',
-                'ringen': 'Ringenseks',
-                'r': 'Ringenseks',
+                'ringen': 'Ringenfire',
+                'r': 'Ringenfire',
                 'golia': 'Mortensrud',
                 'godlia': 'Mortensrud',
                 'byn': '1',
@@ -121,10 +121,10 @@ class Plugin():
             print "::::::::::::::::::::::::::::\n", hvor
             print avgang['DestinationName']
             print tmp
-            if avgang['DirectionName'] == '1' and hvor != 'Ringenseks' and avgang['DestinationName'].lower() == k[0].lower() and tid > nar:
+            if avgang['DirectionName'] == '1' and hvor != 'Ringenfire' and avgang['DestinationName'].lower() == k[0].lower() and tid > nar:
                 count += 1
                 tmp.append(str(tid) + ' min')
-            elif hvor == 'Ringenseks' and avgang['DirectionName'] == '2' and 'Ringen' == avgang['DestinationName'] and tid > nar:
+            elif hvor == 'Ringenfire' and avgang['DirectionName'] == '2' and 'Ringen' == avgang['DestinationName'] and tid > nar:
                 count += 1
                 tmp.append(str(tid) + ' min')
             elif hvor == avgang['DestinationName'] and tid > nar:
