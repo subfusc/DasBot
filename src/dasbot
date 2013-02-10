@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://gnu.org/licenses/>.
 
+
 import re
 import os
 import sys
@@ -32,9 +33,6 @@ def ckarg(opt, arg):
     if arg == "" or arg in longopts or arg in shortopts:
         die("error: option {} needs at least one argument".format(opt))
 
-def using(opt, arg):
-    print "using option: {} with args {}".format(opt, arg)
-
 def usage():
     return (
     "usage: {prog} OPTION\n"
@@ -46,7 +44,7 @@ def usage():
     "   -p, --port <port>       use host port number\n"
     "   -s, --serv <host>       use host server\n"
     "   -n, --nick <nick>       use channel nick\n"
-    "   -u, --plugin <plug>     load plugins (not implemented)\n"
+    "   -u, --plugin <plug>     load plugins\n"
     "   -l, --log <file>        log to specified file\n"
 
     "examples:\n"
@@ -74,20 +72,15 @@ if __name__ == '__main__':
         
         for opt, arg in options:
             if opt in ("-v", "--verbose"):
-                #using(opt, arg)
                 conf.VERBOSE = True
             elif opt in ("-d", "--debug"):
-                #using(opt, arg)
                 conf.DEBUG = True
             elif opt in ("-h", "--help"):
-                #using(opt, arg)
                 print(usage())
                 sys.exit(0)
             elif opt in ("-a", "--auth"):
-                #using(opt, arg)
                 conf.AUTHENTICATION = True
             elif opt in ("-c" , "--chan"):
-                #using(opt, arg)
                 ckarg(opt, arg)
                 chans = list()
                 for chan in arg.split(argdelim):
@@ -97,7 +90,6 @@ if __name__ == '__main__':
                         chans.append(chan)
                 conf.STARTUP_CHANNELS = chans
             elif opt in ("-p", "--port"):
-                #using(opt, arg)
                 ckarg(opt, arg)
                 if not arg.isdigit():
                     die("bad port number value")
@@ -106,31 +98,26 @@ if __name__ == '__main__':
                     die("port number should be in range 6660-6670")
                 conf.PORT = int(arg)
             elif opt in ("-s", "--serv"):
-                #using(opt, arg)
                 ckarg(opt, arg)
                 if not re.match(validhost, arg):
                     die("malformed host address")
                 conf.HOST = arg 
             elif opt in ("-n", "--nick"):
-                #using(opt, arg)
                 ckarg(opt, arg)
                 if not re.match(validnick, arg):
                     die("malformed irc nick")
                 conf.NICK = arg
             elif opt in ("-u", "--plugin"):
-                #using(opt, arg)
                 ckarg(opt, arg)
                 plugs = list()
                 for plug in arg.split(argdelim):
                     if plug != "":
-                        plugs.append(plug.title())
+                        plugs.append(plug)
                 conf.LOAD_PLUGINS = plugs
             elif opt in ("-l", "--log"):
-                #using(opt, arg)
                 ckarg(opt, arg)
                 conf.LOG_FILE = arg
             elif opt in ("-o", "--cron"):
-                #using(opt, arg)
                 conf.START_CRON_BOT = True
             else:
                 assert False, "unhandled option"
@@ -146,3 +133,4 @@ if __name__ == '__main__':
         bot.join(channel)
     bot.start()
     bot.stop()
+    sys.exit(0)
