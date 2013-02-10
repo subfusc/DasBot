@@ -27,7 +27,7 @@ class PluginBot(IRCbot):
         super(PluginBot, self).__init__()
         self.__plugins = None
         self.__functions = [[], [], [], [], [], [], []]
-        if 'LOAD_PLUGINS' in locals() or 'LOAD_PLUGINS' in globals() and isinstance(conf.LOAD_PLUGINS, list):
+        if 'conf' in locals() or 'conf' in globals() and isinstance(conf.LOAD_PLUGINS, list):
             for plugin in conf.LOAD_PLUGINS:
                 self.__load_plugin(plugin)
 
