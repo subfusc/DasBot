@@ -53,7 +53,7 @@ class LoggerBot(AdminBot):
                                                                                        h = kwargs['from_host_mask'],
                                                                                        c = channel,
                                                                                        cmd = command, a = args,
-                                                                                       cmd_char = COMMAND_CHAR))
+                                                                                       cmd_char = conf.COMMAND_CHAR))
         super(LoggerBot, self).cmd(command, args, channel, **kwargs)
 
     def listen(self, command, msg, channel, **kwargs):
@@ -73,6 +73,6 @@ class LoggerBot(AdminBot):
                                                                                  n = kwargs['from_nick'],
                                                                                  i = kwargs['from_ident'],
                                                                                  h = kwargs['from_host_mask'],
-                                                                                 hc = HELP_CHAR,
+                                                                                 hc = conf.HELP_CHAR,
                                                                                  cmd = command, a = args))
         super(LoggerBot, self).help(command, args, channel, **kwargs)
