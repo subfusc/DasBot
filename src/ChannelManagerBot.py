@@ -18,10 +18,6 @@
 import GlobalConfig as conf
 from CronBot import CronBot
 from threading import Timer
-<<<<<<< HEAD
-=======
-from GlobalConfig import *
->>>>>>> Fixing some bugs related to management cmd and AuthBot
 from sys import stderr
 
 class ChannelManagementBot(CronBot):
@@ -63,10 +59,10 @@ class ChannelManagementBot(CronBot):
                 self.__rm_user_from_nicks(args[1])
         elif command == "NICK":
             self.__change_nick(kwargs["from_nick"], kwargs["msg"])
-        if IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD_DONE\n".format())
+        if conf.IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD_DONE\n".format())
                 
     def manage_users_during_join(self, name, args):
-        if VERBOSE: print(":JOIN CHANNEL: Channel: " + name + " Args: " + args + "\n")
+        if conf.VERBOSE: print(":JOIN CHANNEL: Channel: " + name + " Args: " + args + "\n")
         if not name in self.channel: 
             self.channel[name] = []
 
