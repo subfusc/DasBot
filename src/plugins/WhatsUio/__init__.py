@@ -78,7 +78,7 @@ class Plugin(object):
                     arg = None
                     if (er - hvor) == 1 and (er + 1) < len(line):
                         arg = line[er + 1]
-                    elif (hvor + 1) < len(line):
+                    elif (hvor + 1) < len(line) and er != 0:
                         arg = line[hvor + 1]
                     # print("LINE: {l} :: ARG: {a} :: HVOR: {h} :: ER: {e}".format(l = line, a = arg.encode('utf-8'), h = hvor, e = er))
                     if arg:
