@@ -11,6 +11,7 @@ class Plugin():
     """
 
     def __init__(self):
+        self.randomfaktor = 0.4
         self.medieord = re.compile(r'\b(vg|dagbladet|db\.no|avisa|aftenposten|dagsavisen|dn\.no|klassekampen|pressen|pressa|ap\.no)\b', re.IGNORECASE)
         
     def cmd(self, command, args, channel, **kwargs):
@@ -20,7 +21,8 @@ class Plugin():
         
     def listen(self, msg, channel, **kwargs):
         if self.medieord.search(msg):
-            return [(0, channel, self.mediekommentar(self.medieord.search(msg).group(0)))]
+            if random.random() < self.randomfaktor:
+                return [(0, channel, self.mediekommentar(self.medieord.search(msg).group(0)))]
 
     def mediekommentaradd(self, args):
         args = args.split()
