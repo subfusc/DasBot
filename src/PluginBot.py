@@ -14,10 +14,10 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import GlobalConfig as conf
 from IRCbot import IRCbot
 import sys
 import IRCFonts
-from GlobalConfig import *
 from os import listdir
 from sys import stderr
 
@@ -27,8 +27,8 @@ class PluginBot(IRCbot):
         super(PluginBot, self).__init__()
         self.__plugins = None
         self.__functions = [[], [], [], [], [], [], []]
-        if 'LOAD_PLUGINS' in locals() or 'LOAD_PLUGINS' in globals() and isinstance(LOAD_PLUGINS, list):
-            for plugin in LOAD_PLUGINS:
+        if 'conf' in locals() or 'conf' in globals() and isinstance(conf.LOAD_PLUGINS, list):
+            for plugin in conf.LOAD_PLUGINS:
                 self.__load_plugin(plugin)
 
     def stop(self):
@@ -133,7 +133,7 @@ class PluginBot(IRCbot):
         return rarr
         
     def cmd(self, command, args, channel, **kwargs):
-        if DEBUG: stderr.write("PluginBot CMD\n")
+        if conf.DEBUG: stderr.write("PluginBot CMD\n")
         if kwargs['auth_nick'] != None:
             if kwargs['auth_level'] >= 90:
                 if command == "load" and args:
@@ -226,10 +226,10 @@ class PluginBot(IRCbot):
                     self.msg(channel, "Plugin {p} gave an error and has been unloaded.".format(p = name),
                              to=kwargs['from_nick'])
                 
-        if DEBUG: stderr.write("PluginBot CMD\n")
+        if conf.DEBUG: stderr.write("PluginBot CMD\n")
 
     def listen(self, command, msg, channel, **kwargs):
-        if DEBUG: stderr.write("PluginBot Listen begin\n")
+        if conf.DEBUG: stderr.write("PluginBot Listen begin\n")
         for name, obj, attr, blacklist in zip(self.__functions[0], self.__functions[1], self.__functions[3], self.__functions[6]):
             if attr:
                 if len(blacklist) > 0 and channel in blacklist: continue 
@@ -242,10 +242,10 @@ class PluginBot(IRCbot):
                              to=kwargs['from_nick'])
                     
         super(PluginBot, self).listen(command, msg, channel, **kwargs)
-        if DEBUG: stderr.write("PluginBot Listen end\n")
+        if conf.DEBUG: stderr.write("PluginBot Listen end\n")
 
     def help(self, command, args, channel, **kwargs):
-        if DEBUG: stderr.write("PluginBot Help begin\n")
+        if conf.DEBUG: stderr.write("PluginBot Help begin\n")
 
         if command == 'all':
             self.notify(kwargs['from_nick'], 'PluginBot: load, unload, reload, forceunload, blacklist')
@@ -273,4 +273,4 @@ class PluginBot(IRCbot):
                              to=kwargs['from_nick'])
                     
         super(PluginBot, self).help(command, args, channel, **kwargs)
-        if DEBUG: stderr.write("PluginBot Help end\n")
+        if conf.DEBUG: stderr.write("PluginBot Help end\n")

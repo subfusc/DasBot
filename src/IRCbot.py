@@ -22,8 +22,8 @@ import string
 import re
 import traceback
 import time
+import GlobalConfig as conf
 from threading import Lock
-from GlobalConfig import *
 
 """
 IRC SPESIFICATION
@@ -59,11 +59,11 @@ class IRCbot(object):
         """ 
         Make an instance of the IRCbot class and prepare it for a Connection 
         """
-        self.host = HOST #: The IP/URL for the server
-        self.port = PORT #: The port number for the server 
-        self._nick = NICK #: The nick the bot is going to use
-        self.ident = IDENT #: Identity of the bot
-        self.realname = REAL_NAME #: The "realname" of the bot
+        self.host = conf.HOST #: The IP/URL for the server
+        self.port = conf.PORT #: The port number for the server 
+        self._nick = conf.NICK #: The nick the bot is going to use
+        self.ident = conf.IDENT #: Identity of the bot
+        self.realname = conf.REAL_NAME #: The "realname" of the bot
         self.s = socket.socket() #: Create a socket for the I/O to the server
         self.s.settimeout(600)
         self.message_re = re.compile(MESSAGE_RE)
@@ -90,7 +90,7 @@ class IRCbot(object):
         for line in lines:
             try:
                 match = self.message_re.match(line)
-                if IRC_DEBUG: 
+                if conf.IRC_DEBUG: 
                     sys.stderr.write(":BEFORE HANDLING: " + line + "\n")
                     sys.stderr.write(str(match.groupdict()) + "\n")
                 
@@ -102,15 +102,15 @@ class IRCbot(object):
                         if not match.group('middle'): 
                             raise BadIRCCommandException('A badly formated PRIVMSG appeared.')
                         msg = match.group('params')
-                        channel = match.group('middle').strip() if match.group('middle').strip() != NICK else match.group('nick')
+                        channel = match.group('middle').strip() if match.group('middle').strip() != conf.NICK else match.group('nick')
                         arg_dict = {"from_nick":match.group('nick'),
                                     "from_ident":match.group('ident'),
                                     "from_host_mask":match.group('host')}
 
-                        if msg[0] == COMMAND_CHAR:
+                        if msg[0] == conf.COMMAND_CHAR:
                             full_cmd = self._parse_command(msg)
                             self.cmd(full_cmd[0], full_cmd[1], channel, **arg_dict)
-                        elif msg[0] == HELP_CHAR:
+                        elif msg[0] == conf.HELP_CHAR:
                             full_cmd = self._parse_command(msg)
                             self.help(full_cmd[0], full_cmd[1], channel, **arg_dict)
                         else:
@@ -150,12 +150,12 @@ class IRCbot(object):
             self.rest_line = lines.pop()
                 
             for line in lines:
-                if DEBUG: 
+                if conf.DEBUG: 
                     sys.stderr.write(":LINE (connect): " + line + "\n") #server message is output.
                 match = self.message_re.match(line)
                 if not match: sys.exit(1)
                 if match.group('command') == '376':
-                    if VERBOSE: print(":CONNECT: MOTD FOUND!, CONNECTED")
+                    if conf.VERBOSE: print(":CONNECT: MOTD FOUND!, CONNECTED")
                     exit = True
                     break
 
@@ -181,13 +181,12 @@ class IRCbot(object):
                 self.rest_line = lines.pop()
                 
                 for l in lines:
-                    if DEBUG: sys.stderr.write(":LINE (join): " + l + "\n")
+                    if conf.DEBUG: sys.stderr.write(":LINE (join): " + l + "\n")
                     match = self.message_re.match(l)
                     if match.group('command') == '353':
                         self.manage_users_during_join(match.group('middle').split("=")[1].strip(),
                                                       match.group('params'))
                         # if DEBUG: sys.stderr.write(str(match.groups()) + "\n")
-                        
                     elif match.group('command') == '366': 
                         exit = True
                         break
@@ -281,10 +280,10 @@ class IRCbot(object):
         This command is for the network layer to respond to diffrent server
         requests, like ping.
         """
-        if DEBUG:
+        if conf.DEBUG:
             print(":SERVER: Command: %s, Server: %s" % (command, server))
 
-        if IRC_DEBUG:
+        if conf.IRC_DEBUG:
             sys.stderr.write('PONG ' + ":" + server[1] + '\n')
             
         if command == 'PING':
@@ -297,7 +296,7 @@ class IRCbot(object):
         If you are only going to run commands and not doing anything with NLP, please extend this
         to avoid unecessary overhead.
         """
-        if VERBOSE:
+        if conf.VERBOSE:
             print(":COMMAND: Command: %s, Args: %s, Channel: %s, From: %s!%s@%s" % (command, args, 
 				channel,
 				kwargs["from_nick"], 
@@ -309,7 +308,7 @@ class IRCbot(object):
         This Function should be extended when you want to listen too command args 
         like KICK, JOIN, PART etc.
         """
-        if VERBOSE:
+        if conf.VERBOSE:
             if "from_nick" in kwargs:
                 print(":MANAGEMENT: Command: %s, Args: %s, Message: %s, From: %s!%s@%s" % (command,
 					args,
@@ -329,7 +328,7 @@ class IRCbot(object):
         want all sentences, and not just commands. If you want only commands, please extend
         cmd.
         """
-        if VERBOSE:
+        if conf.VERBOSE:
             print(":LISTEN: Command: %s, Message (%d): %s, Channel: %s, From: %s!%s@%s" % (command, len(msg), msg, 
 				channel,
 				kwargs["from_nick"], 
@@ -346,7 +345,7 @@ class IRCbot(object):
         if command == "":
             self.notify(kwargs["from_nick"], "?cmd - Will give you help on command cmd.")
             self.notify(kwargs["from_nick"], "?all - Will give you a list of available commands.")
-        if VERBOSE:
+        if conf.VERBOSE:
             print(":HELP: Command: %s, Message: %s, Channel: %s, From: %s!%s@%s" % (command, args, channel,
 				kwargs["from_nick"], 
 				kwargs["from_ident"],

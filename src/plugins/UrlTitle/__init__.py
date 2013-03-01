@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://gnu.org/licenses/>.
 
-
-from GlobalConfig import *
 from random import randint
 import htmlentitydefs
 import BeautifulSoup
