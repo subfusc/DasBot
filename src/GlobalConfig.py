@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+#
 
 # General Config Options
 VERBOSE = False
-DEBUG = True
+DEBUG = False
 IRC_DEBUG = False
 VERSION = 0.2
-NAME = "trondth"
+NAME = "dasbot"
 COMMAND_CHAR = "!"
 HELP_CHAR = '?'
 
@@ -19,8 +20,8 @@ PORT = 6667
 NICK = "computer"
 IDENT = "trondth"
 REAL_NAME = NAME
-OWNER = "trondth"
-STARTUP_CHANNELS = ['#iskbot,#isk,#bordtennis,prozeß']
+OWNER = "trondth (pisk.ifi.uio.no)"
+STARTUP_CHANNELS = ["#iskbot"]
 
 # ChannelManagerBot Config
 # Not in use ATM
@@ -33,15 +34,15 @@ LOG_CHANNELS = True
 LOG_BUFFER_SIZE = 1
 
 # Plugin Bot config
-LOAD_PLUGINS = ["Kafe","Useless","Trafikanten","Synser","Wictorht"]
+LOAD_PLUGINS = ["Useless"]
 
 # CRON JOB BOT config
 START_CRON_BOT = False
 
 # Authentication System Config
-AUTHENTICATION = True
+AUTHENTICATION = False
 RECOVER_USERS = True
-DATABASE_NAME = 'data/user_database.sql'
+DATABASE_NAME = 'data/user_database-ny.sql'
 HASH_ROUNDS = 200
 BOT_EMAIL = 'trondth@ifi.uio.no' # must be set in order for the bot to send mail
 SMTP_SERVER = 'smtp.uio.no' # Must be changed. smtp.uio.no i believe for hosting on IFI

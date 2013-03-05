@@ -5,8 +5,8 @@
 
 import LoggerBot
 import re
+import GlobalConfig as conf
 from AuthSystem.AuthSys import AuthSys
-from GlobalConfig import *
 from sys import stdout
 from sys import stderr
 
@@ -17,8 +17,8 @@ class AuthBot(LoggerBot.LoggerBot):
     """
 
     def __init__(self):
-        if AUTHENTICATION:
-            if IRC_DEBUG:
+        if conf.AUTHENTICATION:
+            if conf.IRC_DEBUG:
                 print("""
                 ::::::::::::: WARNING :::::::::::::::: 
                 The IRC_DEBUG option is ON in the current
@@ -33,42 +33,42 @@ class AuthBot(LoggerBot.LoggerBot):
             self.authsys = AuthSys(secret)
             self.nick_user_relation = {}
             self.user_nick_relation = {}
-            if RECOVER_USERS:
+            if conf.RECOVER_USERS:
                 self.authsys.recover_users()
-            self.email_re = re.compile("(?P<user>[^@]+)@" + (DOMAIN_RESTRICTION if DOMAIN_RESTRICTION != '' else "\S+"))
+            self.email_re = re.compile("(?P<user>[^@]+)@" + (conf.DOMAIN_RESTRICTION if conf.DOMAIN_RESTRICTION != '' else "\S+"))
         super(AuthBot, self).__init__()
 
     def stop(self):
         super(AuthBot, self).stop()
-        if AUTHENTICATION:
+        if conf.AUTHENTICATION:
             self.authsys.stop()
             del(self.authsys)
         
     def cmd(self, command, args, channel, **kwargs):
-        if DEBUG: print("Authentication Bot Command")
-        if AUTHENTICATION:
+        if conf.DEBUG: print("Authentication Bot Command")
+        if conf.AUTHENTICATION:
             kwargs['auth_nick'], kwargs['auth_level'] = self.authsys.online_info("{u}@{h}".format(u = kwargs['from_ident'], h =  kwargs['from_host_mask']))
             if command == 'register' and args != None:
                 if args.find(' ') != -1: args = args.split()
-                if IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
+                if conf.IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
 
-                if len(args) == 2 and not FORCE_EMAIL_REGISTRATION:
+                if len(args) == 2 and not conf.FORCE_EMAIL_REGISTRATION:
                     if self.email_re.match(args[1]):
                         result = self.authsys.add(args[0], args[1])
                         if result: self.notify(kwargs['from_nick'], result)
                         else: self.notify(kwargs['from_nick'], "Email sendt to {u}.".format(u = args[1]))
-                elif (EMAIL_REGISTRATION or FORCE_EMAIL_REGISTRATION):
+                elif (conf.EMAIL_REGISTRATION or conf.FORCE_EMAIL_REGISTRATION):
                     match = self.email_re.match(args)
                     if match:
                         result = self.authsys.add(match.group('user'), args)
                         if result: self.notify(kwargs['from_nick'], result)
                         else: self.notify(kwargs['from_nick'], "Email sendt to {u}.".format(u = args))
                     else:
-                        self.notify(kwargs['from_nick'], "Sorry, you do not match the domain criteria: " + DOMAIN_RESTRICTION)
+                        self.notify(kwargs['from_nick'], "Sorry, you do not match the domain criteria: " + conf.DOMAIN_RESTRICTION)
 
             elif command == 'setpass':
                 args = args.split()
-                if IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
+                if conf.IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
                 if len(args) == 3:
                     result = self.authsys.setpass(args[0], args[1], args[2])
                     if result: self.notify(kwargs['from_nick'], "Password updated")
@@ -76,7 +76,7 @@ class AuthBot(LoggerBot.LoggerBot):
 
             elif command == 'login':
                 args = args.split()
-                if IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
+                if conf.IRC_DEBUG: self.notify(kwargs['from_nick'], "WARNING: IRC_DEBUG is ON. This means the admin can see your password in plaintext")
                 if len(args) == 2:
                     result = self.authsys.login(
                         args[0], args[1], 
@@ -163,14 +163,14 @@ class AuthBot(LoggerBot.LoggerBot):
                 # ON THESE COMMANDS.
                 kwargs['nick_to_user'] = self.nick_user_relation
                 kwargs['user_to_nick'] = self.user_nick_relation
-                if DEBUG: print("NICK TO USER RELATION DICTIONARY: " + str(self.nick_user_relation) + str(self.user_nick_relation))
+                if conf.DEBUG: print("NICK TO USER RELATION DICTIONARY: " + str(self.nick_user_relation) + str(self.user_nick_relation))
                 super(AuthBot, self).cmd(command, args, channel, **kwargs)
         else:
             kwargs['auth_nick'], kwargs['auth_level'] = (None, 0)
             super(AuthBot, self).cmd(command, args, channel, **kwargs)
                 
     def listen(self, command, msg, channel, **kwargs):
-        if AUTHENTICATION:
+        if conf.AUTHENTICATION:
             kwargs['auth_nick'], kwargs['auth_level'] = self.authsys.online_info("{u}@{h}".format(u = kwargs['from_ident'], h =  kwargs['from_host_mask']))
             kwargs['nick_to_user'] = self.nick_user_relation
             kwargs['user_to_nick'] = self.user_nick_relation
@@ -181,12 +181,12 @@ class AuthBot(LoggerBot.LoggerBot):
     def help(self, command, args, channel, **kwargs):
         super(AuthBot, self).help(command, args, channel, **kwargs)
         if command == 'register':
-            if FORCE_EMAIL_REGISTRATION:
+            if conf.FORCE_EMAIL_REGISTRATION:
                 self.notify(kwargs['from_nick'], "!register <email>")
                 self.notify(kwargs['from_nick'], "This will register an email in the bots user")
                 self.notify(kwargs['from_nick'], "database. Please follow the email instructions to set a ")
                 self.notify(kwargs['from_nick'], "password. The email (before @) will be the username")
-            elif EMAIL_REGISTRATION:
+            elif conf.EMAIL_REGISTRATION:
                 self.notify(kwargs['from_nick'], "!register [nick] <email>")
                 self.notify(kwargs['from_nick'], "This will register a nick with an email in the bots user")
                 self.notify(kwargs['from_nick'], "database. Please follow the email instructions to set a ")
@@ -232,8 +232,8 @@ class AuthBot(LoggerBot.LoggerBot):
         
     def management_cmd(self, command, args, **kwargs):
         super(AuthBot, self).management_cmd(command, args, **kwargs)
-        if IRC_DEBUG: stderr.write(":AUTH BOT: MANAGE COMMAND\n")
-        if AUTHENTICATION and kwargs['from_nick'] in self.nick_user_relation:
+        if conf.IRC_DEBUG: stderr.write(":AUTH BOT: MANAGE COMMAND\n")
+        if conf.AUTHENTICATION and kwargs['from_nick'] in self.nick_user_relation:
             account_name = self.nick_user_relation[kwargs['from_nick']]
             if command == "QUIT":
                 self.authsys.logout("{i}@{h}".format(i = kwargs['from_ident'], h = kwargs['from_host_mask']))
@@ -250,6 +250,4 @@ class AuthBot(LoggerBot.LoggerBot):
                 if account_name in self.user_nick_relation:
                     del(self.user_nick_relation[account_name])
                     self.user_nick_relation[account_name] = kwargs['msg']
-        if IRC_DEBUG: stderr.write(":AUTH BOT: MANAGE COMMAND DONE\n")
-
-   
+        if conf.IRC_DEBUG: stderr.write(":AUTH BOT: MANAGE COMMAND DONE\n")

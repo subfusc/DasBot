@@ -15,7 +15,7 @@ class Plugin():
     def help(self, command, args, channel, **kwargs):
         if command == 't':
             msg = [(1, kwargs['from_nick'], "Sanntidsinfo fra trafikanten:")]
-            msg.append((1, kwargs['from_nick'], "!t hvor [min [ant]]"))
+            msg.append((1, kwargs['from_nick'], "!t hvor [ant [min]]"))
             msg.append((1, kwargs['from_nick'], "«hvor» kan blant annet være følgende: sognsvann, ullevål, ringen, sentrum og trikk"))
             msg.append((1, kwargs['from_nick'], "NB! Etter rutetidsendringer har ting blitt hacket og lappet sammen. Pluginen bør skrives på nytt"))
             return msg
@@ -97,11 +97,17 @@ class Plugin():
         if len(msg) == 0:
             hvor = 1
         nar = -1
-        if len(k) > 1:
-            nar = int(k[1])
         ant = 2
+        if len(k) > 1:
+            try:
+                ant = int(k[1])
+            except ValueError:
+                ant = 2
         if len(k) > 2:
-            ant = int(k[2])
+            try:
+                nar = int(k[2])
+            except ValueError:
+                nar = -1
         s = self.trafikanten_realtime(hvor)
         avganger = json.loads(s)
         nu = int(datere.match(avganger[0]['RecordedAtTime']).group(1))

@@ -14,7 +14,7 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from GlobalConfig import *
+import GlobalConfig as conf
 from PluginBot import PluginBot
 import threading
 import time
@@ -50,7 +50,7 @@ class CronTab(object):
         
     def pop_job(self):
         self.__lock.acquire()
-        if VERBOSE: print("CRONTAB: " + str(self.__tab))
+        if conf.VERBOSE: print("CRONTAB: " + str(self.__tab))
         job = self.__tab.pop()
         self.__lock.release()
         return job
@@ -67,7 +67,7 @@ class CronJob(threading.Thread):
         self.send_function = send_function
 
     def stop(self):
-        if VERBOSE: print("DELETING CRONJOB")
+        if conf.VERBOSE: print("DELETING CRONJOB")
         self.exit = True
         if self.timer:
             self.timer.cancel()
@@ -78,17 +78,17 @@ class CronJob(threading.Thread):
         self.__release_main_lock()
 
     def __aquire_both_locks(self):
-        if DEBUG: print("Aquire both locks")
+        if conf.DEBUG: print("Aquire both locks")
         self.lock_lock.acquire()
         self.lock.acquire()
 
     def __release_lock_lock_and_wait(self):
-        if DEBUG: print("release lock lock and wait")
+        if conf.DEBUG: print("release lock lock and wait")
         self.lock_lock.release()
         self.lock.acquire()
 
     def __release_main_lock(self):
-        if DEBUG: print("release main lock")
+        if conf.DEBUG: print("release main lock")
         self.lock_lock.acquire()
         if self.lock.locked():
             self.lock.release()
@@ -97,7 +97,7 @@ class CronJob(threading.Thread):
     def run(self):
         print("Starting CronJob Daemon")
         while not self.exit:
-            if DEBUG: print("==::LOOP::==")
+            if conf.DEBUG: print("==::LOOP::==")
             self.__aquire_both_locks()
             if len(self.crontab) > 0:
                 self.timer = threading.Timer(self.crontab.peek_job()[0] - time.time(), 
@@ -114,19 +114,19 @@ class CronJob(threading.Thread):
             else:
                 self.__release_lock_lock_and_wait()
                 self.__release_main_lock()
-        if DEBUG: print("Exited Safely")
+        if conf.DEBUG: print("Exited Safely")
 
 class CronBot(PluginBot):
 
     def __init__(self):
         super(CronBot, self).__init__()
         self.cronjob = CronJob(self._send_message)
-        if START_CRON_BOT:
+        if conf.START_CRON_BOT:
             self.cronjob.start()
         
     def stop(self):
         super(CronBot, self).stop()
-        if START_CRON_BOT:
+        if conf.START_CRON_BOT:
             self.cronjob.stop()
         
     def cmd(self, command, args, channel, **kwargs):

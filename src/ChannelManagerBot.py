@@ -14,9 +14,10 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import GlobalConfig as conf
 from CronBot import CronBot
 from threading import Timer
-from GlobalConfig import *
 from sys import stderr
 
 class ChannelManagementBot(CronBot):
@@ -27,7 +28,7 @@ class ChannelManagementBot(CronBot):
         self.nicks = []
 
     def cmd(self, command, args, channel, **kwargs):
-        if DEBUG: print("ChannelManagementBot CMD function")
+        if conf.DEBUG: print("ChannelManagementBot CMD function")
         kwargs["channel_users"] = self.channel[channel] if channel in self.channel else [kwargs['from_nick']]
         super(ChannelManagementBot, self).cmd(command, args, channel, **kwargs)
         if command == "here":
@@ -39,7 +40,7 @@ class ChannelManagementBot(CronBot):
             
     def management_cmd(self, command, args, **kwargs):
         super(ChannelManagementBot, self).management_cmd(command, args, **kwargs)
-        if IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD : {d}\n".format(d=command))
+        if conf.IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD : {d}\n".format(d=command))
         if command == "JOIN":
             self.channel[kwargs["msg"]].append(kwargs["from_nick"])
             self.nicks.append(kwargs["from_nick"])
@@ -58,10 +59,10 @@ class ChannelManagementBot(CronBot):
                 self.__rm_user_from_nicks(args[1])
         elif command == "NICK":
             self.__change_nick(kwargs["from_nick"], kwargs["msg"])
-        if IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD_DONE\n".format())
+        if conf.IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD_DONE\n".format())
                 
     def manage_users_during_join(self, name, args):
-        if VERBOSE: print(":JOIN CHANNEL: Channel: " + name + " Args: " + args + "\n")
+        if conf.VERBOSE: print(":JOIN CHANNEL: Channel: " + name + " Args: " + args + "\n")
         if not name in self.channel: 
             self.channel[name] = []
 
