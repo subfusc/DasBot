@@ -26,3 +26,6 @@ def green(string):
 
 def red(string):
     return COLOR + COLORS['red'] + string + COLOR
+
+def blue(string):
+    return COLOR + COLORS['blue'] + string + COLOR

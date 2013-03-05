@@ -64,15 +64,14 @@ class IRCbot(object):
         self._nick = conf.NICK #: The nick the bot is going to use
         self.ident = conf.IDENT #: Identity of the bot
         self.realname = conf.REAL_NAME #: The "realname" of the bot
-        self.s = socket.socket() #: Create a socket for the I/O to the server
-        self.s.settimeout(600)
+        self.s = None #: Create a socket for the I/O to the server
         self.message_re = re.compile(MESSAGE_RE)
         self.send_lock = Lock()
         self.exit = False
         self.rest_line = ""
         
     def __del__(self):
-        self.s.close()
+        if self.s: self.s.close()
 
     def _parse_command(self, cmd):
         first_space = cmd.find(" ")
@@ -80,6 +79,12 @@ class IRCbot(object):
             return (cmd[1:], None)
         else:
             return (cmd[1:first_space], cmd[first_space + 1:])
+
+    def reset(self):
+        "Reset variables that are needed in order to reconnect on pingout."
+        if self.s: self.s.close()
+        self.s = socket.socket() #: Create a socket for the I/O to the server
+        self.s.settimeout(600)
         
     def __lineParser(self, raw):
         lines = raw.split('\r\n')
@@ -135,6 +140,7 @@ class IRCbot(object):
                 sys.stderr.write(":LINE : \"" + line + "\"\n")
         
     def connect(self):
+        self.reset()
         self.s.connect((self.host, self.port)) #Connect to server 
         self.send_sync('NICK ' + self._nick + '\n') #Send the nick to server 
         self.send_sync('USER ' + self.ident + ' ' + self.host + ' SB: ' + self.realname + '\n') #Identify to server
@@ -268,6 +274,7 @@ class IRCbot(object):
 
     def start(self, reconnect=True, reconnect_timeout=5, tries=10):
         original_tries = tries
+        self.connect()
         try:
             while not self.exit: # Main Loop
                 try:
@@ -293,7 +300,7 @@ class IRCbot(object):
 
 
     def stop(self):
-        self.s.close()
+        if self.s: self.s.close()
         
     def _server_command(self, command, server):
         """
@@ -306,8 +313,8 @@ class IRCbot(object):
         if conf.IRC_DEBUG:
             sys.stderr.write('PONG ' + ":" + server[1] + '\n')
             
-        if command == 'PING':
-            self.send_sync('PONG ' + ":" + server[1] + '\n')
+       # if command == 'PING':
+       #     self.send_sync('PONG ' + ":" + server[1] + '\n')
 
     def cmd(self, command, args, channel, **kwargs):
         """

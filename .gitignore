@@ -1,14 +1,9 @@
 *~
 *.pyc
-/ircraw.log
-/#README#
-/src/#IRCbot.py#
-/src/Cron.py
-/src/#main.py#
-/src/Fiskern.py
-/src/IRC.log
-/src/ircraw.log
 *.log
 *.sql
 *#
+#*
+src/GlobalConfig.py
 doc
+data

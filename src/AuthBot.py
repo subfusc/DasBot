@@ -251,3 +251,8 @@ class AuthBot(LoggerBot.LoggerBot):
                     del(self.user_nick_relation[account_name])
                     self.user_nick_relation[account_name] = kwargs['msg']
         if conf.IRC_DEBUG: stderr.write(":AUTH BOT: MANAGE COMMAND DONE\n")
+
+
+    # NOTE: We might want this in the future due to security reasons.
+    def reset(self):
+        super(AuthBot, self).reset()

@@ -104,7 +104,12 @@ class ChannelManagementBot(CronBot):
 
     def in_channel(self, channel):
         return channel in self.channel
-        
+
+    def reset(self):
+        super(ChannelManagementBot, self).reset()
+        self.channel = {}
+        self.nicks = []
+    
     def visible_for_bot(self, nick):
         return nick in self.nicks
 
