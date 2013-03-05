@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
-from GlobalConfig import *
+import GlobalConfig as conf
+
 UNDERLINED = "\x1F"
 BOLD = '\x02'
 REVERSED = '\x16'

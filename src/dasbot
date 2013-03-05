@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2012 Herman Torjussen
+# Last edited by 2012 Sindre Wetjen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,8 +22,14 @@ import re
 import os
 import sys
 import getopt
+try:
+    import GlobalConfig as conf
+except ImportError: 
+    from shutil import copyfile as cp
+    cp("GlobalConfig.py.template", "GlobalConfig.py")
+    import GlobalConfig as conf
+
 import IRCFonts
-import GlobalConfig as conf
 from AuthBot import AuthBot as Bot
 
 def die(msg):
@@ -46,7 +53,10 @@ def usage():
     "   -n, --nick <nick>       use channel nick\n"
     "   -u, --plugin <plug>     load plugins\n"
     "   -l, --log <file>        log to specified file\n"
-
+    "   --dont-reconnect        Don't reconnect on ping out.\n"
+    "   -t, --tries <number>    Number of reconnect tries.\n"
+    "   --timeout <sec>         Seconds to wait before reconnecting.\n"
+    
     "examples:\n"
     "   {prog} --verbose --auth --chan iskbot,fubot --nick r0b0tNicK\n"
     "   {prog} -vac iskbot,fubot -n r0b0tNicK").format(prog = sys.argv[0])
@@ -59,11 +69,12 @@ if __name__ == '__main__':
         validhost = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
         validnick = r"^[a-zA-Z_\-\[\]\\^{}|`][a-zA-Z0-9_\-\[\]\\^{}|`]*$"
 
-        longopts = ["--verbose", "--debug", "--help", "--chan=", "--port=", "--serv=", "--nick=", "--plugin=", "--auth", "--log=", "--cron"]
-        shortopts = ["-v", "-d" "-h", "-c", "-p", "-s", "-n", "-u", "-a", "-l", "-o"]
+        longopts = ["--verbose", "--debug", "--help", "--chan=", "--port=", "--serv=", "--nick=", "--plugin=", "--auth", "--log=", "--cron", "--tries=", "--timeout="]
+        shortopts = ["-v", "-d" "-h", "-c", "-p", "-s", "-n", "-u", "-a", "-l", "-o", "-t"]
         optstring = ":vdhaoc:p:s:n:u:l:"
         argdelim = ","
 
+        
         try:
             options, args = getopt.getopt(sys.argv[1:], optstring, [o.strip("--") for o in longopts])
         except getopt.GetoptError as err:
@@ -119,6 +130,14 @@ if __name__ == '__main__':
                 conf.LOG_FILE = arg
             elif opt in ("-o", "--cron"):
                 conf.START_CRON_BOT = True
+            elif opt in ("-t", "--tries"):
+                ckarg(opt, arg)
+                conf.RECONNECT_TRIES = int(arg)
+            elif opt in "--dont-reconnect":
+                conf.RECONNECT=False
+            elif opt in "--timeout":
+                ckarg(opt, arg)
+                conf.RECONNECT_TIMEOUT = int(arg)
             else:
                 assert False, "unhandled option"
                 die("see {} --help for usage".format(sys.argv[0]))
@@ -128,9 +147,7 @@ if __name__ == '__main__':
         os.setuid(conf.UID)
     
     bot = Bot()
-    bot.connect()
-    for channel in conf.STARTUP_CHANNELS:
-        bot.join(channel)
-    bot.start()
+    bot.start(reconnect=conf.RECONNECT, reconnect_timeout=conf.RECONNECT_TIMEOUT,
+              tries=conf.RECONNECT_TRIES)
     bot.stop()
     sys.exit(0)

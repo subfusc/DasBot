@@ -142,7 +142,7 @@ class IRCbot(object):
         exit = False
         while not exit: # Join loop 
             raw = self.s.recv(1024) #recieve server messages 
-            if not raw: break
+            if not raw: return False
             
             lines = raw.split('\r\n')
             if self.rest_line != "":
@@ -160,7 +160,10 @@ class IRCbot(object):
                     break
 
                 if match.group('command') == 'PING': #If server pings then pong 
-                    self.send_sync('PONG ' + match.group('params') + '\n')  
+                    self.send_sync('PONG ' + match.group('params') + '\n')
+
+        for channel in conf.STARTUP_CHANNELS:
+            self.join(channel)
 
         return True
 
@@ -263,14 +266,31 @@ class IRCbot(object):
         else:
             return None 
 
-    def start(self):
+    def start(self, reconnect=True, reconnect_timeout=5, tries=10):
+        original_tries = tries
         try:
             while not self.exit: # Main Loop
-                line = self.s.recv(1024) #recieve server messages
-                if not line: break
-                line = self.__lineParser(line)
+                try:
+                    line = self.s.recv(1024) #recieve server messages
+                    
+                    if not line:
+                        if reconnect and tries > 0:
+                            time.sleep(reconnect_timeout)
+                            if self.connect():
+                                tries = original_tries
+                            else: tries -= 1
+                        else: break
+                            
+                    line = self.__lineParser(line)
+                except socket.error:
+                    if reconnect and tries > 0:
+                        time.sleep(reconnect_timeout)
+                        if self.connect():
+                            tries = original_tries
+                        else: tries -= 1
         except KeyboardInterrupt:
             return
+
 
     def stop(self):
         self.s.close()
