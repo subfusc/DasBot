@@ -313,8 +313,8 @@ class IRCbot(object):
         if conf.IRC_DEBUG:
             sys.stderr.write('PONG ' + ":" + server[1] + '\n')
             
-       # if command == 'PING':
-       #     self.send_sync('PONG ' + ":" + server[1] + '\n')
+        if command == 'PING':
+            self.send_sync('PONG ' + ":" + server[1] + '\n')
 
     def cmd(self, command, args, channel, **kwargs):
         """
