@@ -6,6 +6,40 @@ class Plugin(object):
 
     def __init__(self, *args):
         self.listeners = {}
+        self.history = {}
+        self.stop = {}
+
+    def _get_changes(self, channel):
+        history = self.history[channel] if channel in self.history else None
+        response = None
+        if len(args) == 1 and channel in self.listeners:
+            response = self.listeners[channel].call({'action': 'query',
+                                                     'list': 'recentchanges',
+                                                     'rclimit': '5',
+                                                     'rcprop': 'user|comment|title|timestamp'})
+        elif len(args) == 2 and args[1] in self.listeners:
+            response = self.listeners[args[1]].call({'action': 'query',
+                                                     'list': 'recentchanges',
+                                                     'rclimit': '5',
+                                                     'rcprop': 'user|comment|title|timestamp'})
+            if response:
+                rlist = []
+                for event in response['query']['recentchanges']:
+                    rlist.append((channel, to_bytes(event['user']), 
+                                  to_bytes(event['type']), to_bytes(event['comment']), 
+                                  to_bytes(event['timestamp']),
+                                  to_bytes(event['title']) if 'title' in event else ""))
+                return rlist
+                
+    def _filter_new(self, channel, response):
+
+    
+    def monitor(self, args, channel, **kwargs): 
+        if channel in self.stop: return
+        if channel in self.history and channel in self.listeners:
+            history = self.history[channel]
+            
+            
         
     def cmd(self, cmd, args, channel, **kwargs):
         # stderr.write("Call: " + cmd + " :: " + args + " :: " + channel + " " + str(kwargs) + "\n")
@@ -35,30 +69,8 @@ class Plugin(object):
                 elif len(args) == 2:
                     del(self.listeners[args[1]])
             elif args[0] == 'changes':
-                response = None
-                if len(args) == 1 and channel in self.listeners:
-                    response = self.listeners[channel].call({'action': 'query',
-                                                             'list': 'recentchanges',
-                                                             'rclimit': '5',
-                                                             'rcprop': 'user|comment|title|timestamp'})
-                elif len(args) == 2 and args[1] in self.listeners:
-                    response = self.listeners[args[1]].call({'action': 'query',
-                                                             'list': 'recentchanges',
-                                                             'rclimit': '5',
-                                                             'rcprop': 'user|comment|title|timestamp'})
-                if response:
-                    rlist = []
-                    for event in response['query']['recentchanges']:
-                        rlist.append((1, 
-                                      kwargs['from_nick'] if len(args) == 2 else channel, 
-                                      "{usr}: {ac}{tit}, Time: {ti}, Comment: {co}".format(
-                                          usr = to_bytes(event['user']),
-                                          ac = to_bytes(event['type']),
-                                          co = to_bytes(event['comment']),
-                                          ti = to_bytes(event['timestamp']),
-                                          tit = ", Title: {title}".format(title=to_bytes(event['title'])) if 'title' in event else "")))
-                        #stderr.write(str(rlist) + "\n")
-                    return rlist
+
+        
 
 if __name__ == '__main__':
     t = Plugin()
