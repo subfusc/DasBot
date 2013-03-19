@@ -20,7 +20,7 @@ class Plugin(object):
 
     def cmd(self, command, args, channel, **kwargs):
         if conf.DEBUG: print("COMMAND TruthTable") # Dunno why this is here
-        if kwargs['auth_nick'] == None:
+        if kwargs['auth_nick'] != None:
             if command == 'truth':
                 parsedOutput = self.truth.parse(str(args))
                 output = []
