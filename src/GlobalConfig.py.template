@@ -7,8 +7,8 @@ DEBUG = False
 IRC_DEBUG = False
 VERSION = 0.2
 NAME = "dasbot"
-COMMAND_CHAR = "!"
-HELP_CHAR = '?'
+COMMAND_CHAR = "."
+HELP_CHAR = '@'
 
 # IRCbot config
 CHANGE_RUNTIME_USER = False
