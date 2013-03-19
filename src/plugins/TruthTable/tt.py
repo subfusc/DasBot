@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# TODO:
+# Presedens?
+# ~ funker ikke riktig, sjekk ~A
+
 import math
 
 MAXVARS = 3
@@ -43,6 +47,8 @@ class TruthTable(object):
 
     def makeTree(self, statement):
 
+        print("Statement:" + statement)
+
         operatorIndex = self.getOperatorIndex(statement)
 
         # If 'entity'
@@ -53,11 +59,12 @@ class TruthTable(object):
             elif statement[0] == '~':
                 return ['~', self.makeTree(statement[1:])]
             else:
-                return self.makeTree(statement[1:-1])
+                return  self.makeTree(statement[1:-1])
 
         return [statement[operatorIndex], self.makeTree(statement[:operatorIndex]), self.makeTree(statement[operatorIndex+1:])]
 
     def solveTree(self, tree):
+        print("Tree: " + str(tree))
         if len(tree) == 1:
             return tree
 
@@ -88,6 +95,12 @@ class Truth(object):
 
         return sym
 
+    def containsOperator(self, statement):
+        for symbol in statement:
+            if symbol in self.truth.operators:
+                return True
+        return False
+
     def getVariables(self, statement):
         variables = { }
 
@@ -95,6 +108,9 @@ class Truth(object):
             if symbol not in self.truth.operators and symbol != '(' and symbol != ')':
                 if symbol not in variables:
                     variables[symbol] = []
+
+        if len(variables) > MAXVARS:
+            return None
 
         rows = math.pow(2,len(variables))
         varIndex = 1
@@ -115,7 +131,7 @@ class Truth(object):
 
         tree = self.truth.makeTree(statement)
 
-        return self.truth.solveTree(statement)
+        return self.truth.solveTree(tree)
 
     # This starts the process of parsing a logical statement
     # Example statement: "(A + (B & C))"
@@ -124,19 +140,26 @@ class Truth(object):
         # Removing spaces making the statement compact, ie "(A+(B&C))"
         statement = originalStatement.replace(" ", "")
 
+        if self.containsOperator(originalStatement) == False:
+            self.error("Bad expression")
+            return None
         # Checks for an uneven amount of brackets, ie: "(A + (B & C)))", "(A + B & C))", etc
         if self.bracketSymmetry(statement) != 0:
             self.error("Statement is not symmetrical")
-            return
+            return None
 
         # Extracts variables from the statement into a list
         # variables = { 'A', 'B', 'C' ]
         variables = self.getVariables(statement)
 
+        if variables == None:
+            self.error("Check statement")
+            return None
+
         # Makes sure there are no more then MAXVARS variables. Complexity increases drastically by each variable.
         if len(variables) > MAXVARS:
             self.error("Too many variables. TruthTable only supports " + str(MAXVARS) + " variables")
-            return
+            return None
 
         # Checks are done
         # Lets work some magic

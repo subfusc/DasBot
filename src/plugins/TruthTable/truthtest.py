@@ -94,7 +94,7 @@ class Test:
         print("############")
 
     def testParser(self):
-
+        pass
 
 t = Test(LEVEL)
 t.testSolveTree()
