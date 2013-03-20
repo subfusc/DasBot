@@ -28,7 +28,7 @@ class Plugin(object):
             parsedOutput = self.truth.parse(str(args))
 
             if parsedOutput == None:
-                return [(0, channel, kwargs['from_nick'], "Bad formatting, check your expression. For help, type " + conf.COMMAND_CHAR + "tt")]
+                return [(0, channel, kwargs['from_nick'], "Bad formatting, check your expression. For help, type " + conf.HELP_CHAR + "tt")]
 
             output = []
 

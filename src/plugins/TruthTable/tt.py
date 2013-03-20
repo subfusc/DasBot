@@ -29,25 +29,21 @@ class TruthTable(object):
             index += 1
 
     def operate(self, operator, varA, varB):
-        varA = int(varA)
-        varB = int(varB)
 
         if operator == '&':
-            if varA == 1 and varB == 1:
-                return 1
-            return 0
+            if varA == '1' and varB == '1':
+                return '1'
+            return '0'
         if operator == '+':
-            if varA == 1 or varB == 1:
-                return 1
-            return 0
+            if varA == '1' or varB == '1':
+                return '1'
+            return '0'
         if operator == '>':
-            if varA == 1 and varB == 0:
-                return 0
-            return 1
+            if varA == '1' and varB == '0':
+                return '0'
+            return '1'
 
     def makeTree(self, statement):
-
-        print("Statement:" + statement)
 
         operatorIndex = self.getOperatorIndex(statement)
 
@@ -64,15 +60,14 @@ class TruthTable(object):
         return [statement[operatorIndex], self.makeTree(statement[:operatorIndex]), self.makeTree(statement[operatorIndex+1:])]
 
     def solveTree(self, tree):
-        print("Tree: " + str(tree))
         if len(tree) == 1:
             return tree
 
         if tree[0] == '~':
-            if self.solveTree(tree[1]) == 1:
-                return 0
+            if self.solveTree(tree[1]) == '1':
+                return '0'
             else:
-                return 1
+                return '1'
 
         return self.operate(tree[0], self.solveTree(tree[1]), self.solveTree(tree[2]))
 
@@ -127,6 +122,18 @@ class Truth(object):
 
         return variables
 
+    def syntaxOk(self, statement, variables):
+        index = 0
+        for symbol in statement:
+            if symbol in self.truth.operators:
+                if index+1 >= len(statement):
+                    return False
+                if symbol == '~': # Lengdesjekken gjelder for alle operatorer
+                    if statement[index+1] not in variables and statement[index+1] != '(':
+                        return False
+
+            index += 1
+
     def solve(self, statement):
 
         tree = self.truth.makeTree(statement)
@@ -159,6 +166,10 @@ class Truth(object):
         # Makes sure there are no more then MAXVARS variables. Complexity increases drastically by each variable.
         if len(variables) > MAXVARS:
             self.error("Too many variables. TruthTable only supports " + str(MAXVARS) + " variables")
+            return None
+
+        if self.syntaxOk(statement, variables) == False:
+            self.error("Syntax check failed")
             return None
 
         # Checks are done
