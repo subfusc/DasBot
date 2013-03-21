@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # TODO:
-# Presedens?
-# Støtter ikke unicode
+# Presedens
 
 import math
 import re
@@ -164,18 +163,23 @@ class Truth(object):
     # Example statement: "(A + (B & C))"
     def parse(self, originalStatement):
 
+        # Checks for unicode characters
+        if type(originalStatement) == unicode:
+            self.error("TruthTable does not support unicode")
+            return 1
+
         # Removing spaces making the statement compact, ie "(A+(B&C))"
         statement = originalStatement.replace(" ", "")
 
         # If an expression does not contain an operator, why parse it?
         if self.containsOperator(originalStatement) == False:
             self.error("Expression does not contain operators")
-            return None
+            return 2
 
         # Checks for syntax errors
         if self.syntaxOk(statement) == False:
             self.error("Syntax check failed")
-            return None
+            return 3
 
         # Extracts variables from the statement into a list
         # variables = { 'A', 'B', 'C' ]
@@ -183,7 +187,7 @@ class Truth(object):
 
         if variables == None:
             self.error("No variables found")
-            return None
+            return 4
 
 
         # Checks are done
@@ -249,4 +253,22 @@ class Truth(object):
         # Return a list of lines for output
         return output
 
-t = Truth()
+    def getError(self, error):
+        if error == 1:
+            return 'TruthTable does not support unicode.'
+        elif error == 2:
+            return 'Expression does not contain any known operators.'
+        elif error == 3:
+            return 'The syntax of the expression is incorrect.'
+        elif error == 4:
+            return 'No variables found.'
+        else:
+            return 'Something went wrong.'
+
+
+
+
+
+
+# Uncomment for debugging
+#t = Truth()
