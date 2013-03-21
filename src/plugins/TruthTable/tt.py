@@ -270,6 +270,7 @@ class Truth(object):
         # Return a list of lines for output
         return output
 
+    # Returns a string for the right error value
     def getError(self, error):
         if error == 1:
             return 'TruthTable does not support unicode.'
@@ -288,4 +289,4 @@ class Truth(object):
 
 
 # Uncomment for debugging
-t = Truth()
+#t = Truth()
