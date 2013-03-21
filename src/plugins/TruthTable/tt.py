@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 # TODO:
 # Presedens?
-# ~ funker ikke riktig, sjekk ~A
+# Koden antar lengde på variabelene, kræsjer hvis mer enn 1
+# Støtter ikke unicode
+# Operator aritet, kræsjer hvis ikke blir møtt
 
 import math
+import re
 
 MAXVARS = 3
 SEPERATORSPACES = '   '
@@ -12,6 +15,7 @@ class TruthTable(object):
 
     def __init__(self):
         self.operators = ['+', '&', '>', '~']
+        self.maxvars = MAXVARS
 
     def getOperatorIndex(self, statement):
 
@@ -96,15 +100,13 @@ class Truth(object):
                 return True
         return False
 
-    def getVariables(self, statement):
-        variables = { }
+    def getVariables(self, statement): # TODO: Må identifisere variabler på mer enn et symbol?
 
-        for symbol in statement:
-            if symbol not in self.truth.operators and symbol != '(' and symbol != ')':
-                if symbol not in variables:
-                    variables[symbol] = []
+        l = re.findall('[a-zA-Z]+', statement)
 
-        if len(variables) > MAXVARS:
+        variables = { item:[] for item in l }
+
+        if len(variables) > self.truth.maxvars:
             return None
 
         rows = math.pow(2,len(variables))
@@ -122,17 +124,28 @@ class Truth(object):
 
         return variables
 
-    def syntaxOk(self, statement, variables):
+    def syntaxOk(self, statement):
+        legalNext = { '(':'[a-zA-Z~(]',
+                      ')':'[\+&>)]',
+                      '~':'[a-zA-Z(~]',
+                      '+':'[a-zA-Z(~]',
+                      '&':'[a-zA-Z(~]',
+                      '>':'[a-zA-Z(~]' }
+
         index = 0
+        statementlength = len(statement)
+
         for symbol in statement:
-            if symbol in self.truth.operators:
-                if index+1 >= len(statement):
+            if symbol in legalNext:
+                if index+1 >= statementlength:
                     return False
-                if symbol == '~': # Lengdesjekken gjelder for alle operatorer
-                    if statement[index+1] not in variables and statement[index+1] != '(':
+
+                if re.search(legalNext[symbol], statement[index+1]) == None:
                         return False
 
             index += 1
+
+        return True
 
     def solve(self, statement):
 
@@ -148,7 +161,7 @@ class Truth(object):
         statement = originalStatement.replace(" ", "")
 
         if self.containsOperator(originalStatement) == False:
-            self.error("Bad expression")
+            self.error("Expression does not contain operators")
             return None
         # Checks for an uneven amount of brackets, ie: "(A + (B & C)))", "(A + B & C))", etc
         if self.bracketSymmetry(statement) != 0:
@@ -160,15 +173,10 @@ class Truth(object):
         variables = self.getVariables(statement)
 
         if variables == None:
-            self.error("Check statement")
+            self.error("No variables found")
             return None
 
-        # Makes sure there are no more then MAXVARS variables. Complexity increases drastically by each variable.
-        if len(variables) > MAXVARS:
-            self.error("Too many variables. TruthTable only supports " + str(MAXVARS) + " variables")
-            return None
-
-        if self.syntaxOk(statement, variables) == False:
+        if self.syntaxOk(statement) == False:
             self.error("Syntax check failed")
             return None
 
@@ -189,6 +197,20 @@ class Truth(object):
 
         output.append(tmpStr)
 
+        resultSpaces = " "
+
+        if originalStatement[-1] == ')':
+            operatorIndex = self.truth.getOperatorIndex(originalStatement[1:-1]) + 1
+        else:
+            operatorIndex = self.truth.getOperatorIndex(originalStatement)
+
+        if operatorIndex == None:
+            resultSpaces += ""
+            operatorIndex = 0
+
+        for i in range(0, operatorIndex):
+            resultSpaces += " "
+
         # Add each row of variable values and solve statement
         for i in range(0, int(rows)):
 
@@ -199,7 +221,7 @@ class Truth(object):
                 tmpStr += str(variables[var][i])
                 tmpStr += SEPERATORSPACES
                 tmpStatement = tmpStatement.replace(var, str(variables[var][i]))
-            tmpStr += '| '
+            tmpStr += '|' + resultSpaces
 
             # solve statement
             tmpStr += str(self.solve(tmpStatement))
@@ -208,3 +230,5 @@ class Truth(object):
 
         # Return a list of lines for output
         return output
+
+t = Truth()
