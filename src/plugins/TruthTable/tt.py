@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 # TODO:
 # Presedens?
-# Koden antar lengde på variabelene, kræsjer hvis mer enn 1
 # Støtter ikke unicode
-# Operator aritet, kræsjer hvis ikke blir møtt
 
 import math
 import re
@@ -103,7 +101,6 @@ class Truth(object):
     def getVariables(self, statement): # TODO: Må identifisere variabler på mer enn et symbol?
 
         l = re.findall('[a-zA-Z]+', statement)
-
         variables = { item:[] for item in l }
 
         if len(variables) > self.truth.maxvars:
@@ -135,6 +132,16 @@ class Truth(object):
         index = 0
         statementlength = len(statement)
 
+        # Checks for an uneven amount of brackets, ie: "(A + (B & C)))", "(A + B & C))", etc
+        if self.bracketSymmetry(statement) != 0:
+            self.error("Statement is not symmetrical")
+            return False
+
+        # Checks for a number. Numbers are not allowed mkay
+        if re.search('[0-9]+', statement):
+            return False
+
+        # Checks each symbol for a valid next symbol
         for symbol in statement:
             if symbol in legalNext:
                 if index+1 >= statementlength:
@@ -160,12 +167,14 @@ class Truth(object):
         # Removing spaces making the statement compact, ie "(A+(B&C))"
         statement = originalStatement.replace(" ", "")
 
+        # If an expression does not contain an operator, why parse it?
         if self.containsOperator(originalStatement) == False:
             self.error("Expression does not contain operators")
             return None
-        # Checks for an uneven amount of brackets, ie: "(A + (B & C)))", "(A + B & C))", etc
-        if self.bracketSymmetry(statement) != 0:
-            self.error("Statement is not symmetrical")
+
+        # Checks for syntax errors
+        if self.syntaxOk(statement) == False:
+            self.error("Syntax check failed")
             return None
 
         # Extracts variables from the statement into a list
@@ -176,9 +185,6 @@ class Truth(object):
             self.error("No variables found")
             return None
 
-        if self.syntaxOk(statement) == False:
-            self.error("Syntax check failed")
-            return None
 
         # Checks are done
         # Lets work some magic
@@ -194,6 +200,8 @@ class Truth(object):
             tmpStr += var + SEPERATORSPACES
         tmpStr += '| '
         tmpStr += originalStatement
+
+        seperator = tmpStr.index('|')
 
         output.append(tmpStr)
 
@@ -211,16 +219,26 @@ class Truth(object):
         for i in range(0, operatorIndex):
             resultSpaces += " "
 
+        spacesCtr = int(seperator/(len(SEPERATORSPACES) * len(variables)))
+        spaces = ""
+
+        for i in range(0, spacesCtr):
+            spaces += SEPERATORSPACES
+
         # Add each row of variable values and solve statement
         for i in range(0, int(rows)):
 
             tmpStatement = statement
             tmpStr = ""
+            lineVars = [ ]
 
-            for var in sorted(variables.keys()):
-                tmpStr += str(variables[var][i])
-                tmpStr += SEPERATORSPACES
+            for var in sorted(variables.keys()): # TODO: Formatering
+                lineVars.append([variables[var][i], len(var) + len(SEPERATORSPACES) - 1])
                 tmpStatement = tmpStatement.replace(var, str(variables[var][i]))
+
+            for i in range(0, len(lineVars)):
+                tmpStr += "{0:^{1:1d}d} ".format(lineVars[i][0],lineVars[i][1])
+
             tmpStr += '|' + resultSpaces
 
             # solve statement
