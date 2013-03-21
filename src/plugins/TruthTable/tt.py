@@ -97,7 +97,7 @@ class Truth(object):
                 return True
         return False
 
-    def getVariables(self, statement): # TODO: Må identifisere variabler på mer enn et symbol?
+    def getVariables(self, statement):
 
         l = re.findall('[a-zA-Z]+', statement)
         variables = { item:[] for item in l }
@@ -121,15 +121,24 @@ class Truth(object):
         return variables
 
     def syntaxOk(self, statement):
-        legalNext = { '(':'[a-zA-Z~(]',
-                      ')':'[\+&>)]',
-                      '~':'[a-zA-Z(~]',
-                      '+':'[a-zA-Z(~]',
-                      '&':'[a-zA-Z(~]',
-                      '>':'[a-zA-Z(~]' }
+
+        preOperator = '[+&>)]'
+        preVariable = '[a-zA-Z(~]'
+
+        legalNext = { '(':preVariable,
+                      ')':preOperator,
+                      '~':preVariable,
+                      '+':preVariable,
+                      '&':preVariable,
+                      '>':preVariable,
+                      '@':preOperator }
 
         index = 0
         statementlength = len(statement)
+
+        # Checks for alien chars
+        if re.search('[^a-zA-Z+&>~()]', statement) != None:
+           return False
 
         # Checks for an uneven amount of brackets, ie: "(A + (B & C)))", "(A + B & C))", etc
         if self.bracketSymmetry(statement) != 0:
@@ -144,10 +153,16 @@ class Truth(object):
         for symbol in statement:
             if symbol in legalNext:
                 if index+1 >= statementlength:
-                    return False
+                    if symbol == ')':
+                        return True
+                    else:
+                        return False
 
                 if re.search(legalNext[symbol], statement[index+1]) == None:
                         return False
+            else:
+                if index+1 < statementlength and statement[index+1] == '~':
+                    return False
 
             index += 1
 
@@ -156,6 +171,8 @@ class Truth(object):
     def solve(self, statement):
 
         tree = self.truth.makeTree(statement)
+
+        print(tree)
 
         return self.truth.solveTree(tree)
 
@@ -236,7 +253,7 @@ class Truth(object):
             tmpStr = ""
             lineVars = [ ]
 
-            for var in sorted(variables.keys()): # TODO: Formatering
+            for var in sorted(variables.keys()): # TODO: Formatering er ikke helt på plass
                 lineVars.append([variables[var][i], len(var) + len(SEPERATORSPACES) - 1])
                 tmpStatement = tmpStatement.replace(var, str(variables[var][i]))
 
@@ -271,4 +288,4 @@ class Truth(object):
 
 
 # Uncomment for debugging
-#t = Truth()
+t = Truth()
