@@ -2,6 +2,8 @@
 from tt import Truth
 import GlobalConfig as conf
 
+MAX_LINES_TO_CHANNEL = 5
+
 class Plugin(object):
 
     def __init__(self):
@@ -29,8 +31,13 @@ class Plugin(object):
                 return [(0, channel, kwargs['from_nick'], self.truth.getError(parsedOutput) + ' For help, type ' + conf.HELP_CHAR + 'tt')]
 
             output = []
+            destination = 0
 
-            for line in parsedOutput:
-                output.append( (0, channel, kwargs['from_nick'], line) )
+            if len(parsedOutput) > MAX_LINES_TO_CHANNEL: # Bytt til hvor mange linjer skal få lov til å gå i channel
+                for line in parsedOutput:
+                    output.append( (1, kwargs['from_nick'], line) )
+            else:
+                for line in parsedOutput:
+                    output.append( (0, channel, kwargs['from_nick'], line) )
 
             return output
