@@ -14,13 +14,10 @@ class Plugin(object):
 
     def help(self, command, argc, channel, **kwargs):
         if command == 'tt':
-            return [(1, kwargs['from_nick'], "!tt [logical expression]"),
-                    (1, kwargs['from_nick'], "Calculates the logical expression and returns a 'truth table'"),
-                    (1, kwargs['from_nick'], "containing the results."),
-                    (1, kwargs['from_nick'], "Remember:"),
-                    (1, kwargs['from_nick'], "Paranthesises must be symmetrical. For each '(', there must be a ')'."),
-                    (1, kwargs['from_nick'], "We have a limit of " + str(self.truth.truth.maxvars) + " variables. This because the table will expand"),
-                    (1, kwargs['from_nick'], "by 2^nvars which can result in alot of calculation.")]
+            return [(1, kwargs['from_nick'], conf.COMMAND_CHAR + "tt [logical expression]"),
+                    (1, kwargs['from_nick'], "Example: .tt ((A + B) > C)"),
+                    (1, kwargs['from_nick'], "Calculates the logical expression and returns a 'truth table' containing the results."),
+                    (1, kwargs['from_nick'], "We have a limit of " + str(self.truth.truth.maxvars) + " variables.")]
 
     def cmd(self, command, args, channel, **kwargs):
         if conf.DEBUG: print("COMMAND TruthTable")
