@@ -23,7 +23,7 @@ class Plugin(object):
                     (1, kwargs['from_nick'], "by 2^nvars which can result in alot of calculation.")]
 
     def cmd(self, command, args, channel, **kwargs):
-        if conf.DEBUG: print("COMMAND TruthTable") # Dunno why this is here
+        if conf.DEBUG: print("COMMAND TruthTable")
         if command == 'tt':
             parsedOutput = self.truth.parse(str(args))
 
