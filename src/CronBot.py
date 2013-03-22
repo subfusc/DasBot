@@ -19,6 +19,8 @@ from AdminBot import AdminBot
 import threading
 import time
 import os
+import sys
+from math import ceil
 
 class CronTab(object):
 
@@ -34,13 +36,46 @@ class CronTab(object):
 
     def add_job(self, job):
         self.__lock.acquire()
+        same = 0
+        timestamp = job[0]
+        function = job[1]
+        args = job[2]
+        
         for x, l_job in enumerate(self.__tab):
-            if job[0] > l_job[0]:
-                self.__tab.insert(x, job)
+            if timestamp == l_job[0]: same += 1
+            if timestamp > l_job[0]:
+                self.__tab.insert(x, (timestamp, function, args))
+                rval = (same, timestamp)
                 break
         else:
-            self.__tab.append(job)
+            self.__tab.append((timestamp, function, args))
+            rval = (0, timestamp)
         self.__lock.release()
+        return rval
+        
+    def del_job(self, job_id):
+        self.__lock.acquire()
+        # sys.stderr.write("DELETING\n")
+        if not (len(job_id) != 2 or type(job_id[1]) != float or time.time() > job_id[1]):
+            same = job_id[0]
+            timestamp = job_id[1]
+            for x, l_job in enumerate(self.__tab):
+                if timestamp == l_job[0]:
+                    if same == 0:
+                        # sys.stderr.write("DELETING: " + str(self.__tab[x]) + " :: " + str(timestamp) + "\n")
+                        del(self.__tab[x])
+                        break
+                    else: same -= 1
+        #sys.stderr.write(str(self.__tab) + "\n")
+        self.__lock.release()
+
+    def get_next_job(self, t):
+        self.__lock.acquire()
+        rval = None
+        if len(self.__tab) > 0:
+            rval = self.__tab.pop() if t > self.__tab[-1][0] else self.__tab[-1]
+        self.__lock.release()
+        return rval
         
     def peek_job(self):
         self.__lock.acquire()
@@ -74,13 +109,24 @@ class CronJob(threading.Thread):
         self.__release_main_lock()
         
     def new_job(self, job):
-        self.crontab.add_job(job)
+        rval = self.crontab.add_job(job)
+        # sys.stderr.write(str(len(self.crontab))+ "\n")
         self.__release_main_lock()
+        return rval
 
+    def del_job(self, job_id):
+        """
+        Delete a job from the cron tab. The id looks like this = (number, timestamp) and is returned
+        from new_job
+        """
+        self.crontab.del_job(job_id)
+         
     def __aquire_both_locks(self):
         if conf.DEBUG: print("Aquire both locks")
         self.lock_lock.acquire()
+        # sys.stderr.write("SECOND LOCK\n")
         self.lock.acquire()
+        # sys.stderr.write("OUT!\n")
 
     def __release_lock_lock_and_wait(self):
         if conf.DEBUG: print("release lock lock and wait")
@@ -99,16 +145,19 @@ class CronJob(threading.Thread):
         while not self.exit:
             if conf.DEBUG: print("==::LOOP::==")
             self.__aquire_both_locks()
+            #sys.stderr.write(str(len(self.crontab)) + "\n")
             if len(self.crontab) > 0:
+                # sys.stderr.write(str(self.crontab.peek_job()) + "\n")
                 self.timer = threading.Timer(self.crontab.peek_job()[0] - time.time(), 
                                              CronJob.__release_main_lock, [self])
                 self.timer.start()
                 self.__release_lock_lock_and_wait()
                 self.__release_main_lock()
-                if self.crontab.peek_job()[0] < time.time():
+                t = time.time()
+                job = self.crontab.get_next_job(t)
+                if job and job[0] < t:
                     try:
-                        t = self.crontab.pop_job()
-                        self.send_function(t[1](*t[2]))
+                        self.send_function(job[1](*job[2]))
                     except Exception as e:
                         print("Error in The CronTab List: {ex}".format(ex = e))
             else:
@@ -136,6 +185,7 @@ class CronBot(AdminBot):
                 self.cronjob = CronJob(self._send_message)
                 self.cronjob.start()
         kwargs['new_job'] = self.cronjob.new_job
+        kwargs['del_job'] = self.cronjob.del_job
         super(CronBot, self).cmd(command, args, channel, **kwargs)
 
     def help(self, command, args, channel, **kwargs):
@@ -144,4 +194,25 @@ class CronBot(AdminBot):
         elif command == 'all':
             self.notify(kwargs['from_nick'], 'CronBot: reloadcron')
         super(CronBot, self).help(command, args, channel, **kwargs)
-        
+
+
+# def local_print(*args):
+#    sys.stderr.write(str(args) + "\n")
+#    return args
+
+# if __name__ == '__main__':
+#     c = CronJob(local_print)
+#     c.start()
+#     time.sleep(2)
+#     c.new_job((time.time() + 10, local_print, ["10"]))
+#     c.new_job((time.time() + 30, local_print, ["30"]))
+#     job1 = c.new_job((time.time() + 15, local_print, ["15"]))
+#     job2 = c.new_job((time.time() + 5, local_print, ["5"]))
+#     c.new_job((time.time() + 10, local_print, ["10 - 2"]))
+#     time.sleep(10)
+#     c.del_job(job2)
+#     c.del_job(job1)
+#     while len(c.crontab) > 0:
+#         time.sleep(2)
+#     c.stop()
+#

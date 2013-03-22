@@ -18,16 +18,31 @@ import time
 
 class Plugin(object):
 
+    def __init__(self):
+        self.job = None
+    
     def _print_reminder(self, channel, user, ti, msg):
+        self.job = None
         return [(0, channel, user, msg), 
                 (0, channel, user, "Real time used: {t}".format(t = (time.time() - ti)))]
     
     def cmd(self, command, args, channel, **kwargs):
         if command == "reminder":
             args = args.split()
-            if len(args) >= 2:
-                kwargs['new_job']((time.time() + int(args[0]), self._print_reminder, [channel, 
-                                                                                      kwargs['from_nick'],
-                                                                                      time.time(),
-                                                                                      " ".join(args[1:])]))
+            if len(args) >= 2 and self.job == None:
+               self.job = kwargs['new_job']((time.time() + int(args[0]),
+                                             self._print_reminder,
+                                             [channel,
+                                              kwargs['from_nick'],
+                                              time.time(),
+                                              " ".join(args[1:])]))
+               return [(0, channel,
+                        kwargs['from_nick'],
+                        "Okay, I will remind you of that in {s} seconds.".format(s = args[0]))]
+           
+        if command == "stopreminder":
+            if self.job:
+                kwargs['del_job'](self.job)
+                self.job = None
+                return [(0, channel, kwargs['from_nick'], "Done!")]
                 
