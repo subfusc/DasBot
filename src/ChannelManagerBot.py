@@ -26,10 +26,12 @@ class ChannelManagementBot(CronBot):
         super(ChannelManagementBot, self).__init__()
         self.channel = {}
         self.nicks = []
+        self.topics = {}
 
     def cmd(self, command, args, channel, **kwargs):
         if conf.DEBUG: print("ChannelManagementBot CMD function")
         kwargs["channel_users"] = self.channel[channel] if channel in self.channel else [kwargs['from_nick']]
+        kwargs["channel_topic"] = self.topics[channel] if channel in self.topics else "None"
         super(ChannelManagementBot, self).cmd(command, args, channel, **kwargs)
         if command == "here":
             self.msg(channel, "[" + ", ".join(self.channel[channel]) + "]", to = kwargs['from_nick'])
@@ -37,7 +39,7 @@ class ChannelManagementBot(CronBot):
     def listen(self, command, line, channel, **kwargs):
         kwargs["channel_users"] = self.channel[channel] if channel in self.channel else [kwargs['from_nick']]
         super(ChannelManagementBot, self).listen(command, line, channel, **kwargs)
-            
+        
     def management_cmd(self, command, args, **kwargs):
         super(ChannelManagementBot, self).management_cmd(command, args, **kwargs)
         if conf.IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD : {d}\n".format(d=command))
@@ -59,6 +61,8 @@ class ChannelManagementBot(CronBot):
                 self.__rm_user_from_nicks(args[1])
         elif command == "NICK":
             self.__change_nick(kwargs["from_nick"], kwargs["msg"])
+        elif command == "TOPIC":
+            self.__change_topic(args, kwargs["msg"])
         if conf.IRC_DEBUG: stderr.write(":CHANNEL MANAGEMENT: MANAGEMENT_CMD_DONE\n".format())
                 
     def manage_users_during_join(self, name, args):
@@ -78,6 +82,9 @@ class ChannelManagementBot(CronBot):
                 self.channel[name].append(nick)
                 self.nicks.append(nick)
 
+    def manage_topic_during_join(self, channel, topic):
+        self.__change_topic(channel, topic)
+                
     def __exists_in_one_channel(self, nick):
         for channel in self.channel:
             if nick in channel: return True
@@ -113,3 +120,6 @@ class ChannelManagementBot(CronBot):
     def visible_for_bot(self, nick):
         return nick in self.nicks
 
+    def __change_topic(self, channel, topic):
+        print("Setting {c} topic to {t}".format(c = channel, t = topic))
+        self.topics[channel] = topic

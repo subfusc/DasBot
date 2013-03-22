@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import GlobalConfig as conf
-from PluginBot import PluginBot
+from AdminBot import AdminBot
 import threading
 import time
 import os
@@ -116,7 +116,7 @@ class CronJob(threading.Thread):
                 self.__release_main_lock()
         if conf.DEBUG: print("Exited Safely")
 
-class CronBot(PluginBot):
+class CronBot(AdminBot):
 
     def __init__(self):
         super(CronBot, self).__init__()

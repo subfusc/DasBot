@@ -174,7 +174,8 @@ class IRCbot(object):
         return True
 
     def manage_users_during_join(self, name, args): pass
-
+    def manage_topic_during_join(self, channel, topic): pass
+        
     def join(self, name):
         if not name in self.channel:
             self.send_sync('JOIN ' + name + '\n');
@@ -199,6 +200,11 @@ class IRCbot(object):
                     elif match.group('command') == '366': 
                         exit = True
                         break
+                    elif match.group('command') == '332':
+                        self.manage_topic_during_join(match.group('middle').split()[1].strip(),
+                                                      match.group('params'))
+                    elif match.group('command') == "PING":
+                        self.send_sync('PONG ' + match.group('params') + '\n')
             return True
         else:
             return True
