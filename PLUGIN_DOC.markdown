@@ -21,6 +21,7 @@ Information available in kwargs
 - auth_level: an integer between 0 and 100, where 100 is the owner and 0 is just a user. Who is what
               and at what level distinqushes what, is up for debate.
 - channel_users: The list of users in the channel that the current message/command is comming from.
+- channel_topic: The topic of the current channel
 - nick_to_user: A dictionary that contains the Username in the Authentication system as value and
                 current nick on IRC as key. This will contain the nick if the user is online.
 - user_to_nick: same as above, only reversed key and value. This has a lazy evaluation, so it will
@@ -41,6 +42,7 @@ a list with touples, where each touple must contain the following:
     (0, channel, message) // Same as send message to channel.
     (0, channel, nick, message) // Same as above but will be prefixed witht the nick e.g Bob: <message>
     (1, channel, message) // Notify in a channel (if channel == user, the user will be notified)
+    (2, channel, topic) // Change the topic in a channel to given topic
 
 So return values would be e.g:
 
