@@ -30,7 +30,12 @@ Information available in kwargs
            want the function to execute, the function and a list of argument. 
            e.g: ```kwargs['new_job']((time.time() + 20, self._send_reminder, [channel, msg]))```
                 will execute (Class)._send_reminder(channel, msg)
-           Return values should be the same as below.
+                Return values for that function should be the same as below.
+           new_job will return a touple which you will have to use as an ID if you want to delete jobs.
+- del_job: This function deletes a job from the cronjob. It is done by pasing the ID that was 
+           returned from the cronjob when new_job was called.
+           e.g: ```kwargs['del_job'](job_id)``` will delete job_id from the CronJob.
+
 
 
 Return values
