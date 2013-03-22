@@ -41,7 +41,7 @@ class PluginBot(IRCbot):
         for msg in message_array:
             if type(msg) == unicode:
                 return True
-                
+            
     def _send_message(self, message_array):
         if message_array == None: return
 
@@ -56,9 +56,12 @@ class PluginBot(IRCbot):
                     self.msg(message[1], message[3], to = message[2])
                 elif len(message) == 3:
                     self.msg(message[1], message[2])
-            else:
+            elif message[0] == 1:
                 if len(message) == 3:
                     self.notify(message[1], message[2])
+            elif message[0] == 2:
+                if len(message) == 3:
+                    self.topic(message[1], message[2])
 
     def __load_plugin(self, name):
         try:
