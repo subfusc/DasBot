@@ -3,11 +3,11 @@
 # Written by Sindre Wetjen < sindre dot w at gmail dot com >
 # License GPLv3
 # For full licence see the LICENSE file in the top directory. 
-from ChannelManagerBot import ChannelManagementBot
+from PluginBot import PluginBot
 import GlobalConfig as conf
 import sys
 
-class AdminBot(ChannelManagementBot):
+class AdminBot(PluginBot):
 
     def cmd(self, command, args, channel, **kwargs):
         if conf.DEBUG: print("AdminBot cmd")
@@ -34,4 +34,8 @@ class AdminBot(ChannelManagementBot):
                 self.voice(channel, args)
             elif command == 'devoice':
                 self.devoice(channel, args)
-        
+        if command == 'topic':
+            if args == None:
+                self.msg(channel, kwargs['channel_topic'])
+            elif kwargs['auth_level'] >= 30:
+                self.topic(channel, args)

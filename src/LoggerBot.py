@@ -5,11 +5,11 @@
 # For full licence see the LICENSE file in the top directory.
 
 import GlobalConfig as conf
-from AdminBot import AdminBot
+from ChannelManagerBot import ChannelManagementBot
 from time import strftime
 from os import path
 
-class LoggerBot(AdminBot):
+class LoggerBot(ChannelManagementBot):
 
     def __init__(self):
         super(LoggerBot, self).__init__()
