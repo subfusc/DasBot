@@ -144,20 +144,23 @@ class PollBot(object):
     def vote(self, channel, voter, alternative):
 
         if channel not in self.activePoll:
+            self.pollDebug('channel is not in self.activePoll')
             return None
 
         if voter in self.activePoll[channel].voters:
+            self.pollDebug('Vote from ' + voter + ' is already registered.')
             return None
 
         alternative = alternative.lower().strip()
 
-        if alternative not in self.activePoll[channel].alternatives:
-            return None
+        for alt in self.activePoll[channel].alternatives:
+            if alternative == alt.lower():
+                self.activePoll[channel].voters.append(voter)
+                self.activePoll[channel].alternatives[alternative] += 1
+                return 1
 
-        self.activePoll[channel].voters.append(voter)
-        self.activePoll[channel].alternatives[alternative] += 1
-
-        return 1
+        self.pollDebug('alternative ' + alternative + ' is not in self.activePoll[channel].alternatives')
+        return None
 
     def printPollHistory(self):
         url = 'http://pastebin.com/api/api_post.php'
