@@ -8,6 +8,9 @@ import GlobalConfig as conf
 
 # TODO
 # Make error messages
+# Nummerere alternatives
+# !vote uten argument vil fortelle alternativene
+# !poll uten argument vil fortelle hva pollen er
 
 POLL_LENGTH = 10                            # Poll default length
 POLL_HISTORY = True                         # Enable/disable poll history
@@ -121,7 +124,7 @@ class PollBot(object):
 
         return 1
 
-    def endPoll(self, channel, kill):
+    def endPoll(self, channel):
 
         if channel not in self.activePoll:
             return None
@@ -159,7 +162,10 @@ class PollBot(object):
     def printPollHistory(self):
         url = 'http://pastebin.com/api/api_post.php'
 
-        f = open(RESULT_FILE)
+        try:
+            f = open(RESULT_FILE)
+        except:
+            return None
 
         code = ''
 

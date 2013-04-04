@@ -112,4 +112,8 @@ class Plugin(object):
 
         if command == 'pollhistory':
             if self.p.POLL_HISTORY:
-                return [(0, channel, 'The poll history can be found at: ' + self.p.printPollHistory())]
+                response = self.p.printPollHistory()
+                if response == None:
+                    return [(0, channel, 'No poll history could be found.')]
+
+                return [(0, channel, 'The poll history can be found at: ' + response)]
