@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # TODO:
-# Draw, to med like mange stemmer
-# Case sensitivity
 
 import GlobalConfig as conf
 
@@ -65,17 +63,31 @@ class Plugin(object):
     def cmd(self, command, args, channel, **kwargs):
         if conf.DEBUG: print("COMMAND PollBot")
         if command == 'poll':
-            if kwargs['auth_nick'] != None:
-                if args != "":
+            if args != None:
+                if kwargs['auth_nick'] != None:
+                    if len(args.strip().split()) < 3:
+                        return [(0, channel, 'Fuck off')] #TODO:|
+
                     response = self.p.startPoll(kwargs['from_nick'], channel, args)
 
                     if response == None:
-                        return [(0, channel, "Vote failed to initiate.")]
+                        return [(0, channel, "Poll failed to initiate.")]
+
+                    # Fjern detta TODO:
+                    #self.p.endPoll(channel)
+                    #return [(0, channel, "Parse ok")]
 
                     self.p.activePoll[channel].cronId = [ kwargs['new_job']((time.time() + int(self.p.activePoll[channel].length/2), self.halfway, [channel]))
                                                          ,kwargs['new_job']((time.time() + self.p.activePoll[channel].length, self.countdown, [channel])) ]
 
                     return [(0, channel, 'The poll: "' + args + '" has been initiated by ' + kwargs['from_nick'] +'.')]
+
+            else:
+                if channel in self.p.activePoll:
+                    return [(0, channel, 'The poll: ' + self.p.activePoll[channel].question + ' is currently active. Type "' + conf.COMMAND_CHAR + 'vote"'
+                        + ' for alternatives.')]
+                else:
+                    return [(0, channel, 'There is currently no active poll.')]
 
         if command == 'vote':
             if channel in self.p.activePoll:
@@ -85,7 +97,6 @@ class Plugin(object):
                             return [(0, channel, 'Vote "' + args + '" registered from ' + kwargs['from_nick'])]
                     else:
                         if VOTE_REPLY_ON_FAIL == 1:
-                            print(self.p.activePoll[channel].alternatives) # TODO: Remove
                             return [(0, channel, 'Vote "' + args + '" failed.')]
                 else:
                     output = "The alternatives are: "
@@ -112,6 +123,10 @@ class Plugin(object):
 
         if command == 'pollhistory':
             if self.p.POLL_HISTORY:
+                if args == '--delete' and kwargs['auth_nick'] != None:
+                    self.p.delPollHistory()
+                    return [(0, channel, 'Poll history probably successfuly deleted.')]
+
                 response = self.p.printPollHistory()
                 if response == None:
                     return [(0, channel, 'No poll history could be found.')]

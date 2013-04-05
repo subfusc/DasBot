@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
 import urllib
 import urllib2
@@ -9,8 +10,6 @@ import GlobalConfig as conf
 # TODO
 # Make error messages
 # Nummerere alternatives
-# !vote uten argument vil fortelle alternativene
-# !poll uten argument vil fortelle hva pollen er
 
 POLL_LENGTH = 10                            # Poll default length
 POLL_HISTORY = True                         # Enable/disable poll history
@@ -156,7 +155,7 @@ class PollBot(object):
         for alt in self.activePoll[channel].alternatives:
             if alternative == alt.lower():
                 self.activePoll[channel].voters.append(voter)
-                self.activePoll[channel].alternatives[alternative] += 1
+                self.activePoll[channel].alternatives[alt] += 1
                 return 1
 
         self.pollDebug('alternative ' + alternative + ' is not in self.activePoll[channel].alternatives')
@@ -189,6 +188,14 @@ class PollBot(object):
         request = urllib2.Request(url, data)
         response = urllib2.urlopen(request)
         return(response.read())
+
+    def delPollHistory(self):
+        try:
+            with open(RESULT_FILE): pass
+
+            os.remove(RESULT_FILE)
+        except:
+            return None
 
     def pollDebug(self, msg):
         if conf.DEBUG:
