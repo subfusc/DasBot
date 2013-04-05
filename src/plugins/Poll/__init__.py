@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # TODO:
+# endpoll --fastforward og --discard
+# poll --status
 
 import GlobalConfig as conf
 
@@ -26,34 +28,27 @@ class Plugin(object):
         return [(0, channel, 'The poll: "' + self.p.activePoll[channel].question + '" is half way done. Hurry up and vote.')]
 
     def countdown(self, channel):
-        votes = []
 
-        for item in self.p.activePoll[channel].alternatives:
-            votes.append([self.p.activePoll[channel].alternatives[item], item])
+        winnerdata = self.p.getLeader(channel)
 
-        votes = sorted(votes, reverse=True)
+        self.p.activePoll[channel].winner[1] = str(winnerdata[0])
 
-        winnerCtr = 0
-        winners = ""
+        winners = ''
 
-        self.p.activePoll[channel].winner[1] = str(votes[0][0])
-
-        for item in votes:
-            if item[0] == votes[0][0]:
-                winnerCtr += 1
-
-        if winnerCtr > 1:
+        if len(winnerdata[1]) > 1:
             result = 'In the poll "' + self.p.activePoll[channel].question + '" the winner is tied between '
 
-            for i in range(0, winnerCtr):
-                result += votes[i][1] + ", "
-                winners += votes[i][1] + ", "
+            for item in winnerdata[1]:
+                winners += item + ", "
 
-            result = result.strip()[:-1]
-            result = result + ' with ' + str(votes[0][0]) + ' vote(s).'
+            winners = winners[:-2]
+
+            result += winners
+
+            result += ' with ' + str(winnerdata[0]) + ' vote(s).'
         else:
-            winners = votes[0][1]
-            result = 'In the poll "' + self.p.activePoll[channel].question + '" the winner is: ' + votes[0][1] + ' with ' + str(votes[0][0]) + ' vote(s).'
+            winners = winnerdata[1][0]
+            result = 'In the poll "' + self.p.activePoll[channel].question + '" the winner is: ' + winners + ' with ' + str(winnerdata[0]) + ' vote(s).'
 
         self.p.activePoll[channel].winner[0] = winners
         self.p.endPoll(channel)
@@ -66,26 +61,37 @@ class Plugin(object):
             if args != None:
                 if kwargs['auth_nick'] != None:
                     if len(args.strip().split()) < 3:
-                        return [(0, channel, 'Fuck off')] #TODO:|
+                        return [(0, channel, 'Fuck off')] #TODO: Lur tilbakemelding. Evt lage en bedre sjekk for hvor mange argumenter som må til
 
                     response = self.p.startPoll(kwargs['from_nick'], channel, args)
 
                     if response == None:
                         return [(0, channel, "Poll failed to initiate.")]
 
-                    # Fjern detta TODO:
+                    # TODO:
+                    # Fjerne dette. En ryddigere måte å debugge parsing
                     #self.p.endPoll(channel)
                     #return [(0, channel, "Parse ok")]
 
                     self.p.activePoll[channel].cronId = [ kwargs['new_job']((time.time() + int(self.p.activePoll[channel].length/2), self.halfway, [channel]))
                                                          ,kwargs['new_job']((time.time() + self.p.activePoll[channel].length, self.countdown, [channel])) ]
 
-                    return [(0, channel, 'The poll: "' + args + '" has been initiated by ' + kwargs['from_nick'] +'.')]
+                    return [(0, channel, 'The poll: "' + self.p.activePoll[channel].question + '" has been initiated by ' + kwargs['from_nick'] +'.')]
 
             else:
                 if channel in self.p.activePoll:
-                    return [(0, channel, 'The poll: ' + self.p.activePoll[channel].question + ' is currently active. Type "' + conf.COMMAND_CHAR + 'vote"'
-                        + ' for alternatives.')]
+
+                    leaderdata = self.p.getLeader(channel)
+
+                    leaders = ''
+
+                    for item in leaderdata[1]:
+                        leaders += item + ', '
+
+                    leaders = leaders[:-2]
+
+                    return [(0, channel, 'The poll: ' + self.p.activePoll[channel].question + ' is currently active. The current leader(s) is/are: '
+                        + leaders + ' with ' + str(leaderdata[0]) + ' points. Type "' + conf.COMMAND_CHAR + 'vote" for alternatives.')]
                 else:
                     return [(0, channel, 'There is currently no active poll.')]
 

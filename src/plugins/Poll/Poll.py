@@ -10,6 +10,8 @@ import GlobalConfig as conf
 # TODO
 # Make error messages
 # Nummerere alternatives
+# pollstatus
+# unvote ish
 
 POLL_LENGTH = 10                            # Poll default length
 POLL_HISTORY = True                         # Enable/disable poll history
@@ -85,6 +87,28 @@ class PollBot(object):
             return argument
 
         return argument[:argument.index('?')+1]
+
+    def getLeader(self, channel):
+
+        if channel not in self.activePoll:
+            return None
+
+        votes = []
+
+        for item in self.activePoll[channel].alternatives:
+            votes.append([self.activePoll[channel].alternatives[item], item])
+
+        votes = sorted(votes, reverse=True)
+
+        result = [ votes[0][0], []]
+
+        for item in votes:
+            if item[0] == result[0]:
+                result[1].append(item[1])
+            else:
+                break
+
+        return result
 
     def startPoll(self, initiater, channel, argument):
 
