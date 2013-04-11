@@ -29,6 +29,7 @@ class TruthTable(object):
 
             index += 1
 
+    # Executes infix operator on varA and varB, varA being left and varB being right.
     def operate(self, operator, varA, varB):
 
         if operator == '&':
@@ -48,15 +49,13 @@ class TruthTable(object):
 
         operatorIndex = self.getOperatorIndex(statement)
 
-        # If 'entity'
-        # Takes care of P or (P) cases
         if operatorIndex == None:
             if len(statement) == 1:
                 return statement
             elif statement[0] == '~':
                 return ['~', self.makeTree(statement[1:])]
             else:
-                return  self.makeTree(statement[1:-1])
+                return self.makeTree(statement[1:-1])
 
         return [statement[operatorIndex], self.makeTree(statement[:operatorIndex]), self.makeTree(statement[operatorIndex+1:])]
 
@@ -172,8 +171,6 @@ class Truth(object):
 
         tree = self.truth.makeTree(statement)
 
-        print(tree)
-
         return self.truth.solveTree(tree)
 
     # This starts the process of parsing a logical statement
@@ -206,7 +203,6 @@ class Truth(object):
             self.error("No variables found")
             return 4
 
-
         # Checks are done
         # Lets work some magic
 
@@ -228,10 +224,13 @@ class Truth(object):
 
         resultSpaces = " "
 
-        if originalStatement[-1] == ')':
-            operatorIndex = self.truth.getOperatorIndex(originalStatement[1:-1]) + 1
-        else:
-            operatorIndex = self.truth.getOperatorIndex(originalStatement)
+        ###
+        #if originalStatement[-1] == ')':
+        #    operatorIndex = self.truth.getOperatorIndex(originalStatement[1:-1]) + 2 # TODO: ((a & b)) dies here
+        #else:
+        #    operatorIndex = self.truth.getOperatorIndex(originalStatement)
+        ##
+        operatorIndex = self.truth.getOperatorIndex(originalStatement)
 
         if operatorIndex == None:
             resultSpaces += ""
@@ -284,9 +283,5 @@ class Truth(object):
             return 'Something went wrong.'
 
 
-
-
-
-
 # Uncomment for debugging
-#t = Truth()
+truth = Truth()

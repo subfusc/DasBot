@@ -17,11 +17,12 @@ class Plugin(object):
         del(self.truth)
 
     def help(self, command, argc, channel, **kwargs):
+        if command == 'all':
+            return [(1, kwargs['from_nick'], 'TruthTableBot: tt')]
         if command == 'tt':
             return [(1, kwargs['from_nick'], conf.COMMAND_CHAR + "tt [logical expression]"),
-                    (1, kwargs['from_nick'], "Example: .tt ((A + B) > C)"),
-                    (1, kwargs['from_nick'], "Calculates the logical expression and returns a 'truth table' containing the results."),
-                    (1, kwargs['from_nick'], "We have a limit of " + str(self.truth.truth.maxvars) + " variables.")]
+                    (1, kwargs['from_nick'], "Calculates the logical expression and returns a truth table containing the results."),
+                    (1, kwargs['from_nick'], "Supports the operators &(AND), +(OR), >(IMPLICATION), ~(NOT). " + str(self.truth.truth.maxvars) + " Variable limit.")]
 
     def getPastie(self, args, output):
         url = 'http://pastebin.com/api/api_post.php'
@@ -55,7 +56,7 @@ class Plugin(object):
             output = []
             destination = 0
 
-            if len(parsedOutput) > MAX_LINES_TO_CHANNEL: # Bytt til hvor mange linjer skal få lov til å gå i channel
+            if len(parsedOutput) > MAX_LINES_TO_CHANNEL:
                 if PASTEBIN == 1:
                     output = [(0, channel, kwargs['from_nick'], "Your results can be found at " + self.getPastie(args, parsedOutput))]
                 else:
