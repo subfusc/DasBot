@@ -46,7 +46,6 @@ class PollBot(object):
         self.keywords = ['or', 'eller', 'vs']
         self.pollLength = POLL_LENGTH
         self.POLL_HISTORY = POLL_HISTORY
-        #self.timeRe = re.compile('(?P<number>\d+)(?P<timestamp>[s|m|h|d])((ecs?)|(ins?)|(ays?)|(ours?))?')
         self.timeRe = re.compile('(?P<days>\dd(ays?)?)?(?P<hours>\d{1,2}h(ours?)?)?(?P<minutes>\d{1,2}m(inutes?)?)?(?P<seconds>\d{1,2}s(econds?)?)?')
         self.altRe = re.compile('[,\s?\w+,]')
 
@@ -117,28 +116,33 @@ class PollBot(object):
 
         if channel in self.activePoll:
             self.pollDebug('Channel is in self.activePoll')
-            return None
+            return 1
 
         search = self.timeRe.search(argument)
 
+        searchValid = False
         if search != None:
-            argument = argument.split(' ', 1)[1]
+            for item in search.groups():
+                if item != None:
+                    argument = argument.split(' ', 1)[1]
+                    searchValid = True
+                    break
 
         alternatives = self.getAlternatives(argument)
 
         if alternatives == None:
             self.pollDebug('No alternatives found')
-            return None
+            return 2
 
         question = self.getQuestion(argument)
 
         if question == None:
             self.pollDebug('No question found')
-            return None
+            return 3
 
         time = 0
 
-        if search != None:
+        if searchValid:
 
             if search.group('days'):
                 time += int(search.group('days')[:-1]) * TIME_VALUE['d']
@@ -150,13 +154,13 @@ class PollBot(object):
                 time += int(search.group('seconds')[:-1])
 
             if time > 2 * TIME_VALUE['d'] or time < 10:
-                return None
+                return 4
         else:
             time = self.pollLength
 
         self.activePoll[channel] = Poll(initiater, channel, question, alternatives, time)
 
-        return 1
+        return 0
 
     def endPoll(self, channel):
 
