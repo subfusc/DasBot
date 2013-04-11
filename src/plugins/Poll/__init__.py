@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 # TODO:
-# endpoll --fastforward og --discard
-# poll --status
 
 import GlobalConfig as conf
-
 from Poll import PollBot
 
-from datetime import datetime
-from time import sleep
+import math
 import time
+from time import sleep
 
 VOTE_REPLY_ON_SUCCESS = 0
 VOTE_REPLY_ON_FAIL = 1
@@ -92,31 +89,30 @@ class Plugin(object):
 
                     leaders = leaders[:-2]
 
-                    # TODO: Tror en dag er 12 timer lang
                     timeleft = time.time() - self.p.activePoll[channel].initiated # How much time has passed
                     timeleft = self.p.activePoll[channel].length - timeleft       # Length of poll minus time that has passed
 
-                    days = int(timeleft / 86400)
-                    timeleft -= (86400 * days)
+                    days = timeleft / 86400
+                    timeleft -= (86400 * math.floor(days))
 
-                    hours = int(timeleft / 3600)
-                    timeleft -= (3600 * hours)
+                    hours = timeleft / 3600
+                    timeleft -= (3600 * math.floor(hours))
 
-                    mins = int(timeleft / 60)
-                    timeleft -= (60 * mins)
+                    mins = timeleft / 60
+                    timeleft -= (60 * math.floor(mins))
 
-                    sec = int(timeleft)
+                    sec = timeleft
 
                     timeString = ''
 
-                    if days > 0:
-                        timeString += str(days) + ' days, '
-                    if hours > 0:
-                        timeString += str(hours) + ' hours, '
-                    if mins > 0:
-                        timeString += str(mins) + ' mins, '
-                    if sec > 0:
-                        timeString += str(sec) + ' secs'
+                    if days >= 1:
+                        timeString += str(int(days)) + ' days, '
+                    if hours >= 1:
+                        timeString += str(int(hours)) + ' hours, '
+                    if mins >= 1:
+                        timeString += str(int(mins)) + ' mins, '
+                    if sec >= 1:
+                        timeString += str(int(sec)) + ' secs'
 
                     return [(0, channel, 'The poll: ' + self.p.activePoll[channel].question + ' is currently active with ' + timeString + ' left. The current leader(s) is/are: '
                         + leaders + ' with ' + str(leaderdata[0]) + ' points. Type "' + conf.COMMAND_CHAR + 'vote" for alternatives.')]

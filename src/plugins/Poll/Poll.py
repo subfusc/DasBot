@@ -10,15 +10,15 @@ import GlobalConfig as conf
 
 # TODO
 # Make error messages
-# Nummerere alternatives
-# Unicode
+# Numerate alternatives
+# Unicode, case sensitive symbols in .vote alternatives
 
 POLL_LENGTH = 10                            # Poll default length in seconds
 POLL_HISTORY = True                         # Enable/disable poll history
 RESULT_FILE = r'data/pollresults'           # Poll history data location
 VOTE_LOCK = False                           # 'Locks' a vote. One can't change the vote after its been set
 
-TIME_VALUE = { 'd':21600,
+TIME_VALUE = { 'd':86400,
         'h':3600,
         'm':60,
         's':1}
@@ -46,7 +46,8 @@ class PollBot(object):
         self.keywords = ['or', 'eller', 'vs']
         self.pollLength = POLL_LENGTH
         self.POLL_HISTORY = POLL_HISTORY
-        self.timeRe = re.compile('(?P<number>\d+)(?P<timestamp>[s|m|h|d])((ecs?)|(ins?)|(ays?)|(ours?))?')
+        #self.timeRe = re.compile('(?P<number>\d+)(?P<timestamp>[s|m|h|d])((ecs?)|(ins?)|(ays?)|(ours?))?')
+        self.timeRe = re.compile('(?P<days>\dd(ays?)?)?(?P<hours>\d{1,2}h(ours?)?)?(?P<minutes>\d{1,2}m(inutes?)?)?(?P<seconds>\d{1,2}s(econds?)?)?')
         self.altRe = re.compile('[,\s?\w+,]')
 
     def getAlternatives(self, argument):
@@ -84,7 +85,7 @@ class PollBot(object):
         return alternatives
 
     def getQuestion(self, argument):
-                                            # TODO: Ikke bra nok. Noen kan skrive en hel historie her
+
         if '?' not in argument:
             return argument
 
@@ -135,15 +136,23 @@ class PollBot(object):
             self.pollDebug('No question found')
             return None
 
-        if search != None:
-            time = int(search.group('number'))
+        time = 0
 
-            time = time * TIME_VALUE[search.group('timestamp')]
+        if search != None:
+
+            if search.group('days'):
+                time += int(search.group('days')[:-1]) * TIME_VALUE['d']
+            if search.group('hours'):
+                time += int(search.group('hours')[:-1]) * TIME_VALUE['h']
+            if search.group('minutes'):
+                time += int(search.group('minutes')[:-1]) * TIME_VALUE['m']
+            if search.group('seconds'):
+                time += int(search.group('seconds')[:-1])
+
+            if time > 2 * TIME_VALUE['d'] or time < 10:
+                return None
         else:
             time = self.pollLength
-
-        if time > 2 * TIME_VALUE['d'] or time < 10:
-            return None
 
         self.activePoll[channel] = Poll(initiater, channel, question, alternatives, time)
 
