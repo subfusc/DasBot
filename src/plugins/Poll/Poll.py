@@ -2,6 +2,7 @@
 
 import os
 import re
+import time
 import urllib
 import urllib2
 
@@ -10,12 +11,12 @@ import GlobalConfig as conf
 # TODO
 # Make error messages
 # Nummerere alternatives
-# pollstatus
-# unvote ish
+# Unicode
 
-POLL_LENGTH = 10                            # Poll default length
+POLL_LENGTH = 10                            # Poll default length in seconds
 POLL_HISTORY = True                         # Enable/disable poll history
 RESULT_FILE = r'data/pollresults'           # Poll history data location
+VOTE_LOCK = False                           # 'Locks' a vote. One can't change the vote after its been set
 
 TIME_VALUE = { 'd':21600,
         'h':3600,
@@ -29,10 +30,11 @@ class Poll(object):
         self.alternatives = alternatives
         self.winner = [ "", 0 ]
         self.length = length
+        self.initiated = time.time()
 
         self.initiater = initiater
 
-        self.voters = [ ]
+        self.voters = { }
 
         self.channel = channel
         self.cronId = ()
@@ -170,20 +172,33 @@ class PollBot(object):
             self.pollDebug('channel is not in self.activePoll')
             return None
 
-        if voter in self.activePoll[channel].voters:
-            self.pollDebug('Vote from ' + voter + ' is already registered.')
-            return None
-
         alternative = alternative.lower().strip()
 
         for alt in self.activePoll[channel].alternatives:
             if alternative == alt.lower():
-                self.activePoll[channel].voters.append(voter)
+                if voter in self.activePoll[channel].voters:
+                    if VOTE_LOCK:
+                        return None
+                    self.removeVote(channel, voter)
+
+                self.activePoll[channel].voters[voter] = alt
                 self.activePoll[channel].alternatives[alt] += 1
                 return 1
 
         self.pollDebug('alternative ' + alternative + ' is not in self.activePoll[channel].alternatives')
         return None
+
+    def removeVote(self, channel, voter):
+
+        if channel not in self.activePoll:
+            return None
+
+        if voter not in self.activePoll[channel].voters:
+            return None
+
+        self.activePoll[channel].alternatives[self.activePoll[channel].voters[voter]] -= 1
+
+        del(self.activePoll[channel].voters[voter])
 
     def printPollHistory(self):
         url = 'http://pastebin.com/api/api_post.php'

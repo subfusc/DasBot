@@ -6,6 +6,8 @@
 import GlobalConfig as conf
 
 from Poll import PollBot
+
+from datetime import datetime
 from time import sleep
 import time
 
@@ -61,7 +63,7 @@ class Plugin(object):
             if args != None:
                 if kwargs['auth_nick'] != None:
                     if len(args.strip().split()) < 3:
-                        return [(0, channel, 'Fuck off')] #TODO: Lur tilbakemelding. Evt lage en bedre sjekk for hvor mange argumenter som må til
+                        return None #TODO: Lur tilbakemelding. Evt lage en bedre sjekk for hvor mange argumenter som må til
 
                     response = self.p.startPoll(kwargs['from_nick'], channel, args)
 
@@ -90,7 +92,33 @@ class Plugin(object):
 
                     leaders = leaders[:-2]
 
-                    return [(0, channel, 'The poll: ' + self.p.activePoll[channel].question + ' is currently active. The current leader(s) is/are: '
+                    # TODO: Tror en dag er 12 timer lang
+                    timeleft = time.time() - self.p.activePoll[channel].initiated # How much time has passed
+                    timeleft = self.p.activePoll[channel].length - timeleft       # Length of poll minus time that has passed
+
+                    days = int(timeleft / 86400)
+                    timeleft -= (86400 * days)
+
+                    hours = int(timeleft / 3600)
+                    timeleft -= (3600 * hours)
+
+                    mins = int(timeleft / 60)
+                    timeleft -= (60 * mins)
+
+                    sec = int(timeleft)
+
+                    timeString = ''
+
+                    if days > 0:
+                        timeString += str(days) + ' days, '
+                    if hours > 0:
+                        timeString += str(hours) + ' hours, '
+                    if mins > 0:
+                        timeString += str(mins) + ' mins, '
+                    if sec > 0:
+                        timeString += str(sec) + ' secs'
+
+                    return [(0, channel, 'The poll: ' + self.p.activePoll[channel].question + ' is currently active with ' + timeString + ' left. The current leader(s) is/are: '
                         + leaders + ' with ' + str(leaderdata[0]) + ' points. Type "' + conf.COMMAND_CHAR + 'vote" for alternatives.')]
                 else:
                     return [(0, channel, 'There is currently no active poll.')]
@@ -118,12 +146,18 @@ class Plugin(object):
         if command == 'endpoll':
             if kwargs['auth_nick'] != None:
                 if channel in self.p.activePoll:
-                    kwargs['del_job'](self.p.activePoll[channel].cronId[0])
-                    kwargs['del_job'](self.p.activePoll[channel].cronId[1])
+                    if args == '--kill':
+                        kwargs['del_job'](self.p.activePoll[channel].cronId[0])
+                        kwargs['del_job'](self.p.activePoll[channel].cronId[1])
 
-                    self.p.forceEndPoll(channel)
+                        self.p.forceEndPoll(channel)
 
-                    return [(0, channel, 'Poll probably ended successfully.')]
+                        return [(0, channel, 'Poll probably ended successfully.')]
+                    else:
+                        kwargs['del_job'](self.p.activePoll[channel].cronId[0])
+                        kwargs['del_job'](self.p.activePoll[channel].cronId[1])
+
+                        return self.countdown(channel)
 
                 return [(0, channel, 'There is currently no active poll.')]
 
