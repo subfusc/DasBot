@@ -13,7 +13,7 @@ import GlobalConfig as conf
 # Numerate alternatives
 # Unicode, case sensitive symbols in .vote alternatives
 
-POLL_LENGTH = 10                            # Poll default length in seconds
+POLL_LENGTH = 60 * 5                        # Poll default length in seconds
 POLL_HISTORY = True                         # Enable/disable poll history
 RESULT_FILE = r'data/pollresults'           # Poll history data location
 VOTE_LOCK = False                           # 'Locks' a vote. One can't change the vote after its been set
