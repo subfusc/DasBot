@@ -83,9 +83,9 @@ class Plugin(object):
             else:
                 return self.help(command, args, channel, **kwargs)
 
-        if command == "lskarma":
-            karmalist = string.join([to_bytes(e) for e in self.backend(channel).getAllEntities()], ", ")
-            return [(1, channel, "karma things: {}".format(karmalist))]
+        # if command == "lskarma":
+        #     karmalist = string.join([to_bytes(e) for e in self.backend(channel).getAllEntities()], ", ")
+        #     return [(1, channel, "karma things: {}".format(karmalist))]
 
         if command == "hikarma" or command == "high":
             if args:
