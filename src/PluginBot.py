@@ -20,6 +20,7 @@ import sys
 import IRCFonts
 from os import listdir
 from sys import stderr
+from ConfigParser import ConfigParser
 
 class PluginBot(IRCbot):
 
@@ -66,7 +67,15 @@ class PluginBot(IRCbot):
     def __load_plugin(self, name):
         try:
             self.__plugins = __import__('plugins.' + name, globals(), locals(), [], -1)
-            plugin = eval('plugins.' + name + '.' + 'Plugin()', globals(), {"plugins":self.__plugins})
+            try:
+                config = ConfigParser()
+                config.readfp(open("plugins/" + name + "/plugin.cfg"))
+                plugin = eval('plugins.' + name + '.' + 'Plugin(config=config)',
+                              globals(),
+                              {"plugins":self.__plugins, "config":config})
+            except IOError as e:
+                plugin = eval('plugins.' + name + '.' + 'Plugin()', globals(), {"plugins":self.__plugins})
+
             self.__functions[0].append(name)
             self.__functions[1].append(plugin)
             self.__functions[2].append(hasattr(plugin, 'cmd'))
@@ -128,6 +137,7 @@ class PluginBot(IRCbot):
         except Exception as e:
             stderr.write(repr(e) + "\n")
             return False
+
     def __get_blacklisted(self, channel):
         rarr = []
         for plugin, blacklist in zip(self.__functions[0], self.__functions[6]):

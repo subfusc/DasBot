@@ -10,6 +10,13 @@ The bot will search for plugins.<name> and try to instanciate a class of type `P
 - `help` (so you can inform people of your commands) Syntax of help is: `?<cmd>`. The command `?all` lists all of the available commands provided by a plugin.
 - `stop` (if your plugin needs cleaning or syncing or similar before shutdown, this is the function you have to make)
 
+
+Infomration available in kwargs for __init__ in plugins
+---------
+- config: If there is a plugin.cfg file in the plugin directory, it will be read and sendt
+          as a ConfigParser object to the plugin during init.
+          ConfigParser doc: http://docs.python.org/2/library/configparser.html
+
 Information available in kwargs
 ---------
 
