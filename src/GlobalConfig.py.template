@@ -5,7 +5,7 @@
 VERBOSE = False
 DEBUG = False
 IRC_DEBUG = False
-VERSION = 0.2
+VERSION = "0.2.1"
 NAME = "dasbot"
 COMMAND_CHAR = "."
 HELP_CHAR = '@'

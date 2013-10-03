@@ -24,6 +24,7 @@ import traceback
 import time
 import GlobalConfig as conf
 from threading import Lock
+VERSION = 0.21
 
 """
 IRC SPESIFICATION
@@ -110,7 +111,8 @@ class IRCbot(object):
                         channel = match.group('middle').strip() if match.group('middle').strip() != conf.NICK else match.group('nick')
                         arg_dict = {"from_nick":match.group('nick'),
                                     "from_ident":match.group('ident'),
-                                    "from_host_mask":match.group('host')}
+                                    "from_host_mask":match.group('host'),
+                                    "version":VERSION}
 
                         if msg[0] == conf.COMMAND_CHAR:
                             full_cmd = self._parse_command(msg)
@@ -127,7 +129,8 @@ class IRCbot(object):
                                                 msg=match.group('params'),
                                                 from_nick=match.group('nick'),
                                                 from_ident=match.group('ident'),
-                                                from_host_mask=match.group('host'))
+                                                from_host_mask=match.group('host'),
+                                                version=VERSION)
                         else:
                             self.management_cmd(match.group('command'),
                                                 match.group('middle').strip() if match.group('middle') else None,

@@ -39,3 +39,5 @@ class AdminBot(PluginBot):
                 self.msg(channel, kwargs['channel_topic'])
             elif kwargs['auth_level'] >= 30:
                 self.topic(channel, args)
+        if command == 'version':
+            self.msg(channel, "I am in version {ver}".format(ver = kwargs["version"]))
