@@ -21,6 +21,7 @@ import IRCFonts
 from os import listdir
 from sys import stderr
 from ConfigParser import ConfigParser
+from types import MethodType
 
 class PluginBot(IRCbot):
 
@@ -78,10 +79,10 @@ class PluginBot(IRCbot):
 
             self.__functions[0].append(name)
             self.__functions[1].append(plugin)
-            self.__functions[2].append(hasattr(plugin, 'cmd'))
-            self.__functions[3].append(hasattr(plugin, 'listen'))
-            self.__functions[4].append(hasattr(plugin, 'help'))
-            self.__functions[5].append(hasattr(plugin, 'stop'))
+            self.__functions[2].append(hasattr(plugin, 'cmd') and isinstance(plugin.cmd, MethodType))
+            self.__functions[3].append(hasattr(plugin, 'listen') and isinstance(plugin.listen, MethodType))
+            self.__functions[4].append(hasattr(plugin, 'help') and isinstance(plugin.help, MethodType))
+            self.__functions[5].append(hasattr(plugin, 'stop') and isinstance(plugin.stop, MethodType))
             self.__functions[6].append([])
             return True
         except Exception as e:
@@ -116,7 +117,7 @@ class PluginBot(IRCbot):
             del(self.__functions[6][index])
             return True
         except Exception as e:
-            stderr.write(repr(e) + "\n")
+            stderr.write("Error in unload:" + repr(e) + "\n")
             return False
 
     def __blacklist_plugin(self, plugin, channel):
@@ -151,17 +152,22 @@ class PluginBot(IRCbot):
             if kwargs['auth_level'] >= 90:
                 if command == "load" and args:
                     if self.__has_plugin(args): 
-                        self.msg(channel, "Starting {p}:    [ {s} ]".format(p = args, s = IRCFonts.green(IRCFonts.bold('DONE'))))
+                        self.msg(channel, "Starting {0}: [ {1} ]".format(args,
+                                                                         IRCFonts.green(IRCFonts.bold('DONE'))))
                     elif self.__load_plugin(args):
-                        self.msg(channel, "Starting {p}:    [ {s} ]".format(p = args, s = IRCFonts.green(IRCFonts.bold('DONE'))))
+                        self.msg(channel, "Starting {0}: [ {1} ]".format(args,
+                                                                         IRCFonts.green(IRCFonts.bold('DONE'))))
                     else: 
-                        self.msg(channel, "Starting {p}:    [ {s} ]".format(p = args, s = IRCFonts.red(IRCFonts.bold('FAIL'))))
+                        self.msg(channel, "Starting {0}: [ {1} ]".format(args,
+                                                                         IRCFonts.red(IRCFonts.bold('FAIL'))))
 
                 elif command == "unload" and args:
                     if self.__unload_plugin(args):
-                        self.msg(channel, "Stopping {p}:    [ {s} ]".format(p = args, s = IRCFonts.green(IRCFonts.bold('DONE'))))
+                        self.msg(channel, "Stopping {0}: [ {1} ]".format(args,
+                                                                         IRCFonts.green(IRCFonts.bold('DONE'))))
                     else: 
-                        self.msg(channel, "Stopping {p}:    [ {s} ]".format(p = args, s = IRCFonts.red(IRCFonts.bold('FAIL'))))
+                        self.msg(channel, "Stopping {0}: [ {1} ]".format(args,
+                                                                         IRCFonts.red(IRCFonts.bold('FAIL'))))
 
                 elif command == "reload" and args:
                     if self.__unload_plugin(args) and self.__load_plugin(args):
@@ -218,7 +224,9 @@ class PluginBot(IRCbot):
                     all_plugins = listdir('plugins')
                     not_loaded = []
                     for plugin in all_plugins:
-                        if not plugin in self.__functions[0] and not (plugin.endswith('py') or plugin.endswith('pyc')) :
+                        if not plugin in self.__functions[0] and\
+                            not (plugin.endswith('py') or plugin.endswith('pyc') or\
+                                 plugin.startswith('.')):
                             not_loaded.append(plugin)
                     self.notify(kwargs['from_nick'], 'Plugins not in use: ' + ", ".join(not_loaded) + '.')
                 except Exception as e:
