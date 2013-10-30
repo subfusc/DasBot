@@ -24,7 +24,7 @@ import traceback
 import time
 import GlobalConfig as conf
 from threading import Lock
-VERSION = 0.22
+VERSION = 0.23
 
 """
 IRC SPESIFICATION
