@@ -29,8 +29,6 @@ class PluginBot(IRCbot):
         super(PluginBot, self).__init__()
         self.__plugins = None
         self.__functions = [[], [], [], [], [], [], []]
-        kwargs['verbose'] = conf.VERBOSE
-        kwargs['debug'] = conf.DEBUG
         if 'conf' in locals() or 'conf' in globals() and isinstance(conf.LOAD_PLUGINS, list):
             for plugin in conf.LOAD_PLUGINS:
                 self.__load_plugin(plugin, **kwargs)
@@ -68,6 +66,8 @@ class PluginBot(IRCbot):
                     self.topic(message[1], message[2])
 
     def __load_plugin(self, name, **kwargs):
+        kwargs['verbose'] = conf.VERBOSE
+        kwargs['debug'] = conf.DEBUG
         try:
             self.__plugins = __import__('plugins.' + name, globals(), locals(), [], -1)
             try:
