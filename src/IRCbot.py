@@ -56,7 +56,7 @@ class BadIRCCommandException(Exception): pass
 
 class IRCbot(object):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """ 
         Make an instance of the IRCbot class and prepare it for a Connection 
         """

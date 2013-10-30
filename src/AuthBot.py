@@ -16,7 +16,7 @@ class AuthBot(LoggerBot.LoggerBot):
     TODO: Use existing authentication mekanism
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         if conf.AUTHENTICATION:
             if conf.IRC_DEBUG:
                 print("""
@@ -36,7 +36,7 @@ class AuthBot(LoggerBot.LoggerBot):
             if conf.RECOVER_USERS:
                 self.authsys.recover_users()
             self.email_re = re.compile("(?P<user>[^@]+)@" + (conf.DOMAIN_RESTRICTION if conf.DOMAIN_RESTRICTION != '' else "\S+"))
-        super(AuthBot, self).__init__()
+        super(AuthBot, self).__init__(**kwargs)
 
     def stop(self):
         super(AuthBot, self).stop()

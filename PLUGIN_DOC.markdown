@@ -13,11 +13,15 @@ The bot will search for plugins.<name> and try to instanciate a class of type `P
 
 Infomration available in kwargs for __init__ in plugins
 ---------
+- debug: Boolean, if debug is set globaly in the bot.
+- verbose: Boolean, if verbose is set globaly in the bot.
+- new_job & del_job: Cron tab functions. See description in the available in cmd section.
 - config: If there is a plugin.cfg file in the plugin directory, it will be read and sendt
           as a ConfigParser object to the plugin during init.
           ConfigParser doc: http://docs.python.org/2/library/configparser.html
 
-Information available in kwargs
+
+Information available in kwargs in listen & cmd
 ---------
 
 - from_nick: The nick of the sender of this message/command
@@ -33,6 +37,9 @@ Information available in kwargs
                 current nick on IRC as key. This will contain the nick if the user is online.
 - user_to_nick: same as above, only reversed key and value. This has a lazy evaluation, so it will
                 not delete a user even if he goes online. But will reset if the user changes nick
+
+Information available in kwargs in cmd
+---------
 - new_job: This is the function to add jobs to the CronBot. It takes a touple with the unix time you 
            want the function to execute, the function and a list of argument. 
            e.g: ```kwargs['new_job']((time.time() + 20, self._send_reminder, [channel, msg]))```

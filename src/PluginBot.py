@@ -25,13 +25,15 @@ from types import MethodType
 
 class PluginBot(IRCbot):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super(PluginBot, self).__init__()
         self.__plugins = None
         self.__functions = [[], [], [], [], [], [], []]
+        kwargs['verbose'] = conf.VERBOSE
+        kwargs['debug'] = conf.DEBUG
         if 'conf' in locals() or 'conf' in globals() and isinstance(conf.LOAD_PLUGINS, list):
             for plugin in conf.LOAD_PLUGINS:
-                self.__load_plugin(plugin)
+                self.__load_plugin(plugin, **kwargs)
 
     def stop(self):
         super(PluginBot, self).stop()
@@ -65,15 +67,17 @@ class PluginBot(IRCbot):
                 if len(message) == 3:
                     self.topic(message[1], message[2])
 
-    def __load_plugin(self, name):
+    def __load_plugin(self, name, **kwargs):
         try:
             self.__plugins = __import__('plugins.' + name, globals(), locals(), [], -1)
             try:
                 config = ConfigParser()
                 config.readfp(open("plugins/" + name + "/plugin.cfg"))
-                plugin = eval('plugins.' + name + '.' + 'Plugin(config=config)',
+                kwargs['config'] = config
+                plugin = eval('plugins.' + name + '.' + 'Plugin(**kwargs)',
                               globals(),
-                              {"plugins":self.__plugins, "config":config})
+                              {"plugins":self.__plugins, "kwargs":kwargs})
+                del(kwargs['config'])
             except IOError as e:
                 plugin = eval('plugins.' + name + '.' + 'Plugin()', globals(), {"plugins":self.__plugins})
 
@@ -154,7 +158,7 @@ class PluginBot(IRCbot):
                     if self.__has_plugin(args): 
                         self.msg(channel, "Starting {0}: [ {1} ]".format(args,
                                                                          IRCFonts.green(IRCFonts.bold('DONE'))))
-                    elif self.__load_plugin(args):
+                    elif self.__load_plugin(args, **kwargs):
                         self.msg(channel, "Starting {0}: [ {1} ]".format(args,
                                                                          IRCFonts.green(IRCFonts.bold('DONE'))))
                     else: 
@@ -170,7 +174,7 @@ class PluginBot(IRCbot):
                                                                          IRCFonts.red(IRCFonts.bold('FAIL'))))
 
                 elif command == "reload" and args:
-                    if self.__unload_plugin(args) and self.__load_plugin(args):
+                    if self.__unload_plugin(args) and self.__load_plugin(args, **kwargs):
                         self.msg(channel, "Reloading {p}:    [ {s} ]".format(p = args, s = IRCFonts.green(IRCFonts.bold('DONE'))))
                     else:
                         self.msg(channel, "Reloading {p}:    [ {s} ]".format(p = args, s = IRCFonts.red(IRCFonts.bold('FAIL'))))

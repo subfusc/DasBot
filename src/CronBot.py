@@ -167,11 +167,14 @@ class CronJob(threading.Thread):
 
 class CronBot(AdminBot):
 
-    def __init__(self):
-        super(CronBot, self).__init__()
+    def __init__(self,**kwargs):
         self.cronjob = CronJob(self._send_message)
         if conf.START_CRON_BOT:
             self.cronjob.start()
+        kwargs['new_job'] = self.cronjob.new_job
+        kwargs['del_job'] = self.cronjob.del_job
+        super(CronBot, self).__init__(**kwargs)
+        
         
     def stop(self):
         super(CronBot, self).stop()

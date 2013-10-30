@@ -22,8 +22,8 @@ from sys import stderr
 
 class ChannelManagementBot(CronBot):
 
-    def __init__(self):
-        super(ChannelManagementBot, self).__init__()
+    def __init__(self, **kwargs):
+        super(ChannelManagementBot, self).__init__(**kwargs)
         self.channel = {}
         self.nicks = []
         self.topics = {}
