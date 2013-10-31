@@ -110,7 +110,7 @@ class CronJob(threading.Thread):
         
     def new_job(self, job):
         rval = self.crontab.add_job(job)
-        # sys.stderr.write(str(len(self.crontab))+ "\n")
+        sys.stderr.write(str(len(self.crontab))+ "\n")
         self.__release_main_lock()
         return rval
 
@@ -145,9 +145,9 @@ class CronJob(threading.Thread):
         while not self.exit:
             if conf.DEBUG: print("==::LOOP::==")
             self.__aquire_both_locks()
-            #sys.stderr.write(str(len(self.crontab)) + "\n")
+            sys.stderr.write(str(len(self.crontab)) + "\n")
             if len(self.crontab) > 0:
-                # sys.stderr.write(str(self.crontab.peek_job()) + "\n")
+                sys.stderr.write(str(self.crontab.peek_job()) + "\n")
                 self.timer = threading.Timer(self.crontab.peek_job()[0] - time.time(), 
                                              CronJob.__release_main_lock, [self])
                 self.timer.start()
@@ -171,6 +171,7 @@ class CronBot(AdminBot):
         self.cronjob = CronJob(self._send_message)
         if conf.START_CRON_BOT:
             self.cronjob.start()
+            
         kwargs['new_job'] = self.cronjob.new_job
         kwargs['del_job'] = self.cronjob.del_job
         super(CronBot, self).__init__(**kwargs)
@@ -199,23 +200,23 @@ class CronBot(AdminBot):
         super(CronBot, self).help(command, args, channel, **kwargs)
 
 
-# def local_print(*args):
-#    sys.stderr.write(str(args) + "\n")
-#    return args
+def local_print(*args):
+   sys.stderr.write(str(args) + "\n")
+   return args
 
-# if __name__ == '__main__':
-#     c = CronJob(local_print)
-#     c.start()
-#     time.sleep(2)
-#     c.new_job((time.time() + 10, local_print, ["10"]))
-#     c.new_job((time.time() + 30, local_print, ["30"]))
-#     job1 = c.new_job((time.time() + 15, local_print, ["15"]))
-#     job2 = c.new_job((time.time() + 5, local_print, ["5"]))
-#     c.new_job((time.time() + 10, local_print, ["10 - 2"]))
-#     time.sleep(10)
-#     c.del_job(job2)
-#     c.del_job(job1)
-#     while len(c.crontab) > 0:
-#         time.sleep(2)
-#     c.stop()
-#
+if __name__ == '__main__':
+    c = CronJob(local_print)
+    c.start()
+    time.sleep(2)
+    c.new_job((time.time() + 10, local_print, ["10"]))
+    c.new_job((time.time() + 30, local_print, ["30"]))
+    job1 = c.new_job((time.time() + 15, local_print, ["15"]))
+    job2 = c.new_job((time.time() + 5, local_print, ["5"]))
+    c.new_job((time.time() + 10, local_print, ["10 - 2"]))
+    time.sleep(10)
+    c.del_job(job2)
+    c.del_job(job1)
+    while len(c.crontab) > 0:
+        time.sleep(2)
+    c.stop()
+

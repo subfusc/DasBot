@@ -103,6 +103,12 @@ class SocketKeeper(threading.Thread):
         self.core_queue = SynchronizedQueue()
         
         self.timestamps = []
+
+    def copy_constructor(self):
+        rval = SocketKeeper(self.host, self.port, timeout=self.timeout, wait_delay=self.wait_delay, max_lines=self.max_lines)
+        rval.plugin_queue = self.plugin_queue
+        if self.s: self.s.close()
+        return rval
         
     def __connect(self):
         if self.s: 
@@ -145,8 +151,9 @@ class SocketKeeper(threading.Thread):
             self.__clean_timestamps(time.time())
             
         self.s.send(string)
-            
+        
     def connecting(self):
+        print "Trying to connect"
         self.connect_mode = True
         self.__connect()
         self.core_queue.clear()
@@ -179,14 +186,14 @@ class SocketKeeper(threading.Thread):
     def run(self):
         print "STAAART"
         self.exit = False
-        self.queue_event.clear()
         
         try:
             while not self.exit:
-                #print "LOOOOOP"
+                print "LOOOOOP"
                 cobj = None
+                self.queue_event.clear()
 
-                #print "CUE: ", self.core_queue.empty()
+                print "CUE: ", self.core_queue.empty(), self.plugin_queue.empty(), self.plugin_queue.queue
                 while not self.core_queue.empty():
                     print "poping core cue"
                     self.__non_delay_send(self.core_queue.pop())
@@ -200,14 +207,14 @@ class SocketKeeper(threading.Thread):
                         cobj
                         self.queue_event.clear()
                         
-                if not self.core_queue.empty():
+                if self.core_queue.empty() and self.plugin_queue.empty():
                     print "wait for event"
                     self.queue_event.wait()
                     
         except socket.error:
-            sys.err.write("Socket Error: {0}".format(socket.error))
+            sys.stderr.write("Inside Socket Error: {0}".format(socket.error))
             if cobj: self.queue.sneak(cobj)
-            
+
         self.__disconnect()
         
     
@@ -217,12 +224,12 @@ class IRCbot(object):
         """ 
         Make an instance of the IRCbot class and prepare it for a Connection 
         """
-        self.host = conf.HOST #: The IP/URL for the server
-        self.port = conf.PORT #: The port number for the server 
+        self.host = conf.HOST
+        self.port = conf.PORT
         self._nick = conf.NICK #: The nick the bot is going to use
         self.ident = conf.IDENT #: Identity of the bot
         self.realname = conf.REAL_NAME #: The "realname" of the bot
-        self.s = SocketKeeper(conf.HOST, conf.PORT) #: Create a socket for the I/O to the server
+        self.s = None  #: Create a socket for the I/O to the server
         self.message_re = re.compile(MESSAGE_RE)
         self.exit = False
         self.rest_line = ""
@@ -239,8 +246,12 @@ class IRCbot(object):
 
     def reset(self):
         "Reset variables that are needed in order to reconnect on pingout."
-        self.s.stop()
-        
+        if self.s: 
+            self.s.stop()
+            self.s = self.s.copy_constructor()
+        else:
+            self.s = SocketKeeper(conf.HOST, conf.PORT)
+            
     def __lineParser(self, raw):
         lines = raw.split('\r\n')
         if self.rest_line != "":
@@ -441,31 +452,34 @@ class IRCbot(object):
     def start(self, reconnect=True, reconnect_timeout=5, tries=10):
         original_tries = tries
         self.connect()
+        rec = False
+
         try:
             while not self.exit: # Main Loop
                 try:
-                    line = self.s.recv(1024) #recieve server messages
-                    
-                    if not line:
+                    if rec == True:
                         if reconnect and tries > 0:
+                            sys.stderr.write("Waiting: {0}".format(reconnect_timeout))
                             time.sleep(reconnect_timeout)
                             if self.connect():
                                 tries = original_tries
+                                rec = False
                             else: tries -= 1
                         else: break
-                            
+                        
+                    line = self.s.recv(1024) #recieve server messages
+                    if not line: continue
+                    
                     line = self.__lineParser(line)
                 except socket.error:
-                    sys.err.write("We got a Socket error: {0}.".format(socket.error))
-                    if reconnect and tries > 0:
-                        time.sleep(reconnect_timeout)
-                        if self.connect():
-                            tries = original_tries
-                        else: tries -= 1
+                    sys.stderr.write("We got a Socket error: {0}.".format(socket.error))
+                    rec = True
+
         except KeyboardInterrupt:
             self.stop()
+            print "Stopping"
             return
-
+        print "stopping main"
 
     def stop(self):
         self.s.stop()
