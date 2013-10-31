@@ -55,15 +55,15 @@ class PluginBot(IRCbot):
         for message in message_array: 
             if message[0] == 0:
                 if len(message) == 4:
-                    self.msg(message[1], message[3], to = message[2])
+                    self.msg(message[1], message[3], to = message[2], core=False)
                 elif len(message) == 3:
-                    self.msg(message[1], message[2])
+                    self.msg(message[1], message[2], core=False)
             elif message[0] == 1:
                 if len(message) == 3:
-                    self.notify(message[1], message[2])
+                    self.notify(message[1], message[2], core=False)
             elif message[0] == 2:
                 if len(message) == 3:
-                    self.topic(message[1], message[2])
+                    self.topic(message[1], message[2], core=False)
 
     def __load_plugin(self, name, **kwargs):
         kwargs['verbose'] = conf.VERBOSE

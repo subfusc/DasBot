@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import threading
 import sys 
 import socket 
 import string 
@@ -24,7 +24,7 @@ import traceback
 import time
 import GlobalConfig as conf
 from threading import Lock
-VERSION = 0.24
+VERSION = "0.24a"
 
 """
 IRC SPESIFICATION
@@ -54,6 +54,163 @@ MESSAGE_RE = r'^(:(?P<prefix>' + PREFIX_RE + r')\s+)?' + COMMAND_RE + PARAMS_RE 
 
 class BadIRCCommandException(Exception): pass
 
+class SynchronizedQueue(object):
+
+    def __init__(self):
+        self.lock = Lock()
+        self.queue = []
+
+    def add(self, obj):
+        self.lock.acquire()
+        self.queue.append(obj)
+        self.lock.release()
+
+    def sneak(self, obj):
+        self.lock.acquire()
+        self.queue.insert(0, obj)
+        self.lock.release()
+
+    def pop(self):
+        self.lock.acquire()
+        rval = self.queue.pop()
+        self.lock.release()
+        return rval
+
+    def clear(self):
+        self.lock.acquire()
+        self.queue = []
+        self.lock.release()
+    
+    def empty(self):
+        return len(self.queue) == 0
+        
+class SocketKeeper(threading.Thread):
+
+    def __init__(self, host, port, timeout=600, wait_delay=10, max_lines=2):
+        super(SocketKeeper, self).__init__()
+        self.host = host 
+        self.port = port
+        self.timeout = timeout
+        self.wait_delay = wait_delay
+        self.max_lines = max_lines
+        
+        self.exit = False
+        self.connect_mode = True
+        self.queue_event = threading.Event()
+        
+        self.s = None
+        self.plugin_queue = SynchronizedQueue()
+        self.core_queue = SynchronizedQueue()
+        
+        self.timestamps = []
+        
+    def __connect(self):
+        if self.s: 
+            self.s.close()
+        self.s = socket.socket()
+        self.s.settimeout(self.timeout)
+        self.s.connect((self.host, self.port))
+
+    def __disconnect(self):
+        if self.s: self.s.close()
+
+
+    def __clean_timestamps(self, ctime):
+        for i, d in enumerate(self.timestamps):
+            if (ctime - d) > self.wait_delay:
+                del(self.timestamps[i]) 
+            
+    def __delay_send(self, string):
+        print "Delay send"
+        ctime = time.time()
+        self.__clean_timestamps(ctime)
+
+        print self.timestamps
+        print ctime
+        
+        if len(self.timestamps) > self.max_lines:
+            wait_time = self.wait_delay - (ctime - self.timestamps[0])
+            print "waiting: ", wait_time
+            if wait_time > 0:
+                time.sleep(wait_time)
+            del(self.timestamps[0])
+
+        self.timestamps.append(ctime)
+        self.s.send(string)
+        
+    def __non_delay_send(self, string):
+        print "non delay send"
+        self.timestamps.append(time.time())
+        if len(self.timestamps) > 1000:
+            self.__clean_timestamps(time.time())
+            
+        self.s.send(string)
+            
+    def connecting(self):
+        self.connect_mode = True
+        self.__connect()
+        self.core_queue.clear()
+
+    def connected(self):
+        self.connect_mode = False
+        self.queue_event.set()
+        
+    def stop(self):
+        print "STOOOP"
+        self.exit = True
+        self.queue_event.set()
+            
+    def send(self, string):
+        print "send", string
+        self.plugin_queue.add(string)
+        self.queue_event.set()
+
+    def core_send(self, string):
+        self.core_queue.add(string)
+        self.queue_event.set()
+        
+    def ping(self, string):
+        self.core_queue.sneak(string)
+        self.queue_event.set()
+
+    def recv(self, length):
+        return self.s.recv(length)
+        
+    def run(self):
+        print "STAAART"
+        self.exit = False
+        self.queue_event.clear()
+        
+        try:
+            while not self.exit:
+                #print "LOOOOOP"
+                cobj = None
+
+                #print "CUE: ", self.core_queue.empty()
+                while not self.core_queue.empty():
+                    print "poping core cue"
+                    self.__non_delay_send(self.core_queue.pop())
+                    self.queue_event.clear()
+                
+                if not self.connect_mode:
+                    while self.core_queue.empty() and not self.plugin_queue.empty():
+                        print "poping plugin cue"
+                        cobj = self.plugin_queue.pop()
+                        self.__delay_send(cobj)
+                        cobj
+                        self.queue_event.clear()
+                        
+                if not self.core_queue.empty():
+                    print "wait for event"
+                    self.queue_event.wait()
+                    
+        except socket.error:
+            sys.err.write("Socket Error: {0}".format(socket.error))
+            if cobj: self.queue.sneak(cobj)
+            
+        self.__disconnect()
+        
+    
 class IRCbot(object):
 
     def __init__(self, **kwargs):
@@ -65,14 +222,13 @@ class IRCbot(object):
         self._nick = conf.NICK #: The nick the bot is going to use
         self.ident = conf.IDENT #: Identity of the bot
         self.realname = conf.REAL_NAME #: The "realname" of the bot
-        self.s = None #: Create a socket for the I/O to the server
+        self.s = SocketKeeper(conf.HOST, conf.PORT) #: Create a socket for the I/O to the server
         self.message_re = re.compile(MESSAGE_RE)
-        self.send_lock = Lock()
         self.exit = False
         self.rest_line = ""
         
     def __del__(self):
-        if self.s: self.s.close()
+        if self.s: self.s.stop()
 
     def _parse_command(self, cmd):
         first_space = cmd.find(" ")
@@ -83,9 +239,7 @@ class IRCbot(object):
 
     def reset(self):
         "Reset variables that are needed in order to reconnect on pingout."
-        if self.s: self.s.close()
-        self.s = socket.socket() #: Create a socket for the I/O to the server
-        self.s.settimeout(600)
+        self.s.stop()
         
     def __lineParser(self, raw):
         lines = raw.split('\r\n')
@@ -144,7 +298,8 @@ class IRCbot(object):
         
     def connect(self):
         self.reset()
-        self.s.connect((self.host, self.port)) #Connect to server 
+        self.s.connecting() #Connect to server
+        self.s.start()
         self.send_sync('NICK ' + self._nick + '\r\n') #Send the nick to server 
         self.send_sync('USER ' + self.ident + ' ' + self.host + ' SB: ' + self.realname + '\r\n') #Identify to server
 
@@ -173,7 +328,8 @@ class IRCbot(object):
 
         for channel in conf.STARTUP_CHANNELS:
             self.join(channel)
-
+        self.s.connected()
+            
         return True
 
     def manage_users_during_join(self, name, args): pass
@@ -218,23 +374,23 @@ class IRCbot(object):
             del self.channel[name]
         return True
 
-    def msg(self, name, message, to = None):
+    def msg(self, name, message, to = None, core=True):
         if name[0] == '#':
-            if to: self.send_sync("PRIVMSG " + name + " :" + to + ": " + message + "\r\n")
-            else: self.send_sync("PRIVMSG " + name + " :" + message + "\r\n")
+            if to: self.send_sync("PRIVMSG " + name + " :" + to + ": " + message + "\r\n", core=core)
+            else: self.send_sync("PRIVMSG " + name + " :" + message + "\r\n", core=core)
         elif to != None and name == to:
-            self.send_sync("PRIVMSG " + to + " :" + message + "\r\n")
+            self.send_sync("PRIVMSG " + to + " :" + message + "\r\n", core=core)
         else:
-            self.send_sync("PRIVMSG " + name + " :" + message + "\r\n")
+            self.send_sync("PRIVMSG " + name + " :" + message + "\r\n", core=core)
             
-    def private_msg(self, to, message):
-        self.send_sync("PRIVMSG %s :%s\n" % (to, message))
+    def private_msg(self, to, message, core=True):
+        self.send_sync("PRIVMSG %s :%s\n" % (to, message), core=core)
 
-    def notify(self, name, message):
-        self.send_sync("NOTICE " + name + " :" + message + "\r\n")
+    def notify(self, name, message, core=True):
+        self.send_sync("NOTICE " + name + " :" + message + "\r\n", core=core)
 
-    def topic(self, channel, topic):
-        self.send_sync("TOPIC " + channel + " :" + topic + "\r\n")
+    def topic(self, channel, topic, core=True):
+        self.send_sync("TOPIC " + channel + " :" + topic + "\r\n", core=core)
 
     def nick(self, _nick):
         self.send_sync("NICK " + _nick + "\r\n")
@@ -262,12 +418,13 @@ class IRCbot(object):
 
     def devoice(self, channel, nick): 
         self.send_sync("MODE " + channel + " -v " + nick + "\r\n")
-        
-    def send_sync(self, msg):
-        self.send_lock.acquire()
-        self.s.send(msg)
-        self.send_lock.release()
-        
+
+    def send_sync(self, msg, core=True):
+        if core:
+            self.s.core_send(msg)
+        else:
+            self.s.send(msg)
+
     def user_in_channel(self, channel, nick):
         channel = self.channel[channel]
         return nick in channel["user"] or nick in channel["voice"] or nick in channel["op"] 
@@ -306,11 +463,12 @@ class IRCbot(object):
                             tries = original_tries
                         else: tries -= 1
         except KeyboardInterrupt:
+            self.stop()
             return
 
 
     def stop(self):
-        if self.s: self.s.close()
+        self.s.stop()
         
     def _server_command(self, command, server):
         """
@@ -329,7 +487,7 @@ class IRCbot(object):
     def cmd(self, command, args, channel, **kwargs):
         """
         This function, when extended in your class, will give you all commands (as determined by
-        the globalconf COMMAND_CHAR) written in a channel.
+         the globalconf COMMAND_CHAR) written in a channel.
         If you are only going to run commands and not doing anything with NLP, please extend this
         to avoid unecessary overhead.
         """
