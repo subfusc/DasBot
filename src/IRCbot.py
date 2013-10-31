@@ -24,7 +24,7 @@ import traceback
 import time
 import GlobalConfig as conf
 from threading import Lock
-VERSION = 0.23
+VERSION = 0.24
 
 """
 IRC SPESIFICATION
@@ -97,8 +97,8 @@ class IRCbot(object):
             try:
                 match = self.message_re.match(line)
                 if conf.IRC_DEBUG: 
-                    sys.stderr.write(":BEFORE HANDLING: " + line + "\n")
-                    sys.stderr.write(str(match.groupdict()) + "\n")
+                    sys.stderr.write(":BEFORE HANDLING: " + line + "\r\n")
+                    sys.stderr.write(str(match.groupdict()) + "\r\n")
                 
                 if not match.group('prefix'):
                     self._server_command(match.group('command'), 
@@ -139,14 +139,14 @@ class IRCbot(object):
             except KeyboardInterrupt:
                 raise
             except Exception as e:
-                sys.stderr.write(":ERROR: " + repr(e) + "\n")
+                sys.stderr.write(":ERROR: " + repr(e) + "\r\n")
                 sys.stderr.write(":LINE : \"" + line + "\"\n")
         
     def connect(self):
         self.reset()
         self.s.connect((self.host, self.port)) #Connect to server 
-        self.send_sync('NICK ' + self._nick + '\n') #Send the nick to server 
-        self.send_sync('USER ' + self.ident + ' ' + self.host + ' SB: ' + self.realname + '\n') #Identify to server
+        self.send_sync('NICK ' + self._nick + '\r\n') #Send the nick to server 
+        self.send_sync('USER ' + self.ident + ' ' + self.host + ' SB: ' + self.realname + '\r\n') #Identify to server
 
         exit = False
         while not exit: # Join loop 
@@ -169,7 +169,7 @@ class IRCbot(object):
                     break
 
                 if match.group('command') == 'PING': #If server pings then pong 
-                    self.send_sync('PONG ' + match.group('params') + '\n')
+                    self.send_sync('PONG ' + match.group('params') + '\r\n')
 
         for channel in conf.STARTUP_CHANNELS:
             self.join(channel)
@@ -181,7 +181,7 @@ class IRCbot(object):
         
     def join(self, name):
         if not name in self.channel:
-            self.send_sync('JOIN ' + name + '\n');
+            self.send_sync('JOIN ' + name + '\r\n');
             exit = False
             
             while not exit:
@@ -194,7 +194,7 @@ class IRCbot(object):
                 self.rest_line = lines.pop()
                 
                 for l in lines:
-                    if conf.DEBUG: sys.stderr.write(":LINE (join): " + l + "\n")
+                    if conf.DEBUG: sys.stderr.write(":LINE (join): " + l + "\r\n")
                     match = self.message_re.match(l)
                     if match.group('command') == '353':
                         self.manage_users_during_join(match.group('middle').split("=")[1].strip(),
@@ -207,42 +207,42 @@ class IRCbot(object):
                         self.manage_topic_during_join(match.group('middle').split()[1].strip(),
                                                       match.group('params'))
                     elif match.group('command') == "PING":
-                        self.send_sync('PONG ' + match.group('params') + '\n')
+                        self.send_sync('PONG ' + match.group('params') + '\r\n')
             return True
         else:
             return True
         
     def part(self, name):
         if name in self.channel:
-            self.send_sync('PART ' + name + '\n')
+            self.send_sync('PART ' + name + '\r\n')
             del self.channel[name]
         return True
 
     def msg(self, name, message, to = None):
         if name[0] == '#':
-            if to: self.send_sync("PRIVMSG " + name + " :" + to + ": " + message + "\n")
-            else: self.send_sync("PRIVMSG " + name + " :" + message + "\n")
+            if to: self.send_sync("PRIVMSG " + name + " :" + to + ": " + message + "\r\n")
+            else: self.send_sync("PRIVMSG " + name + " :" + message + "\r\n")
         elif to != None and name == to:
-            self.send_sync("PRIVMSG " + to + " :" + message + "\n")
+            self.send_sync("PRIVMSG " + to + " :" + message + "\r\n")
         else:
-            self.send_sync("PRIVMSG " + name + " :" + message + "\n")
+            self.send_sync("PRIVMSG " + name + " :" + message + "\r\n")
             
     def private_msg(self, to, message):
         self.send_sync("PRIVMSG %s :%s\n" % (to, message))
 
     def notify(self, name, message):
-        self.send_sync("NOTICE " + name + " :" + message + "\n")
+        self.send_sync("NOTICE " + name + " :" + message + "\r\n")
 
     def topic(self, channel, topic):
-        self.send_sync("TOPIC " + channel + " :" + topic + "\n")
+        self.send_sync("TOPIC " + channel + " :" + topic + "\r\n")
 
     def nick(self, _nick):
-        self.send_sync("NICK " + _nick + "\n")
+        self.send_sync("NICK " + _nick + "\r\n")
         self._nick = _nick
 
     def kick(self, channel, nick, message="I don't like you!"):
         print "KICK " + channel + " " + nick + " :" + message
-        self.send_sync("KICK " + channel + " " + nick + " :" + message + "\n")
+        self.send_sync("KICK " + channel + " " + nick + " :" + message + "\r\n")
 
     def ban(self, channel, nick="*", ident="*", hostmask="*"):
         if not (nick == "*" and ident == "*" and hostmask == "*"):
@@ -251,17 +251,17 @@ class IRCbot(object):
     def unban(self, channel, nick="*", ident="*", hostmask="*"):
         self.send_sync("MODE " + channel + " -b %s!%s@%s\n" % (nick, ident, hostmask))
 
-    def op(self, channel, nick): 
-        self.send_sync("MODE " + channel + " +o " + nick + "\n")
+    def op(self, channel, nick):
+        self.send_sync("MODE " + channel + " +o " + nick + "\r\n")
 
     def deop(self, channel, nick): 
-        self.send_sync("MODE " + channel + " -o " + nick + "\n")
+        self.send_sync("MODE " + channel + " -o " + nick + "\r\n")
 
     def voice(self, channel, nick): 
-        self.send_sync("MODE " + channel + " +v " + nick + "\n")
+        self.send_sync("MODE " + channel + " +v " + nick + "\r\n")
 
     def devoice(self, channel, nick): 
-        self.send_sync("MODE " + channel + " -v " + nick + "\n")
+        self.send_sync("MODE " + channel + " -v " + nick + "\r\n")
         
     def send_sync(self, msg):
         self.send_lock.acquire()
@@ -299,6 +299,7 @@ class IRCbot(object):
                             
                     line = self.__lineParser(line)
                 except socket.error:
+                    sys.err.write("We got a Socket error: {0}.".format(socket.error))
                     if reconnect and tries > 0:
                         time.sleep(reconnect_timeout)
                         if self.connect():
@@ -320,10 +321,10 @@ class IRCbot(object):
             print(":SERVER: Command: %s, Server: %s" % (command, server))
 
         if conf.IRC_DEBUG:
-            sys.stderr.write('PONG ' + ":" + server[1] + '\n')
+            sys.stderr.write('PONG ' + ":" + server[1] + '\r\n')
             
         if command == 'PING':
-            self.send_sync('PONG ' + ":" + server[1] + '\n')
+            self.send_sync('PONG ' + ":" + server[1] + '\r\n')
 
     def cmd(self, command, args, channel, **kwargs):
         """

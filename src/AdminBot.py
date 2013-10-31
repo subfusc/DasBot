@@ -18,12 +18,15 @@ class AdminBot(PluginBot):
                 self.exit = True
         if kwargs['auth_level'] >= 60:
             if command == 'op':
-                self.op(channel, args)
+                if args:
+                    self.op(channel, args)
+                else:
+                    self.op(channel, kwargs['from_nick'])
             elif command == 'deop':
                 self.deop(channel, args)
             elif command == 'join':
                 if args[0] == '#':
-                    self.join(args)
+                    self.join(args.strip())
             elif command == 'part':
                 if args == None:
                     self.part(channel)
@@ -31,7 +34,10 @@ class AdminBot(PluginBot):
                     self.part(args.strip())
         if kwargs['auth_level'] >= 30:
             if command == 'voice':
-                self.voice(channel, args)
+                if args:
+                    self.voice(channel, args)
+                else:
+                    self.voice(channel, kwargs['from_nick'])
             elif command == 'devoice':
                 self.devoice(channel, args)
         if command == 'topic':
