@@ -250,7 +250,9 @@ class IRCbot(object):
             self.s.stop()
             self.s = self.s.copy_constructor()
         else:
-            self.s = SocketKeeper(conf.HOST, conf.PORT)
+            self.s = SocketKeeper(conf.HOST, conf.PORT,
+                                  wait_delay=conf.LINE_INTERVAL,
+                                  max_lines=conf.LINE_NUMBER)
             
     def __lineParser(self, raw):
         lines = raw.split('\r\n')

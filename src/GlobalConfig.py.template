@@ -25,6 +25,8 @@ STARTUP_CHANNELS = ["#iskbot"]
 RECONNECT = True
 RECONNECT_TIMEOUT = 5
 RECONNECT_TRIES = 10
+LINE_INTERVAL = 5
+LINE_NUMBER = 3          
 
 # ChannelManagerBot Config
 # Not in use ATM
