@@ -479,6 +479,11 @@ class IRCbot(object):
             self.stop()
             print "Stopping"
             return
+        except Exception:
+            self.stop()
+            print sys.stderr >> "Got an unexpected error!!!!!!!!!!!!!!!!"
+            print sys.stderr >> Exception
+            
         print "stopping main"
 
     def stop(self):
