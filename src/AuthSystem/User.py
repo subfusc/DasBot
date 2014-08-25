@@ -105,7 +105,7 @@ class User:
             if BOT_EMAIL != '':
                 text = '''Hi {u},
                 Your cookie is {c}.
-                To change you password, use the following command:
+                To change your password, use the following command:
                 /msg {i} !setpass {u} {c} <newpass> 
                 '''.format(u = self.nick, c = self.cookie, i = BOT_NICK)
 

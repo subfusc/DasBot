@@ -51,7 +51,7 @@ DATABASE_NAME = 'data/user_database.sql'
 HASH_ROUNDS = 200
 BOT_EMAIL = 'root@localhost' # must be set in order for the bot to send mail
 SMTP_SERVER = 'localhost' # Must be changed. smtp.uio.no i believe for hosting on IFI
-BOT_NICK = NAME
+BOT_NICK = NICK
 DOMAIN_RESTRICTION = '' # For email, if you e.g want only *uio.no domains, you write .*uio\\.no instead of ''
                         # '' is no restrictions. The domain restriction follow python regular expression rules.
 EMAIL_REGISTRATION = True # Allow users to use the same username that they have on their email
