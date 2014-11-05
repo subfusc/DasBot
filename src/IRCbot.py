@@ -49,7 +49,7 @@ IRC SPESIFICATION
 CRLF_RE = r'$' # This is not CRLF but its stripped before the RE is used, so it will be correct in our case
 PARAMS_RE = r'((\s+(?P<middle>[^:](\S|(\s(?!:)))+))?(\s+:(?P<params>[^\r\n]*))?)'
 COMMAND_RE = r'(?P<command>\S+)'
-PREFIX_RE = r'((?P<servername>[^.!@\s]+(\.[^.!@\s]+)+)|(?P<nick>[^.\s!]+)(!(?P<ident>[^@\s]+))?(@(?P<host>[^:\s]+))?)'
+PREFIX_RE = r'((?P<servername>[^.!@\s]+(\.[^.!@\s]+)+)|(?P<nick>[^.\s!]+)(!(?P<ident>[^@\s]+))?(@(?P<host>[^\s]+))?)'
 MESSAGE_RE = r'^(:(?P<prefix>' + PREFIX_RE + r')\s+)?' + COMMAND_RE + PARAMS_RE + CRLF_RE
 
 class BadIRCCommandException(Exception): pass
