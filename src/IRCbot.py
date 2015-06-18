@@ -127,7 +127,6 @@ class SocketKeeper(threading.Thread):
                 del(self.timestamps[i])
 
     def __delay_send(self, string):
-        print "Delay send"
         ctime = time.time()
         self.__clean_timestamps(ctime)
 
@@ -145,7 +144,6 @@ class SocketKeeper(threading.Thread):
         self.s.send(string)
 
     def __non_delay_send(self, string):
-        print "non delay send"
         self.timestamps.append(time.time())
         if len(self.timestamps) > 1000:
             self.__clean_timestamps(time.time())
@@ -163,12 +161,10 @@ class SocketKeeper(threading.Thread):
         self.queue_event.set()
 
     def stop(self):
-        print "STOOOP"
         self.exit = True
         self.queue_event.set()
 
     def send(self, string):
-        print "send", string
         self.plugin_queue.add(string)
         self.queue_event.set()
 
@@ -184,31 +180,25 @@ class SocketKeeper(threading.Thread):
         return self.s.recv(length)
 
     def run(self):
-        print "STAAART"
         self.exit = False
 
         try:
             while not self.exit:
-                print "LOOOOOP"
                 cobj = None
                 self.queue_event.clear()
 
-                print "CUE: ", self.core_queue.empty(), self.plugin_queue.empty(), self.plugin_queue.queue
                 while not self.core_queue.empty():
-                    print "poping core cue"
                     self.__non_delay_send(self.core_queue.pop())
                     self.queue_event.clear()
 
                 if not self.connect_mode:
                     while self.core_queue.empty() and not self.plugin_queue.empty():
-                        print "poping plugin cue"
                         cobj = self.plugin_queue.pop()
                         self.__delay_send(cobj)
                         cobj
                         self.queue_event.clear()
 
                 if self.core_queue.empty() and self.plugin_queue.empty():
-                    print "wait for event"
                     self.queue_event.wait()
 
         except socket.error:
