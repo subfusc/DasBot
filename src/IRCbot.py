@@ -548,9 +548,6 @@ class IRCbot(object):
         Args are ... well args...
         channel is the channel the help request came from.
         """
-        if command == "":
-            self.notify(kwargs["from_nick"], "?cmd - Will give you help on command cmd.")
-            self.notify(kwargs["from_nick"], "?all - Will give you a list of available commands.")
         if conf.VERBOSE:
             print(":HELP: Command: %s, Message: %s, Channel: %s, From: %s!%s@%s" % (command, args, channel,
 				kwargs["from_nick"],
